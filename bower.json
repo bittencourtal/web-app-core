@@ -1,0 +1,36 @@
+{
+  "name": "squid-adm",
+  "version": "0.0.1",
+  "authors": [
+    "João M. <joaom182@hotmail.com>"
+  ],
+  "description": "SQUID Administration",
+  "main": "index.html",
+  "license": "YSC",
+  "devDependencies": {},
+  "dependencies": {
+    "a0-angular-storage": "~0.0.7",
+    "angular-bootstrap": "~0.12.0",
+    "angular-cookies": "1.2.16",
+    "angular-jwt": "~0.0.5",
+    "angular-resource": "~1.2.25",
+    "angular-route": "~1.2.25",
+    "async": "~1.2.1",
+    "auth0-angular": "~3.0.6",
+    "bootstrap": "~3.2.0",
+    "jQuery-Mask-Plugin": "~1.10.13",
+    "jslinq": "*",
+    "jstorage": "~0.4.12",
+    "moment": "~2.8.4",
+    "ngMask": "angular-mask#~3.0.16",
+    "normalize-css": "normalize.css#~3.0.3",
+    "toastr": "~2.1.0",
+    "angular-material": "~0.11.4",
+    "dss": "~0.0.14",
+    "tagged-infinite-scroll": "~1.1.1"
+  },
+  "resolutions": {
+    "angular": "1.4.8",
+    "dss": "~0.1.0"
+  }
+}

@@ -1,0 +1,17 @@
+md-toast span{
+    padding: 12px 0;
+}
+
+@media (max-width: 480px) {
+
+    md-toast{
+        position: fixed;
+    }
+
+    .md-toast-open-bottom md-toast{
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: auto;
+    }
+}

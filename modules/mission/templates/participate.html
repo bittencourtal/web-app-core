@@ -1,0 +1,17 @@
+<md-dialog aria-label="Participar"  ng-cloak>
+    <md-dialog-content class="md-dialog-content" style="max-width:800px;max-height:810px;">
+        <h2 class="md-title">Participar</h2>
+        <p>
+            Poste uma foto no Instagram com a hashtag <span class="color-primary" ng-bind="'#' + mission.hashtag"></span>
+        </p>
+    </md-dialog-content>
+    <div class="md-actions">
+        <md-button class="md-primary" ng-click="openInstagram()" ng-if="isMobile">
+            <md-icon class="mdi mdi-instagram" aria-label="Share"></md-icon>
+            Abrir Instagram
+        </md-button>
+        <md-button class="md-primary" ng-click="closeModal()" ng-if="!isMobile">
+            OK
+        </md-button>
+    </div>
+</md-dialog>

@@ -1,0 +1,193 @@
+.mb15 {
+    margin-bottom: 15em;
+}
+
+.mb10 {
+    margin-bottom: 10em;
+}
+
+.mb5 {
+    margin-bottom: 5em;
+}
+
+.mb2 {
+    margin-bottom: 2.5em;
+}
+
+.mb1 {
+    margin-bottom: 1em;
+}
+
+.mb06 {
+    margin-bottom: 0.6em;
+}
+
+.mt15 {
+    margin-top: 15em;
+}
+
+.mt10 {
+    margin-top: 10em;
+}
+
+.mt5 {
+    margin-top: 5em;
+}
+
+.mt2 {
+    margin-top: 2.5em;
+}
+
+.mt1 {
+    margin-top: 1em;
+}
+
+.mt06 {
+    margin-top: 0.6em;
+}
+
+.no-padding {
+    padding: 0;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.z-index-200{
+    z-index: 200;
+}
+
+.text-faded {
+    color: rgba(255, 255, 255, .7);
+}
+
+.gride15 {
+    width: 13%;
+    margin: 0 0 0 2%;
+    float: left;
+}
+
+.gride85 {
+    width: 81%;
+    margin: 0 1%;
+    float: left;
+}
+
+.grid-fixo-120 {
+    width: 120px;
+    float: left;
+}
+
+.grid-variavel {
+    width: auto;
+    float: left;
+}
+
+.line-down {
+    border-bottom: solid 1px #f86c41;
+}
+
+.line-direita {
+    border-right: solid 1px #f86c41;
+}
+
+.line-esquerda {
+    border-left: solid 1px #f86c41;
+}
+
+.disabled {
+    background: #EFA994 !important;
+    pointer-events: none !important;
+}
+
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+}
+
+.line-height-1-5{
+    line-height: 1.5em !important;
+}
+
+.line-height-1-8{
+    line-height: 1.8em !important;
+}
+
+.margin-top-4{
+    margin-top: 48px !important;
+}
+
+.margin-top-double{
+    margin-top: 24px !important;
+}
+
+.margin-bottom{
+    margin-bottom: 12px !important;
+}
+
+.margin-bottom-2{
+    margin-bottom: 24px !important;
+}
+
+.margin-bottom-3{
+    margin-bottom: 36px !important;
+}
+
+.margin-right-2{
+    margin-right: 24px !important;
+}
+
+.margin-bottom-4{
+    margin-bottom: 48px !important;
+}
+
+.no-margin{
+    margin:0 !important;
+}
+
+.padding-2{
+    padding:24px !important;
+}
+
+.fixed {
+    position: fixed !important;
+    z-index: 30;
+}
+
+.text-center{
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .sm-margin-top-double{
+        margin-top: 24px !important;
+    }
+
+    .sm-no-margin{
+        margin:0 !important;
+    }
+
+    .sm-margin-bottom-3{
+        margin-bottom: 36px !important;
+    }
+
+    .sm-margin-top{
+        margin-top:12px !important;;
+    }
+
+    .sm-padding-2{
+        padding:24px !important;
+    }
+
+    .sm-padding-3{
+        padding:36px !important;
+    }
+
+    .sm-padding-bottom-5{
+        padding-bottom:60px !important;
+    }
+}

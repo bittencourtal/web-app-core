@@ -1,0 +1,51 @@
+header md-toolbar.md-default-theme:not(.md-menu-toolbar),
+header md-toolbar:not(.md-menu-toolbar){
+    color: ||primary.50||;
+}
+
+header md-sidenav .menu-header{
+    background: ||primary.default||;
+}
+
+header md-sidenav md-list-item.active,
+header md-sidenav md-list-item.active md-icon{
+    color: ||primary.default||;
+}
+
+header md-toolbar:not(.md-menu-toolbar) .md-button.active,
+header md-toolbar:not(.md-menu-toolbar) a.md-button.active:not([disabled]).md-icon-button:hover,
+header md-toolbar:not(.md-menu-toolbar) .md-button.active:not([disabled]).md-icon-button:hover{
+    background: ||primary.50||;
+    color: ||primary.default||;
+}
+
+md-toolbar:not(.md-menu-toolbar) .md-button md-icon{
+    color: ||primary.50||;
+}
+
+md-toolbar:not(.md-menu-toolbar) .md-button{
+    color: ||primary.50||;
+}
+
+md-toolbar:not(.md-menu-toolbar) .md-button.active md-icon{
+    color: ||primary.default||;
+}
+
+header md-toolbar:not(.md-menu-toolbar) a.md-button:not([disabled]).md-icon-button:hover,
+header md-toolbar:not(.md-menu-toolbar) .md-button:not([disabled]).md-icon-button:hover{
+    background: ||primary.900||;
+}
+
+header md-toolbar .md-toolbar-brand {
+    background-image:url('https://s3-sa-east-1.amazonaws.com/squid-cdn/logo.png');
+    background-color: #FFF;
+    background-repeat:no-repeat;
+    background-position: center center;
+    width:48px;
+    background-size: 38px;
+    margin-left: -24px;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+
+}

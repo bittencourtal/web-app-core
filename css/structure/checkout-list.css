@@ -1,0 +1,39 @@
+.checkout-list .checkout-list-item .md-list-item-text{
+    padding-right: 134px;
+}
+
+.checkout-list .checkout-list-item .md-list-item-text h3{
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: .01em;
+    margin: 0;
+    line-height: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: rgba(0,0,0,0.87);
+}
+
+.checkout-list .checkout-list-item .md-list-item-text p{
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .01em;
+    margin: 0;
+    line-height: 1.6em;
+    color: rgba(0,0,0,0.54);
+}
+
+@media (max-width: 480px) {
+    .checkout-list md-list-item.md-2-line.checkout-list-item{
+        height: auto;
+        margin-bottom: 24px;
+    }
+
+    .checkout-list md-list-item.md-2-line.checkout-list-item:last-child{
+        margin-bottom: 0;
+    }
+
+    .checkout-list .checkout-list-item .md-list-item-text{
+        padding-right: 64px;
+    }
+}

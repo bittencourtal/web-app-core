@@ -1,0 +1,21 @@
+a.md-button.md-default-theme.md-primary.md-raised,
+a.md-button.md-primary.md-raised,
+a.md-button.md-default-theme.md-primary.md-fab,
+a.md-button.md-primary.md-fab,
+.md-button.md-default-theme.md-primary.md-raised,
+.md-button.md-primary.md-raised,
+.md-button.md-default-theme.md-primary.md-fab,
+.md-button.md-primary.md-fab{
+    color: ||primary.50||;
+}
+
+a.md-button.md-default-theme.md-primary.md-raised:not([disabled]),
+a.md-button.md-primary.md-raised:not([disabled]) md-icon,
+a.md-button.md-default-theme.md-primary.md-fab:not([disabled]),
+a.md-button.md-primary.md-fab:not([disabled]) md-icon,
+.md-button.md-default-theme.md-primary.md-raised:not([disabled]),
+.md-button.md-primary.md-raised:not([disabled]) md-icon,
+.md-button.md-default-theme.md-primary.md-fab:not([disabled]),
+.md-button.md-primary.md-fab:not([disabled]) md-icon{
+    color: ||primary.50||;
+}

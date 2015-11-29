@@ -1,0 +1,43 @@
+.bg-primary{
+    background-color: ||primary.default|| !important;
+}
+
+.bg-primary-dark{
+    background-color: ||primary.900|| !important;
+}
+
+.bg-clear{
+    background: #E1E1E1 !important;
+}
+
+.border-clear{
+    border:1px solid #E1E1E1;
+}
+
+.bg-white {
+    background: #FFF !important;
+}
+
+.bg-success{
+    background: #57d35c !important;
+}
+
+.color-success{
+    color:#57d35c;
+}
+
+.color-pending{
+    color: #ffa411;
+}
+
+.color-white{
+    color: #FFFFFF !important;;
+}
+
+.color-primary{
+    color: ||primary.default|| !important;
+}
+
+.color-light{
+    color: #b5b5b5;
+}

@@ -1,0 +1,8 @@
+a {
+    color: ||primary.default||;
+}
+
+a:hover,
+a:focus {
+    color: ||primary.900||;
+}

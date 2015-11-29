@@ -1,0 +1,11 @@
+.card.profile .card-header{
+    background: ||accent.500||;
+}
+
+.card.profile .profile-info-wrapper h2{
+    color: ||accent.500||;
+}
+
+.card.profile .profile-statistics-list li{
+    color: ||primary.50||;
+}

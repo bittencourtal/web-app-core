@@ -1,0 +1,113 @@
+<div ng-controller="MyProfileController" layout="row" layout-align="center center">
+
+    <div class="card profile">
+        <div class="card-header">
+            <div class="profile-info-wrapper">
+                <img ng-src="{{auth.profile.picture}}"
+                     alt="{{auth.profile.name}}"
+                     ng-if="auth.isAuthenticated"
+                     class="md-avatar" />
+
+                <img src="/images/no-img.jpg"
+                     ng-if="!auth.isAuthenticated"
+                     class="md-avatar" />
+                <h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
+                <h2 ng-if="!auth.isAuthenticated">Visitante</h2>
+            </div>
+            <div class="profile-statistics">
+                <ul class="profile-statistics-list">
+                    <li>
+                        <span class="number" ng-bind="userStatistics.participations"></span>
+                        <span class="label">Mídias enviadas</span>
+                    </li>
+                    <li>
+                        <span class="number" ng-bind="userStatistics.missionsCompleted"></span>
+                        <span class="label">Missões cumpridas</span>
+                    </li>
+                    <li>
+                        <span class="number" ng-bind="userStatistics.prizesRescued"></span>
+                        <span class="label">Prêmios</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <md-tabs md-dynamic-height
+                     md-border-bottom
+                     md-swipe-content="true"
+                     md-center-tabs="true"
+                     flex="100">
+                <md-tab>
+                    <md-tab-label>
+                        <span class="mdi mdi-apps"></span>
+                        Mídias
+                    </md-tab-label>
+                    <md-tab-body>
+                        <md-content class="md-padding">
+                            <div
+                                    tagged-infinite-scroll="loadMoreParticipations()"
+                                    tagged-infinite-scroll-disabled="isLoadingParticipations"
+                                    tagged-infinite-scroll-distance="100">
+                                <md-grid-list
+                                        md-cols-sm="2" md-cols-md="2" md-cols-gt-md="6"
+                                        md-row-height="1:1"
+                                        md-gutter="12px">
+                                    <md-grid-tile
+                                            md-rowspan="2" md-rowspan-sm="1"
+                                            md-colspan="2" md-colspan-sm="1"
+                                            ng-repeat="participation in participations.data"
+                                            class="bg-clear border-clear">
+                                        <img ng-src="{{participation.image}}" />
+                                    </md-grid-tile>
+                                </md-grid-list>
+                            </div>
+                            <div layout="column"
+                                 layout-align="center center"
+                                 ng-if="participations.data.length == 0 && !isLoadingParticipations"
+                                 class="text-center color-light margin-top-double sm-padding-2">
+                                <md-icon class="margin-bottom">
+                                    <span class="mdi mdi-pound md-display-2"></span>
+                                </md-icon>
+                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a particiar! :)</h4>
+                            </div>
+                            <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoadingParticipations">
+                                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+                            </div>
+                        </md-content>
+                    </md-tab-body>
+                </md-tab>
+                <md-tab>
+                    <md-tab-label>
+                        <span class="mdi mdi-tag-multiple"></span>
+                        Vouchers
+                    </md-tab-label>
+                    <md-tab-body>
+                        <md-content class="md-padding">
+                            <md-list>
+                                <md-list-item class="md-2-line" ng-repeat="voucher in vouchers">
+                                    <md-icon class="margin-right-2">
+                                        <span title="{{getVoucherUsedLabel(voucher.used)}}"
+                                              ng-class="{'color-pending': !voucher.used, 'color-success': voucher.used}"
+                                              class="mdi mdi-checkbox-blank-circle-outline">
+                                            <md-tooltip md-direction="top">{{getVoucherUsedLabel(voucher.used)}}</md-tooltip>
+                                        </span>
+                                    </md-icon>
+                                    <div class="md-list-item-text">
+                                        <h3>
+                                            {{voucher.value}} -
+                                            <a href="javascript:void(0)"
+                                               ng-click="$location.path('mission/mission-details/' + voucher.checkout.mission._id)">
+                                                #{{voucher.checkout.mission.hashtag}}
+                                            </a>
+                                        </h3>
+                                        <p ng-bind="voucher.prize.value"></p>
+                                    </div>
+                                </md-list-item>
+                            </md-list>
+                        </md-content>
+                    </md-tab-body>
+                </md-tab>
+            </md-tabs>
+        </div>
+    </div>
+</div>

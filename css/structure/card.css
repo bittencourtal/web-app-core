@@ -1,0 +1,234 @@
+.card {
+    position: relative;
+    background: #FFFFFF;
+    margin-bottom: 48px;
+    background-clip: padding-box;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.card.margin-half{
+    margin-bottom: 24px;
+}
+
+.card:last-of-type{
+    margin-bottom: 0;
+}
+
+.card h3 {
+    margin: 0;
+}
+
+.card h2.md-secondary{
+    margin:0;
+}
+
+.card figure {
+    margin:0;
+    line-height: 1em;
+}
+
+.card .card-body img,
+.card figure img {
+    width:100%;
+}
+
+.card .card-header {
+    padding: 12px;
+    border: 1px solid #EDEEEE;
+    border-top-left-radius: 6px;
+    -webkit-border-top-left-radius: 6px;
+    -moz-border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    -webkit-border-top-right-radius: 6px;
+    -moz-border-top-right-radius: 6px;
+}
+
+.card .card-header:after,
+.card .card-header:before{
+    content: ' ';
+    display: table;
+}
+
+.card .card-header:after{
+    clear: both;
+}
+
+.card .card-header figure{
+    height: 48px;
+    width: 48px;
+    float: left;
+}
+
+.card .card-header img {
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    border-radius: 30px;
+}
+
+.card .card-header-text {
+    height: 48px;
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 12px;
+    font-size: 1.2em;
+}
+
+.card .card-body{
+    position: relative;
+}
+
+.card .card-body .figure-caption{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    opacity: 0;
+    background: rgba(240, 95, 64, .9);
+    -webkit-transition: all .35s;
+    -moz-transition: all .35s;
+    transition: all .35s;
+}
+
+.card .card-body:hover .figure-caption{
+    opacity: 1;
+}
+
+.card .card-body .figure-caption-content{
+    height: 2.8em;
+    position: absolute;
+    top: 50%;
+    margin-top: -17px;
+    margin-bottom: 0;
+    left: 24px;
+    right: 24px;
+}
+
+.card .card-body .figure-caption-content h3{
+    font-size: 2.8em;
+    font-weight: 100;
+    margin: 0;
+}
+
+.card-body .card-body-overlay{
+    position: absolute;
+    padding: 12px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: #FFFFFF;
+}
+
+.card .card-footer{
+    padding: 12px;
+    position: relative;
+    z-index: 1;
+    border-bottom-left-radius: 6px;
+    -webkit-border-bottom-left-radius: 6px;
+    -moz-border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    -webkit-border-bottom-right-radius: 6px;
+    -moz-border-bottom-right-radius: 6px;
+}
+
+.card .card-footer.double-padding{
+    padding: 24px;
+}
+
+.card .card-info{
+    position: relative;
+    z-index: 1;
+    background-color: rgb(255,87,34);
+    padding: 12px;
+    margin-top:-1px;
+    border-top:0;
+    border-bottom: 0;
+
+}
+
+.card .card-info .card-info-icon,
+.card .card-info .card-info-label{
+    color: #FFFFFF;
+}
+
+.card .card-info .card-info-label{
+    padding-top: 4px;
+    font-size: 1.1em;
+}
+
+.card .card-info .card-info-icon-value{
+    font-size: 2em;
+    margin-left: 6px;
+}
+
+.card .card-footer .avatar figure{
+    width: 50px;
+    float: left;
+}
+
+.card .card-footer .avatar label{
+    text-transform: uppercase;
+    font-size: 1em;
+    color: #c8e1eb;
+    display: block;
+    margin-left: 60px;
+}
+
+.card .card-footer .avatar h4{
+    margin: 0;
+    margin-left: 60px;
+}
+
+.card .card-footer:before,
+.card .card-footer .avatar:before,
+.card .card-footer:after,
+.card .card-footer .avatar:after{
+    display: table;
+    content: ' ';
+}
+
+.card .card-footer:after,
+.card .card-footer .avatar:after{
+    clear: both;
+}
+
+
+@media (max-width: 480px) {
+    
+    
+    
+    .card .card-header figure{
+        height: 36px;
+        width: 36px;
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+
+    .card .card-header-text{
+        font-size: 1.1em;
+        height: 36px;
+    }
+
+    .card .card-footer .avatar{
+        float: none !important;
+        display: block;
+    }
+
+    .card .card-footer .btn{
+        clear: both;
+        float: none !important;
+        display: block;
+        margin-top: 12px;
+    }
+
+}

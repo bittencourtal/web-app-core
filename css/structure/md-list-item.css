@@ -1,0 +1,13 @@
+md-list-item{
+    position: relative;
+}
+
+md-list-item.md-1-line > md-icon{
+    margin-left:0;
+    vertical-align: middle;
+}
+
+md-list-item.md-2-line > md-icon{
+    margin-top:24px;
+    margin-right:24px;
+}

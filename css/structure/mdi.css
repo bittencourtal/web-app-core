@@ -1,0 +1,8 @@
+.mdi{
+    line-height: .92em;
+    vertical-align: sub;
+}
+
+.mdi:not([class*=md-display]){
+    font-size: 24px;
+}

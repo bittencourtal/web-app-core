@@ -1,0 +1,31 @@
+<div ng-controller="FeedController">
+
+    <div tagged-infinite-scroll="loadMore()"
+         tagged-infinite-scroll-disabled="isLoading"
+         tagged-infinite-scroll-distance="100">
+        <div class="card" ng-repeat="feed in feedList">
+            <div class="card-header">
+                <figure>
+                    <img alt="{{feed.user.profile.name}}" ng-src="{{feed.user.profile.picture}}" />
+                </figure>
+                <div class="card-header-text">
+                    <a title="{{feed.user.profile.name}}"
+                       target="_blank"
+                       href="https://instagram.com/{{feed.user.profile.nickname}}"
+                       ng-bind="feed.user.profile.nickname"></a>
+                    participou da missão <a title="mission" href="#/mission/mission-details/{{feed.mission._id}}" ng-bind="'#' + feed.mission.hashtag"></a>
+                </div>
+            </div>
+            <div class="card-body">
+                <figure>
+                    <a ng-href="{{feed.participation.instagram.link}}" target="_blank">
+                        <img alt="" ng-src="{{feed.image}}" />
+                    </a>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div layout="row" layout-align="center center" class="md-progress-wrapper">
+        <md-progress-circular md-mode="indeterminate" ng-if="isLoading"></md-progress-circular>
+    </div>
+</div>

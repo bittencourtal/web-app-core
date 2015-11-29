@@ -1,0 +1,122 @@
+<div ng-controller="CheckoutPrizeController">
+    <div class="card margin-bottom-3 sm-no-margin" id="toastBounds">
+        <div class="card-body">
+            <div layout="column"
+                 layout-align="center center"
+                 class="text-center color-light margin-top-double padding-2">
+                <md-icon ng-if="!userProfile.$valid">
+                    <span class="mdi mdi-lock md-display-3"></span>
+                </md-icon>
+                <md-icon class="color-success" ng-if="userProfile.$valid">
+                    <span class="mdi mdi-lock-open md-display-3"></span>
+                </md-icon>
+                <h2 ng-bind="prize.value"></h2>
+                <h4 ng-pluralize
+                    count="prize.points"
+                    when="{'one': '1 ponto', 'other': '{} pontos'}"></h4>
+            </div>
+            <div ng-show="!isLoading">
+                <div class="targe">
+                    <h3>Preencha/Confirme seus dados para prosseguir</h3>
+                </div>
+                <div class="padding-2 sm-padding-bottom-5">
+                    <form name="userProfile">
+                        <md-tabs
+                                md-dynamic-height
+                                md-border-bottom
+                                md-center-tabs
+                                md-selected="currentTabIndex">
+                            <md-tab md-on-select="onTabSelected(0)">
+                                <md-tab-label>
+                                    <span class="mdi mdi-email"></span>
+                                </md-tab-label>
+                                <md-tab-body>
+                                    <div layout="column"
+                                         layout-align="space-around start"
+                                         class="md-headline md-padding">
+                                        <md-input-container layout-fill>
+                                            <label>E-mail</label>
+                                            <input required type="email" name="emailContact" ng-model="userMetadata.emailContact" />
+                                        </md-input-container>
+                                        <md-input-container>
+                                            <label>Telefone</label>
+                                            <input required type="text" mask='(99) 9?9999-9999' name="phone" ng-model="userMetadata.phone" />
+                                        </md-input-container>
+                                    </div>
+                                </md-tab-body>
+                            </md-tab>
+                            <md-tab md-on-select="onTabSelected(1)">
+                                <md-tab-label>
+                                    <span class="mdi mdi-map-marker"></span>
+                                </md-tab-label>
+                                <md-tab-body>
+                                    <div layout="column"
+                                         layout-align="start start"
+                                         class="md-headline md-padding">
+                                        <md-input-container layout-fill>
+                                            <label>Endereço</label>
+                                            <input required type="text" name="address" ng-model="userMetadata.address" />
+                                        </md-input-container>
+                                    </div>
+                                </md-tab-body>
+                            </md-tab>
+                            <md-tab md-on-select="onTabSelected(2)">
+                                <md-tab-label>
+                                    <span class="mdi mdi-calendar-today"></span>
+                                </md-tab-label>
+                                <md-tab-body>
+                                    <div layout="row"
+                                         layout-align="space-around center"
+                                         class="md-headline">
+                                        <md-input-container flex="20">
+                                            <label>Dia</label>
+                                            <input required type="number" name="birthDateDay" ng-model="birthDate.day" min="1" max="31">
+                                        </md-input-container>
+                                        <md-input-container flex="20">
+                                            <label>Mês</label>
+                                            <input required type="number" name="birthDateMonth" ng-model="birthDate.month" min="1" max="12">
+                                        </md-input-container>
+                                        <md-input-container flex="30">
+                                            <label>Ano</label>
+                                            <input required type="number" name="birthDateYear" ng-model="birthDate.year" min="1910" max="{{maxYear}}">
+                                        </md-input-container>
+                                    </div>
+                                </md-tab-body>
+                            </md-tab>
+                            <md-tab md-on-select="onTabSelected(3)">
+                                <md-tab-label>
+                                    <span class="mdi mdi-gender-male-female"></span>
+                                </md-tab-label>
+                                <md-tab-body>
+                                    <div layout="row" layout-align="center center" class="md-headline md-padding">
+                                        <md-radio-group required name="gender" ng-model="userMetadata.gender">
+                                            <md-radio-button value="male">Masculino</md-radio-button>
+                                            <md-radio-button value="female">Feminino</md-radio-button>
+                                        </md-radio-group>
+                                    </div>
+                                </md-tab-body>
+                            </md-tab>
+                        </md-tabs>
+                    </form>
+                </div>
+            </div>
+            <div layout="row" layout-align="center center" ng-show="isLoading" class="margin-bottom-2">
+                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+            </div>
+            <md-button class="md-fab md-primary fixed"
+                       style="bottom: 12px; right:12px;"
+                       ng-if="!userProfile.$valid"
+                       ng-click="nextStep()"
+                       ng-disabled="!currentStepIsValid()">
+                <md-icon class="mdi mdi-arrow-right"></md-icon>
+            </md-button>
+            <md-button class="md-fab md-primary fixed"
+                       style="bottom: 12px; right:12px;"
+                       ng-if="userProfile.$valid"
+                       ng-click="rescue()"
+                       ng-disabled="!userProfile.$valid">
+                <md-icon class="mdi mdi-check"></md-icon>
+            </md-button>
+        </div>
+    </div>
+</div>
