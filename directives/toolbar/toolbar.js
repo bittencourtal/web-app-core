@@ -15,6 +15,7 @@
                         $scope.auth = auth;
                         $scope.$location = $location;
                         $scope.isSmallDevice = $mdMedia('sm');
+                        $scope.mobileSideMenuUrl = global.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
 
                         $scope.getButtonClass = function (menu) {
                             return {
