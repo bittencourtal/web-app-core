@@ -6,7 +6,7 @@
 
 		if (hostName === 'localhost') {
 			return 'http://localhost:5003';
-		} else if (hostName.contains('-dev')) {
+		} else if (hostName.indexOf('-dev') > -1) {
 			return 'http://api.squidit.com.br:81';
 		}else {
 			return 'http://api.squidit.com.br';
@@ -18,7 +18,7 @@
 
 		if (hostName === 'localhost') {
 			return global.SQUID_APP_ID;
-		} else if (hostName.contains('-dev')) {
+		} else if (hostName.indexOf('-dev') > -1) {
 			return global.SQUID_APP_ID;
 		} else {
 			return global.SQUID_APP_ID;
