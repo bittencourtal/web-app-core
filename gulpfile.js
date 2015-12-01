@@ -15,7 +15,6 @@ var cssOutputTheming = cssOutputFolder + '/theme.css';
 
 var scripts = {
     app: [
-        './vendors/mdThemeColors/mdThemeColors.js',
         './vendors/mdThemeColorsDSS/mdThemeColorsDSS.js',
         './vendors/infiniteScroll/infiniteScroll.js',
         './extension-methods/*.js',

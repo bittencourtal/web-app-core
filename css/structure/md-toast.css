@@ -1,5 +1,5 @@
-md-toast span{
-    padding: 12px 0;
+md-toast{
+    padding: 12px;
 }
 
 @media (max-width: 480px) {

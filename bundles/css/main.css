@@ -846,8 +846,8 @@ md-list-item.md-2-line > md-icon{
 .md-progress-wrapper{
     margin-top: 24px;
 }
-md-toast span{
-    padding: 12px 0;
+md-toast{
+    padding: 12px;
 }
 
 @media (max-width: 480px) {

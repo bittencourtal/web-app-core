@@ -1,5 +1,5 @@
 (function(){
-    angular.module('mdThemeColorsDSS', ['mdThemeColors'])
+    angular.module('mdThemeColorsDSS', [])
         .factory('mdThemeColorsDSS', ['mdThemeColors', function(mdThemeColors){
             return {
                 init: function(){
@@ -350,12 +350,12 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.login = angular.module("squid-login", []);
+	global.squid.mission = angular.module("squid-mission", []);
 
 })(window);
 (function(global) {
 
-	global.squid.mission = angular.module("squid-mission", []);
+	global.squid.login = angular.module("squid-login", []);
 
 })(window);
 (function(global) {
@@ -675,18 +675,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/feed', {
-                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: 'Feed'
-            });
-    }]);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.feed.controller('FeedController', [
@@ -728,6 +716,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/feed', {
+                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                pageTitle: 'Feed'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.feed.factory('feedService', ['$resource',
@@ -751,103 +751,6 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
-
-})(window);
-/* jshint undef: true, unused: false */
-/* global app, window */
-
-(function (global) {
-
-    global.squid.login.controller('LoginController', [
-        '$scope', 'auth', '$location', 'store',
-        function ($scope, auth, $location, store) {
-
-            var dict = {
-                loadingTitle: 'carregando...',
-                close: 'fechar',
-                signin: {
-                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
-                    serverErrorText: 'Você não está autorizado.',
-                    strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
-                },
-                signup: {
-                    serverErrorText: 'Não foi possível se cadastrar.'
-                },
-                reset: {
-                    serverErrorText: 'Não foi possível resetar a senha.'
-                }
-            };
-
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                        container: 'login-box',
-                        dict: dict
-                    }, function (profile, token) {
-                        store.set('profile', profile);
-                        store.set('token', token);
-
-                        if (_containsAllData(profile))
-                            $location.path(global.START_VIEW);
-                        else
-                            $location.path('/register');
-                    }
-                    ,
-                    function (error) {
-
-                    }
-                )
-                ;
-            }
-
-            function _containsAllData(profile) {
-                return profile.birthDate && profile.gender;
-            }
-
-            function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
-            }
-
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
-
-        }
-
-    ])
-    ;
-
-})(window);
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
-(function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -1118,6 +1021,24 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/mission/actives', {
+                viewUrl: global.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                pageTitle: '',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.mission.factory('missionService', ['$resource',
@@ -1178,6 +1099,85 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
+
+})(window);
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
+/* jshint undef: true, unused: false */
+/* global app, window */
+
+(function (global) {
+
+    global.squid.login.controller('LoginController', [
+        '$scope', 'auth', '$location', 'store',
+        function ($scope, auth, $location, store) {
+
+            var dict = {
+                loadingTitle: 'carregando...',
+                close: 'fechar',
+                signin: {
+                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
+                    serverErrorText: 'Você não está autorizado.',
+                    strategyEmailInvalid: 'O e-mail é invalido.',
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
+                },
+                signup: {
+                    serverErrorText: 'Não foi possível se cadastrar.'
+                },
+                reset: {
+                    serverErrorText: 'Não foi possível resetar a senha.'
+                }
+            };
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                        container: 'login-box',
+                        dict: dict
+                    }, function (profile, token) {
+                        store.set('profile', profile);
+                        store.set('token', token);
+
+                        if (_containsAllData(profile))
+                            $location.path(global.START_VIEW);
+                        else
+                            $location.path('/register');
+                    }
+                    ,
+                    function (error) {
+
+                    }
+                )
+                ;
+            }
+
+            function _containsAllData(profile) {
+                return profile.birthDate && profile.gender;
+            }
+
+            function _redirectIfIsLoggedIn() {
+                if (auth.isAuthenticated)
+                    $location.path(global.START_VIEW);
+            }
+
+            _redirectIfIsLoggedIn();
+            _initAuthLockComponent();
+
+        }
+
+    ])
+    ;
 
 })(window);
 (function (global) {

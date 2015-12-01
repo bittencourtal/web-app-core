@@ -1,5 +1,5 @@
 (function(){
-    angular.module('mdThemeColorsDSS', ['mdThemeColors'])
+    angular.module('mdThemeColorsDSS', [])
         .factory('mdThemeColorsDSS', ['mdThemeColors', function(mdThemeColors){
             return {
                 init: function(){
