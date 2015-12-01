@@ -1,1 +1,0 @@
-Diretivas que fazem parte apenas de módulo, que não são coisas gerais da aplicação.
