@@ -3,8 +3,8 @@
     global.squid.login.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/login', {
-                viewUrl: '/modules/login/views/index.html',
-                templateUrl: '/views/templates/login.html',
+                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
                 pageTitle: 'Login',
                 secondaryNav: true
             });

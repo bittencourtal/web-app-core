@@ -105,7 +105,7 @@
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ParticipateController',
-                    templateUrl: '/modules/mission/templates/participate.html',
+                    templateUrl: global.APP_DIR + '/modules/mission/templates/participate.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,
@@ -123,7 +123,7 @@
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ChallengeController',
-                    templateUrl: '/modules/mission/templates/challenge.html',
+                    templateUrl: global.APP_DIR + '/modules/mission/templates/challenge.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,

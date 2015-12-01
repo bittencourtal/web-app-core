@@ -1,73 +1,4 @@
 (function(){
-    angular.module('mdThemeColors', ['ngMaterial'])
-        .config(['$provide', '$mdThemingProvider', function($provide, $mdThemingProvider) {
-            var colorStore = {};
-
-            function _populateColorStore(){
-                //fetch the colors out of the themeing provider
-                Object.keys($mdThemingProvider._PALETTES).forEach(
-                    // clone the pallete colors to the colorStore var
-                    function(palleteName) {
-                        var pallete = $mdThemingProvider._PALETTES[palleteName];
-                        var colors  = [];
-                        colorStore[palleteName]=colors;
-                        Object.keys(pallete).forEach(function(colorName) {
-                            // use an regex to look for hex colors, ignore the rest
-                            if (/#[0-9A-Fa-f]{6}|0-9A-Fa-f]{8}\b/.exec(pallete[colorName])) {
-                                colors[colorName] = pallete[colorName];
-                            }
-                        });
-                    });
-            }
-
-            _populateColorStore();
-
-            $provide.factory('mdThemeColors', [
-                function() {
-                    var service = {};
-
-                    var getColorFactory = function(intent){
-                        return function(){
-                            var colors = $mdThemingProvider._THEMES['default'].colors[intent];
-                            var name = colors.name
-
-                            if(!colorStore[name])
-                                _populateColorStore();
-
-                            // Append the colors with links like hue-1, etc
-                            colorStore[name].default = colorStore[name][colors.hues['default']]
-                            colorStore[name].hue1 = colorStore[name][colors.hues['hue-1']]
-                            colorStore[name].hue2 = colorStore[name][colors.hues['hue-2']]
-                            colorStore[name].hue3 = colorStore[name][colors.hues['hue-3']]
-                            return colorStore[name];
-                        }
-                    }
-
-                    /**
-                     * Define the getter methods for accessing the colors
-                     */
-                    Object.defineProperty(service,'primary', {
-                        get: getColorFactory('primary')
-                    });
-
-                    Object.defineProperty(service,'accent', {
-                        get: getColorFactory('accent')
-                    });
-
-                    Object.defineProperty(service,'warn', {
-                        get: getColorFactory('warn')
-                    });
-
-                    Object.defineProperty(service,'background', {
-                        get: getColorFactory('background')
-                    });
-
-                    return service;
-                }
-            ]);
-        }]);
-})();
-(function(){
     angular.module('mdThemeColorsDSS', ['mdThemeColors'])
         .factory('mdThemeColorsDSS', ['mdThemeColors', function(mdThemeColors){
             return {
@@ -180,15 +111,12 @@ String.prototype.replaceAll = function (from, to) {
         var colorStore = {};
 
         function _populateColorStore(){
-            //fetch the colors out of the themeing provider
             Object.keys($mdThemingProvider._PALETTES).forEach(
-                // clone the pallete colors to the colorStore var
                 function(palleteName) {
                     var pallete = $mdThemingProvider._PALETTES[palleteName];
                     var colors  = [];
                     colorStore[palleteName]=colors;
                     Object.keys(pallete).forEach(function(colorName) {
-                        // use an regex to look for hex colors, ignore the rest
                         if (/#[0-9A-Fa-f]{6}|0-9A-Fa-f]{8}\b/.exec(pallete[colorName])) {
                             colors[colorName] = pallete[colorName];
                         }
@@ -353,7 +281,7 @@ String.prototype.replaceAll = function (from, to) {
         ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia',
             function($mdSidenav, $location, auth, store, $mdMedia){
                 return {
-                    templateUrl: '/directives/toolbar/toolbar.html',
+                    templateUrl: global.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
                     link: function($scope, $element, $attrs, $controllers){
@@ -412,17 +340,12 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.feed = angular.module("squid-feed", []);
-
-})(window);
-(function(global) {
-
 	global.squid.checkout = angular.module("squid-checkout", []);
 
 })(window);
 (function(global) {
 
-	global.squid.mission = angular.module("squid-mission", []);
+	global.squid.feed = angular.module("squid-feed", []);
 
 })(window);
 (function(global) {
@@ -432,86 +355,12 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
+	global.squid.mission = angular.module("squid-mission", []);
+
+})(window);
+(function(global) {
+
 	global.squid.user = angular.module("squid-user", []);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.feed.controller('FeedController', [
-        '$scope', 'feedService',
-        function ($scope, feedService) {
-
-            $scope.feedList = [];
-            $scope.paginationMetadata = {};
-            $scope.isLoading = false;
-
-            function _loadFeed(minId){
-                var query = {};
-
-                if(minId)
-                    query.minId = minId;
-
-                $scope.isLoading = true;
-
-                feedService.getFeedParticipation(query, function (result) {
-                    $scope.feedList = $scope.feedList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
-            }
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _loadFeed($scope.paginationMetadata.next.minId);
-            };
-
-            _loadFeed();
-
-        }]);
-
-
-})(window);
-(function (global) {
-
-    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/feed', {
-                viewUrl: '/modules/feed/views/feed.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: 'Feed'
-            });
-    }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.feed.factory('feedService', ['$resource',
-        function ($resource) {
-            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getFeedParticipation: {
-                    method: 'GET',
-                    params:{
-                        action: 'participation'
-                    }
-                },
-                getMissionsActive: {
-                    method: 'GET',
-                    params:{
-                        action: 'mission'
-                    }
-                }
-            });
-        }
-    ]);
 
 })(window);
 (function (global) {
@@ -751,6 +600,25 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.checkout.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/checkout', {
+                viewUrl: global.APP_DIR + '/modules/checkout/views/checkout.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                pageTitle: 'Checkout'
+            })
+            .when('/checkout/:prizeId', {
+                viewUrl: global.APP_DIR + '/modules/checkout/views/checkout-prize.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                pageTitle: 'Resgatar prêmio',
+                secondaryNav: true,
+                requireLogin: true
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.checkout.factory('checkoutService', ['$resource',
@@ -808,19 +676,158 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
-    global.squid.checkout.config(['$routeProvider', function ($routeProvider) {
+    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/checkout', {
-                viewUrl: '/modules/checkout/views/checkout.html',
+            .when('/feed', {
+                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
                 templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: 'Checkout'
-            })
-            .when('/checkout/:prizeId', {
-                viewUrl: '/modules/checkout/views/checkout-prize.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
-                pageTitle: 'Resgatar prêmio',
-                secondaryNav: true,
-                requireLogin: true
+                pageTitle: 'Feed'
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.feed.controller('FeedController', [
+        '$scope', 'feedService',
+        function ($scope, feedService) {
+
+            $scope.feedList = [];
+            $scope.paginationMetadata = {};
+            $scope.isLoading = false;
+
+            function _loadFeed(minId){
+                var query = {};
+
+                if(minId)
+                    query.minId = minId;
+
+                $scope.isLoading = true;
+
+                feedService.getFeedParticipation(query, function (result) {
+                    $scope.feedList = $scope.feedList.concat(result.data);
+                    $scope.paginationMetadata = result.paginationMetadata;
+                    $scope.isLoading = false;
+                }, function (err) {
+                    $scope.isLoading = false;
+                });
+            }
+
+            $scope.loadMore = function () {
+                if ($scope.isLoading || !$scope.paginationMetadata.next)
+                    return;
+
+                _loadFeed($scope.paginationMetadata.next.minId);
+            };
+
+            _loadFeed();
+
+        }]);
+
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.feed.factory('feedService', ['$resource',
+        function ($resource) {
+            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getFeedParticipation: {
+                    method: 'GET',
+                    params:{
+                        action: 'participation'
+                    }
+                },
+                getMissionsActive: {
+                    method: 'GET',
+                    params:{
+                        action: 'mission'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+/* jshint undef: true, unused: false */
+/* global app, window */
+
+(function (global) {
+
+    global.squid.login.controller('LoginController', [
+        '$scope', 'auth', '$location', 'store',
+        function ($scope, auth, $location, store) {
+
+            var dict = {
+                loadingTitle: 'carregando...',
+                close: 'fechar',
+                signin: {
+                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
+                    serverErrorText: 'Você não está autorizado.',
+                    strategyEmailInvalid: 'O e-mail é invalido.',
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
+                },
+                signup: {
+                    serverErrorText: 'Não foi possível se cadastrar.'
+                },
+                reset: {
+                    serverErrorText: 'Não foi possível resetar a senha.'
+                }
+            };
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                        container: 'login-box',
+                        dict: dict
+                    }, function (profile, token) {
+                        store.set('profile', profile);
+                        store.set('token', token);
+
+                        if (_containsAllData(profile))
+                            $location.path(global.START_VIEW);
+                        else
+                            $location.path('/register');
+                    }
+                    ,
+                    function (error) {
+
+                    }
+                )
+                ;
+            }
+
+            function _containsAllData(profile) {
+                return profile.birthDate && profile.gender;
+            }
+
+            function _redirectIfIsLoggedIn() {
+                if (auth.isAuthenticated)
+                    $location.path(global.START_VIEW);
+            }
+
+            _redirectIfIsLoggedIn();
+            _initAuthLockComponent();
+
+        }
+
+    ])
+    ;
+
+})(window);
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
             });
     }]);
 
@@ -1031,7 +1038,7 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ParticipateController',
-                    templateUrl: '/modules/mission/templates/participate.html',
+                    templateUrl: global.APP_DIR + '/modules/mission/templates/participate.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,
@@ -1049,7 +1056,7 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ChallengeController',
-                    templateUrl: '/modules/mission/templates/challenge.html',
+                    templateUrl: global.APP_DIR + '/modules/mission/templates/challenge.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,
@@ -1173,85 +1180,6 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
-/* jshint undef: true, unused: false */
-/* global app, window */
-
-(function (global) {
-
-    global.squid.login.controller('LoginController', [
-        '$scope', 'auth', '$location', 'store',
-        function ($scope, auth, $location, store) {
-
-            var dict = {
-                loadingTitle: 'carregando...',
-                close: 'fechar',
-                signin: {
-                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
-                    serverErrorText: 'Você não está autorizado.',
-                    strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
-                },
-                signup: {
-                    serverErrorText: 'Não foi possível se cadastrar.'
-                },
-                reset: {
-                    serverErrorText: 'Não foi possível resetar a senha.'
-                }
-            };
-
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                        container: 'login-box',
-                        dict: dict
-                    }, function (profile, token) {
-                        store.set('profile', profile);
-                        store.set('token', token);
-
-                        if (_containsAllData(profile))
-                            $location.path(global.START_VIEW);
-                        else
-                            $location.path('/register');
-                    }
-                    ,
-                    function (error) {
-
-                    }
-                )
-                ;
-            }
-
-            function _containsAllData(profile) {
-                return profile.birthDate && profile.gender;
-            }
-
-            function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
-            }
-
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
-
-        }
-
-    ])
-    ;
-
-})(window);
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/login', {
-                viewUrl: '/modules/login/views/index.html',
-                templateUrl: '/views/templates/login.html',
-                pageTitle: 'Login',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
 (function (global) {
     "use strict";
 
@@ -1335,7 +1263,7 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.user.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/my-profile', {
-                viewUrl: '/modules/user/views/my-profile.html',
+                viewUrl: global.APP_DIR + '/modules/user/views/my-profile.html',
                 templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
                 pageTitle: 'Meu Perfil'
             });

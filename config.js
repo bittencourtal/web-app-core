@@ -5,15 +5,12 @@
         var colorStore = {};
 
         function _populateColorStore(){
-            //fetch the colors out of the themeing provider
             Object.keys($mdThemingProvider._PALETTES).forEach(
-                // clone the pallete colors to the colorStore var
                 function(palleteName) {
                     var pallete = $mdThemingProvider._PALETTES[palleteName];
                     var colors  = [];
                     colorStore[palleteName]=colors;
                     Object.keys(pallete).forEach(function(colorName) {
-                        // use an regex to look for hex colors, ignore the rest
                         if (/#[0-9A-Fa-f]{6}|0-9A-Fa-f]{8}\b/.exec(pallete[colorName])) {
                             colors[colorName] = pallete[colorName];
                         }

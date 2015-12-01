@@ -5,7 +5,7 @@
         ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia',
             function($mdSidenav, $location, auth, store, $mdMedia){
                 return {
-                    templateUrl: '/directives/toolbar/toolbar.html',
+                    templateUrl: global.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
                     link: function($scope, $element, $attrs, $controllers){
