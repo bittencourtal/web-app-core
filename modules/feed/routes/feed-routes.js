@@ -4,7 +4,7 @@
         $routeProvider
             .when('/feed', {
                 viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Feed'
             });
     }]);

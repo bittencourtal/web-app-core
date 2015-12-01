@@ -30,8 +30,8 @@
 	global.APP_DIR = '';
 	global.VIEWS = {
 		TEMPLATES: {
-			DEFAULT: global.APP_DIR + '/views/templates/default.html',
-			LOGIN: global.APP_DIR + '/views/templates/login.html'
+			DEFAULT: function(){ return global.APP_DIR + '/views/templates/default.html' },
+			LOGIN: function(){ return global.APP_DIR + '/views/templates/login.html' }
 		}
 	};
 	global.END_POINT_URL = _getEndPointUrl();

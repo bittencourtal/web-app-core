@@ -4,7 +4,7 @@
         $routeProvider
             .when('/my-profile', {
                 viewUrl: global.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT,
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Meu Perfil'
             });
     }]);
