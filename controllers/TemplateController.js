@@ -23,10 +23,9 @@
             $scope.viewUrl = "";
             $scope.auth = auth;
             $scope.$location = $location;
-
-
             $scope.path = $location.$$path.split("/")[1];
             $scope.toggleObject = {item: -1};
+            $scope.APP_DIR = global.APP_DIR;
 
             $scope.scrollToUp = function(){
                 $('html, body').animate({

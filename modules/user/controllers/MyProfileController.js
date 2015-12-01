@@ -58,6 +58,9 @@
             }
 
             function _init(){
+                if(!auth.isAuthenticated)
+                    return;
+
                 _getUserParticipation();
                 _getUserVouchers();
                 _getUserStatistics();
@@ -68,6 +71,9 @@
             };
 
             $scope.loadMoreParticipations = function(){
+                if(!auth.isAuthenticated)
+                    return;
+
                 _getUserParticipation();
             };
 

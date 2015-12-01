@@ -11,7 +11,7 @@
                          ng-if="auth.isAuthenticated"
                          class="md-avatar" />
 
-                    <img src="/images/no-img.jpg"
+                    <img ng-src="{{APP_DIR}} + '/images/no-img.jpg'"
                          ng-if="!auth.isAuthenticated"
                          class="md-avatar" />
 

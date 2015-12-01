@@ -8,7 +8,7 @@
                      ng-if="auth.isAuthenticated"
                      class="md-avatar" />
 
-                <img src="/images/no-img.jpg"
+                <img ng-src="{{APP_DIR}}/images/no-img.jpg"
                      ng-if="!auth.isAuthenticated"
                      class="md-avatar" />
                 <h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
@@ -17,15 +17,15 @@
             <div class="profile-statistics">
                 <ul class="profile-statistics-list">
                     <li>
-                        <span class="number" ng-bind="userStatistics.participations"></span>
+                        <span class="number" ng-bind="userStatistics.participations || 0"></span>
                         <span class="label">Mídias enviadas</span>
                     </li>
                     <li>
-                        <span class="number" ng-bind="userStatistics.missionsCompleted"></span>
+                        <span class="number" ng-bind="userStatistics.missionsCompleted || 0"></span>
                         <span class="label">Missões cumpridas</span>
                     </li>
                     <li>
-                        <span class="number" ng-bind="userStatistics.prizesRescued"></span>
+                        <span class="number" ng-bind="userStatistics.prizesRescued || 0"></span>
                         <span class="label">Prêmios</span>
                     </li>
                 </ul>
@@ -104,6 +104,15 @@
                                     </div>
                                 </md-list-item>
                             </md-list>
+                            <div layout="column"
+                                 layout-align="center center"
+                                 ng-if="vouchers.length == 0"
+                                 class="text-center color-light margin-top-double sm-padding-2">
+                                <md-icon class="margin-bottom">
+                                    <span class="mdi mdi-tag-outline md-display-2"></span>
+                                </md-icon>
+                                <h4 class="line-height-1-8">Participe das <a href="#mission/actives">#missões</a> e resgate prêmios para obter vouchers! ;)</h4>
+                            </div>
                         </md-content>
                     </md-tab-body>
                 </md-tab>
