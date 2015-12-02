@@ -10,10 +10,6 @@
                 $scope.textToShare = '';
                 $scope.descriptionToShare = '';
 
-                function _parseHashtagsToSpecialCharacter(){
-                    $scope.mission.shareText = $scope.mission.shareText.replaceAll('#', '%23');
-                }
-
                 function _shareMission(){
                     shareService.shareMission({
                         id: $scope.mission._id
@@ -33,7 +29,12 @@
                     _closeModal();
                 };
 
-                _parseHashtagsToSpecialCharacter();
+                $scope.removeHash = function(text){
+                    if(!text)
+                        return;
+
+                    return text.replaceAll('#', '%23');
+                };
             }]);
 
 })(window);

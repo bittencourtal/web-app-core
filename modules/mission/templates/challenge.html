@@ -7,23 +7,18 @@
         <div class="share-tool" ng-click="share()">
             <ul class="share-buttons">
                 <li ng-if="isMobile">
-                    <a ng-href="whatsapp://send?text={{mission.shareText}}" target="_blank" title="Whatsapp">
+                    <a ng-href="whatsapp://send?text={{removeHash(mission.shareText)}}" target="_blank" title="Whatsapp">
                         <span class="mdi mdi-whatsapp"></span>
                     </a>
                 </li>
                 <li>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{urlToShare}}&t={{mission.shareText}}" title="Facebook" target="_blank">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{removeHash(urlToShare)}}&t={{removeHash(mission.shareText)}}" title="Facebook" target="_blank">
                         <span class="mdi mdi-facebook-box"></span>
                     </a>
                 </li>
                 <li>
-                    <a href="https://twitter.com/intent/tweet?source={{urlToShare}}&text={{mission.shareText}}" target="_blank" title="Twitter">
+                    <a href="https://twitter.com/intent/tweet?source={{removeHash(urlToShare)}}&text={{removeHash(mission.shareText)}}" target="_blank" title="Twitter">
                         <span class="mdi mdi-twitter"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="https://plus.google.com/share?url={{urlToShare}}" target="_blank" title="Google+">
-                        <span class="mdi mdi-google-plus"></span>
                     </a>
                 </li>
             </ul>

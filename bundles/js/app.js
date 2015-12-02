@@ -340,12 +340,12 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.checkout = angular.module("squid-checkout", []);
+	global.squid.feed = angular.module("squid-feed", []);
 
 })(window);
 (function(global) {
 
-	global.squid.feed = angular.module("squid-feed", []);
+	global.squid.checkout = angular.module("squid-checkout", []);
 
 })(window);
 (function(global) {
@@ -361,6 +361,85 @@ String.prototype.replaceAll = function (from, to) {
 (function(global) {
 
 	global.squid.user = angular.module("squid-user", []);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.feed.controller('FeedController', [
+        '$scope', 'feedService',
+        function ($scope, feedService) {
+
+            $scope.feedList = [];
+            $scope.paginationMetadata = {};
+            $scope.isLoading = false;
+
+            function _loadFeed(minId){
+                var query = {};
+
+                if(minId)
+                    query.minId = minId;
+
+                $scope.isLoading = true;
+
+                feedService.getFeedParticipation(query, function (result) {
+                    $scope.feedList = $scope.feedList.concat(result.data);
+                    $scope.paginationMetadata = result.paginationMetadata;
+                    $scope.isLoading = false;
+                }, function (err) {
+                    $scope.isLoading = false;
+                });
+            }
+
+            $scope.loadMore = function () {
+                if ($scope.isLoading || !$scope.paginationMetadata.next)
+                    return;
+
+                _loadFeed($scope.paginationMetadata.next.minId);
+            };
+
+            _loadFeed();
+
+        }]);
+
+
+})(window);
+(function (global) {
+
+    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/feed', {
+                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Feed'
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.feed.factory('feedService', ['$resource',
+        function ($resource) {
+            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getFeedParticipation: {
+                    method: 'GET',
+                    params:{
+                        action: 'participation'
+                    }
+                },
+                getMissionsActive: {
+                    method: 'GET',
+                    params:{
+                        action: 'mission'
+                    }
+                }
+            });
+        }
+    ]);
 
 })(window);
 (function (global) {
@@ -675,82 +754,16 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-    "use strict";
 
-    global.squid.feed.controller('FeedController', [
-        '$scope', 'feedService',
-        function ($scope, feedService) {
-
-            $scope.feedList = [];
-            $scope.paginationMetadata = {};
-            $scope.isLoading = false;
-
-            function _loadFeed(minId){
-                var query = {};
-
-                if(minId)
-                    query.minId = minId;
-
-                $scope.isLoading = true;
-
-                feedService.getFeedParticipation(query, function (result) {
-                    $scope.feedList = $scope.feedList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
-            }
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _loadFeed($scope.paginationMetadata.next.minId);
-            };
-
-            _loadFeed();
-
-        }]);
-
-
-})(window);
-(function (global) {
-
-    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/feed', {
-                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Feed'
+            .when('/login', {
+                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
             });
     }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.feed.factory('feedService', ['$resource',
-        function ($resource) {
-            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getFeedParticipation: {
-                    method: 'GET',
-                    params:{
-                        action: 'participation'
-                    }
-                },
-                getMissionsActive: {
-                    method: 'GET',
-                    params:{
-                        action: 'mission'
-                    }
-                }
-            });
-        }
-    ]);
 
 })(window);
 /* jshint undef: true, unused: false */
@@ -821,12 +834,17 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
+            .when('/mission/actives', {
+                viewUrl: global.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: '',
                 secondaryNav: true
             });
     }]);
@@ -886,10 +904,6 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.textToShare = '';
                 $scope.descriptionToShare = '';
 
-                function _parseHashtagsToSpecialCharacter(){
-                    $scope.mission.shareText = $scope.mission.shareText.replaceAll('#', '%23');
-                }
-
                 function _shareMission(){
                     shareService.shareMission({
                         id: $scope.mission._id
@@ -909,7 +923,12 @@ String.prototype.replaceAll = function (from, to) {
                     _closeModal();
                 };
 
-                _parseHashtagsToSpecialCharacter();
+                $scope.removeHash = function(text){
+                    if(!text)
+                        return;
+
+                    return text.replaceAll('#', '%23');
+                };
             }]);
 
 })(window);
@@ -1097,24 +1116,6 @@ String.prototype.replaceAll = function (from, to) {
                 };
 
             }]);
-
-})(window);
-(function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
 
 })(window);
 (function (global) {
