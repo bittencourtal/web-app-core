@@ -75,11 +75,16 @@
 
             $mdThemingProvider.definePalette(global.THEME.SECONDARY_COLOR.name, global.THEME.SECONDARY_COLOR.value);
             $mdThemingProvider._PALETTES[global.THEME.SECONDARY_COLOR.name] = global.THEME.SECONDARY_COLOR.value;
+
+            $mdThemingProvider.definePalette(global.THEME.WARN_COLOR.name, global.THEME.WARN_COLOR.value);
+            $mdThemingProvider._PALETTES[global.THEME.WARN_COLOR.name] = global.THEME.WARN_COLOR.value;
         }
 
         $mdThemingProvider.theme('default')
             .primaryPalette(global.THEME.PRIMARY_COLOR.name)
-            .accentPalette(global.THEME.SECONDARY_COLOR.name);
+            .accentPalette(global.THEME.SECONDARY_COLOR.name)
+            .warnPalette(global.THEME.WARN_COLOR.name);
+
     }
 
     global.squid.app.config(

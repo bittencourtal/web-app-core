@@ -63,6 +63,10 @@
 		SECONDARY_COLOR: {
 			name: 'red',
 			value: {}
+		},
+		WARN_COLOR: {
+			name: 'red',
+			value: {}
 		}
 	};
 
