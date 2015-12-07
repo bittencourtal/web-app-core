@@ -6,7 +6,7 @@
 
                 $scope.mission = mission;
                 $scope.isMobile = global.isIOS() || global.isAndroid();
-                $scope.urlToShare = window.location.href;
+                $scope.urlToShare = window.location.href.replaceAll('/#', '');
                 $scope.textToShare = '';
                 $scope.descriptionToShare = '';
 
