@@ -39,7 +39,7 @@
 	global.AUTH0_CLIENT_ID = 'xmwmLJ1KnUrU3vJVW1uNfvIb4TCpguVX';
 	global.AUTH0_DOMAIN = 'squid.auth0.com';
 	global.AUTH0_CALLBACK_URL = 'https://squid.auth0.com/login/callback';
-	global.SQUID_APP_ID = 'e2a61aa025a94de7908ee1a13abe7c54';
+	global.SQUID_APP_ID = '';
 	global.START_VIEW = '/mission/actives';
 	global.APP_ID = _getAppId();
 	global.squid = {};
