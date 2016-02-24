@@ -6,13 +6,13 @@
         <div class="card" ng-repeat="feed in feedList">
             <div class="card-header">
                 <figure>
-                    <img alt="{{feed.user.profile.name}}" ng-src="{{feed.user.profile.picture}}" />
+                    <img alt="{{feed.participation.instagram.user.full_name || feed.participation.instagram.user.username}}" ng-src="{{feed.participation.instagram.user.profile_picture}}" />
                 </figure>
                 <div class="card-header-text">
-                    <a title="{{feed.user.profile.name}}"
+                    <a title="{{feed.participation.instagram.user.full_name}}"
                        target="_blank"
-                       href="https://instagram.com/{{feed.user.profile.nickname}}"
-                       ng-bind="feed.user.profile.nickname"></a>
+                       ng-href="https://instagram.com/{{feed.participation.instagram.user.username}}"
+                       ng-bind="'@' + feed.participation.instagram.user.username"></a>
                     participou da missão <a title="mission" href="#/mission/mission-details/{{feed.mission._id}}" ng-bind="'#' + feed.mission.hashtag"></a>
                 </div>
             </div>
