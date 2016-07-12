@@ -27,6 +27,7 @@
             function _initAuthLockComponent() {
                 auth.config.auth0lib.$container = null;
                 auth.signin({
+                        connections: ['instagram'],
                         container: 'login-box',
                         dict: dict
                     }, function (profile, token) {

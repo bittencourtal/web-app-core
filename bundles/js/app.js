@@ -77,6 +77,14 @@ String.prototype.replaceAll = function (from, to) {
             function($rootScope, auth, store, jwtHelper, $location) {
                 $rootScope = $rootScope || {};
 
+                function _redirectToLogin(){
+                  $location.path(global.LOGIN_ROUTE);
+                }
+
+                function _redirectToStartView(){
+                  $location.path(global.START_VIEW);
+                }
+
                 $rootScope.pageTitle = "";
 
                 $rootScope.setPageTitle = function(title) {
@@ -95,8 +103,17 @@ String.prototype.replaceAll = function (from, to) {
 
                     if (!auth.isAuthenticated) {
                         $.jStorage.flush();
+                        if(global.REQUIRE_AUTHENTICATION)
+                          _redirectToLogin();
+
                         return;
                     }
+                });
+
+                $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
+                  if(nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin && !auth.isAuthenticated){
+                    _redirectToLogin();
+                  }
                 });
 
                 auth.hookEvents();
@@ -104,6 +121,7 @@ String.prototype.replaceAll = function (from, to) {
         ]);
 
 })(window);
+
 (function(global){
 
 
@@ -202,7 +220,7 @@ String.prototype.replaceAll = function (from, to) {
                 authProvider.init({
                     domain: AUTH0_DOMAIN,
                     clientID: AUTH0_CLIENT_ID,
-                    loginUrl: '/login'
+                    loginUrl: global.LOGIN_ROUTE
                 });
 
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };
@@ -216,6 +234,7 @@ String.prototype.replaceAll = function (from, to) {
         ]);
 
 })(window);
+
 (function (global) {
     "use strict";
 
@@ -253,7 +272,6 @@ String.prototype.replaceAll = function (from, to) {
 
             $scope.$on('$routeChangeStart', function() {
                 $scope.isLoading = true;
-                console.log('Start');
             });
 
             $scope.$on('$routeChangeError', function() {
@@ -266,9 +284,6 @@ String.prototype.replaceAll = function (from, to) {
                 $rootScope.secondaryNav = nextRoute && nextRoute.$$route ? nextRoute.$$route.secondaryNav : false;
                 $scope.path = $location.$$path.split("/")[1];
                 $scope.isLoading = false;
-
-                if(nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin && !auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
             });
 
             mdThemeColorsDSS.init();
@@ -276,7 +291,6 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
-
 
 (function(global){
     "use strict";
@@ -288,6 +302,7 @@ String.prototype.replaceAll = function (from, to) {
                     templateUrl: global.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
+                    scope: {},
                     link: function($scope, $element, $attrs, $controllers){
 
                         $scope.$mdSidenav = $mdSidenav;
@@ -296,6 +311,14 @@ String.prototype.replaceAll = function (from, to) {
                         $scope.$location = $location;
                         $scope.isSmallDevice = $mdMedia('sm');
                         $scope.mobileSideMenuUrl = global.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+
+                        function _redirectToLogin(){
+                          $location.path(global.LOGIN_ROUTE);
+                        }
+
+                        function _redirectToStartView(){
+                          $location.path(global.START_VIEW);
+                        }
 
                         $scope.getButtonClass = function (menu) {
                             return {
@@ -307,11 +330,33 @@ String.prototype.replaceAll = function (from, to) {
                             window.history.go(-1);
                         };
 
+                        $scope.vincularConta = function () {
+                            try {
+                                var data = {
+                                    userId: auth.profile.user_id,
+                                    redirectUrl: window.location.href,
+                                    email: auth.profile.email
+                                };
+
+                                var dataStr = JSON.stringify(data);
+                                var dataEncode = btoa(dataStr);
+                                window.open('https://campanhas.squidit.com.br/v1/vincular-instagram?data=' + dataEncode, '_blank');
+                            } catch (e) {
+                                console.log(e);
+                            }
+                        };
+
                         $scope.logout = function () {
                             auth.signout();
                             store.remove('profile');
                             store.remove('token');
                             $.jStorage.flush();
+
+                            if(global.REQUIRE_AUTHENTICATION){
+                              _redirectToLogin();
+                            }else{
+                              _redirectToStartView();
+                            }
                         };
 
                     }
@@ -319,6 +364,7 @@ String.prototype.replaceAll = function (from, to) {
             }]);
 
 })(window);
+
 (function(global){
 
     global.squid.app.factory('appIdInjector', [function() {
@@ -343,6 +389,7 @@ String.prototype.replaceAll = function (from, to) {
     }]);
 
 })(window);
+
 (function(global) {
 
 	global.squid.checkout = angular.module("squid-checkout", []);
@@ -355,12 +402,12 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.login = angular.module("squid-login", []);
+	global.squid.mission = angular.module("squid-mission", []);
 
 })(window);
 (function(global) {
 
-	global.squid.mission = angular.module("squid-mission", []);
+	global.squid.login = angular.module("squid-login", []);
 
 })(window);
 (function(global) {
@@ -611,7 +658,8 @@ String.prototype.replaceAll = function (from, to) {
             .when('/checkout', {
                 viewUrl: global.APP_DIR + '/modules/checkout/views/checkout.html',
                 templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Checkout'
+                pageTitle: 'Meus Pontos',
+                requireLogin: true
             })
             .when('/checkout/:prizeId', {
                 viewUrl: global.APP_DIR + '/modules/checkout/views/checkout-prize.html',
@@ -623,6 +671,7 @@ String.prototype.replaceAll = function (from, to) {
     }]);
 
 })(window);
+
 (function (global) {
     "use strict";
 
@@ -758,127 +807,33 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
-/* jshint undef: true, unused: false */
-/* global app, window */
-
-(function (global) {
-
-    global.squid.login.controller('LoginController', [
-        '$scope', 'auth', '$location', 'store',
-        function ($scope, auth, $location, store) {
-
-            var dict = {
-                loadingTitle: 'carregando...',
-                close: 'fechar',
-                signin: {
-                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
-                    serverErrorText: 'Você não está autorizado.',
-                    strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
-                },
-                signup: {
-                    serverErrorText: 'Não foi possível se cadastrar.'
-                },
-                reset: {
-                    serverErrorText: 'Não foi possível resetar a senha.'
-                }
-            };
-
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                        container: 'login-box',
-                        dict: dict
-                    }, function (profile, token) {
-                        store.set('profile', profile);
-                        store.set('token', token);
-
-                        if (_containsAllData(profile))
-                            $location.path(global.START_VIEW);
-                        else
-                            $location.path('/register');
-                    }
-                    ,
-                    function (error) {
-
-                    }
-                )
-                ;
-            }
-
-            function _containsAllData(profile) {
-                return profile.birthDate && profile.gender;
-            }
-
-            function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
-            }
-
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
-
-        }
-
-    ])
-    ;
-
-})(window);
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
-(function (global) {
+(function(global) {
     "use strict";
-
-    global.squid.mission.controller('ActiveMissionController', [
-        '$scope', 'feedService',
-        function ($scope, feedService) {
-
-            $scope.feedList = [];
-            $scope.paginationMetadata = {};
+    global.squid.mission.controller('ActiveMissionController', ['$scope', 'feedService', '$location',
+        function($scope, feedService, $location) {
             $scope.isLoading = false;
 
-            function _loadFeed(minId){
-                var query = {};
-
-                if(minId)
-                    query.minId = minId;
-
+            (function() {
                 $scope.isLoading = true;
 
-                feedService.getMissionsActive(query, function (result) {
-                    $scope.feedList = $scope.feedList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
-            }
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _loadFeed($scope.paginationMetadata.next.minId);
-            };
-
-
-            _loadFeed();
-
-        }]);
-
-
+                feedService.getMissionsActive({}).$promise
+                    .then(function(result) {
+                        if (result.data.length) {
+                            var mission = result.data[0];
+                            $location.path('mission/mission-details/' + mission._id)
+                        }
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                    })
+                    .then(function() {
+                        $scope.isLoading = false;
+                    });
+            }());
+        }
+    ]);
 })(window);
+
 (function(global){
 
     global.squid.mission.controller('ChallengeController',
@@ -1185,6 +1140,87 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+/* jshint undef: true, unused: false */
+/* global app, window */
+
+(function (global) {
+
+    global.squid.login.controller('LoginController', [
+        '$scope', 'auth', '$location', 'store',
+        function ($scope, auth, $location, store) {
+
+            var dict = {
+                loadingTitle: 'carregando...',
+                close: 'fechar',
+                signin: {
+                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
+                    serverErrorText: 'Você não está autorizado.',
+                    strategyEmailInvalid: 'O e-mail é invalido.',
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
+                },
+                signup: {
+                    serverErrorText: 'Não foi possível se cadastrar.'
+                },
+                reset: {
+                    serverErrorText: 'Não foi possível resetar a senha.'
+                }
+            };
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                        connections: ['instagram'],
+                        container: 'login-box',
+                        dict: dict
+                    }, function (profile, token) {
+                        store.set('profile', profile);
+                        store.set('token', token);
+
+                        if (_containsAllData(profile))
+                            $location.path(global.START_VIEW);
+                        else
+                            $location.path('/register');
+                    }
+                    ,
+                    function (error) {
+
+                    }
+                )
+                ;
+            }
+
+            function _containsAllData(profile) {
+                return profile.birthDate && profile.gender;
+            }
+
+            function _redirectIfIsLoggedIn() {
+                if (auth.isAuthenticated)
+                    $location.path(global.START_VIEW);
+            }
+
+            _redirectIfIsLoggedIn();
+            _initAuthLockComponent();
+
+        }
+
+    ])
+    ;
+
+})(window);
+
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
 (function (global) {
     "use strict";
 
@@ -1270,6 +1306,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.user.factory('userService', ['$resource',
@@ -1310,18 +1358,6 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
-
-})(window);
-(function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
 
 })(window);
 (function (global) {

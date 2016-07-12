@@ -6,7 +6,7 @@
     </md-sidenav>
     <md-toolbar md-scroll-shrink>
         <div class="md-toolbar-tools">
-            <a href="javascript:void(0)" class="md-toolbar-brand hide-sm" ng-click="scrollToUp()"></a>
+            <a href="javascript:void(0)" target="_blank" class="md-toolbar-brand"></a>
             <md-button
                     class="md-icon-button hide-gt-sm"
                     aria-label="Menu"
@@ -22,10 +22,10 @@
                 <md-icon class="mdi md-headline mdi-arrow-left"></md-icon>
             </md-button>
             <md-button class="md-icon-button hide-sm"
-                       aria-label="Missões"
+                       aria-label="Campanhas"
                        ng-class="getButtonClass('mission')"
                        ng-click="$location.path('mission/actives')">
-                <md-tooltip>Missões</md-tooltip>
+                <md-tooltip>Campanhas</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
             </md-button>
             <md-button class="md-icon-button hide-sm"
@@ -66,6 +66,18 @@
                         <md-button class="md-primary" ng-click="$location.path('my-profile')">
                             <md-icon class="mdi md-headline mdi-account-circle"></md-icon>
                             <span md-menu-align-target>Meu perfil</span>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button class="md-primary" href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" target="_blank">
+                            <md-icon class="mdi md-headline mdi-flag"></md-icon>
+                            <span md-menu-align-target>Termos de uso</span>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button class="md-primary" href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" target="_blank">
+                            <md-icon class="mdi md-headline mdi-eye"></md-icon>
+                            <span md-menu-align-target>Política de privacidade</span>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item>

@@ -35,7 +35,6 @@
 
             $scope.$on('$routeChangeStart', function() {
                 $scope.isLoading = true;
-                console.log('Start');
             });
 
             $scope.$on('$routeChangeError', function() {
@@ -48,9 +47,6 @@
                 $rootScope.secondaryNav = nextRoute && nextRoute.$$route ? nextRoute.$$route.secondaryNav : false;
                 $scope.path = $location.$$path.split("/")[1];
                 $scope.isLoading = false;
-
-                if(nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin && !auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
             });
 
             mdThemeColorsDSS.init();
@@ -58,4 +54,3 @@
     ]);
 
 })(window);
-

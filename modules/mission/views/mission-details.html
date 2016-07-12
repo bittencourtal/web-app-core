@@ -28,20 +28,10 @@
             </div>
         </div>
         <div class="card-body">
-            <img ng-src="{{mission.images.banner.medium_resolution || mission.images.banner.low_resolution}}" alt="">
+            <img ng-src="{{mission.images.banner.standard_resolution}}" alt="">
         </div>
         <div class="card-footer">
             <md-list>
-                <md-list-item
-                        class="md-2-line md-no-proxy"
-                        layout="row"
-                        layout-align="space-between center">
-                    <img alt="{{mission.owner.name}}" class="md-avatar" ng-src="{{mission.owner.images.logo}}" />
-                    <div class="md-list-item-text">
-                        <h3 ng-bind="mission.owner.name"></h3>
-                        <p>Patrocinador</p>
-                    </div>
-                </md-list-item>
                 <md-list-item>
                     <div class="md-list-item-text">
                         <p class="md-subhead" ng-bind="mission.shortDescription"></p>
@@ -65,7 +55,7 @@
                                         <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
                                     </md-icon>
                                     <div class="md-list-item-text">
-                                        <h3 class="line-height-1-5" ng-bind="prize.value"></h3>
+                                        <p class="prize-title line-height-1-5" ng-bind="prize.value"></p>
                                         <p ng-bind="prize.points + ' pontos'"></p>
                                     </div>
                                 </md-list-item>
@@ -103,7 +93,7 @@
                                 <md-icon class="margin-bottom">
                                     <span class="mdi mdi-pound md-display-2"></span>
                                 </md-icon>
-                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a particiar! :)</h4>
+                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a participar! :)</h4>
                             </div>
 
                             <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoadingParticipations">
@@ -124,7 +114,7 @@
                                         <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
                                     </md-icon>
                                     <div class="md-list-item-text">
-                                        <h3>Compartilhar</h3>
+                                        <h3>Desafiar</h3>
                                         <p ng-bind="mission.score.challenge + ' pontos'"></p>
                                     </div>
                                 </md-list-item>

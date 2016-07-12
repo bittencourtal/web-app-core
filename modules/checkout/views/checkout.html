@@ -4,21 +4,12 @@
          tagged-infinite-scroll-distance="100"
          ng-if="auth.isAuthenticated">
         <div class="card" ng-repeat="checkout in checkoutList">
-            <div class="card-header">
-                <div class="card-header-text">
-                    <h3 class="color-primary">
-                        <a href="#/mission/mission-details/{{checkout.mission._id}}" ng-bind="'#' + checkout.mission.hashtag"></a>
-                    </h3>
-                </div>
-            </div>
             <div class="card-footer">
                 <md-list class="checkout-list">
                     <md-list-item class="md-2-line">
-                        <img alt="{{checkout.mission.owner.name}}" class="md-avatar" ng-src="{{checkout.mission.owner.images.logo}}" />
-                        <div class="md-list-item-text">
-                            <h3 ng-bind="checkout.mission.owner.name"></h3>
-                            <p>Patrocinador</p>
-                        </div>
+                        <h3 class="color-primary md-list-item-text">
+                            <a href="#/mission/mission-details/{{checkout.mission._id}}" ng-bind="'#' + checkout.mission.hashtag"></a>
+                        </h3>
                         <h3 class="color-primary md-secondary" ng-bind="checkout.pointsAvailable + ' pontos'"></h3>
                     </md-list-item>
                     <md-divider></md-divider>

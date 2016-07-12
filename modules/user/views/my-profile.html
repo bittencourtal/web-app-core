@@ -18,15 +18,11 @@
                 <ul class="profile-statistics-list">
                     <li>
                         <span class="number" ng-bind="userStatistics.participations || 0"></span>
-                        <span class="label">Mídias enviadas</span>
+                        <span class="label">Fotos enviadas</span>
                     </li>
                     <li>
                         <span class="number" ng-bind="userStatistics.missionsCompleted || 0"></span>
-                        <span class="label">Missões cumpridas</span>
-                    </li>
-                    <li>
-                        <span class="number" ng-bind="userStatistics.prizesRescued || 0"></span>
-                        <span class="label">Prêmios</span>
+                        <span class="label">Participação em campanhas</span>
                     </li>
                 </ul>
             </div>
@@ -40,7 +36,7 @@
                 <md-tab>
                     <md-tab-label>
                         <span class="mdi mdi-apps"></span>
-                        Mídias
+                        Fotos
                     </md-tab-label>
                     <md-tab-body>
                         <md-content class="md-padding">
@@ -68,50 +64,10 @@
                                 <md-icon class="margin-bottom">
                                     <span class="mdi mdi-pound md-display-2"></span>
                                 </md-icon>
-                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a particiar! :)</h4>
+                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a participar! :)</h4>
                             </div>
                             <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoadingParticipations">
                                 <md-progress-circular md-mode="indeterminate"></md-progress-circular>
-                            </div>
-                        </md-content>
-                    </md-tab-body>
-                </md-tab>
-                <md-tab>
-                    <md-tab-label>
-                        <span class="mdi mdi-tag-multiple"></span>
-                        Vouchers
-                    </md-tab-label>
-                    <md-tab-body>
-                        <md-content class="md-padding">
-                            <md-list>
-                                <md-list-item class="md-2-line" ng-repeat="voucher in vouchers">
-                                    <md-icon class="margin-right-2">
-                                        <span title="{{getVoucherUsedLabel(voucher.used)}}"
-                                              ng-class="{'color-pending': !voucher.used, 'color-success': voucher.used}"
-                                              class="mdi mdi-checkbox-blank-circle-outline">
-                                            <md-tooltip md-direction="top">{{getVoucherUsedLabel(voucher.used)}}</md-tooltip>
-                                        </span>
-                                    </md-icon>
-                                    <div class="md-list-item-text">
-                                        <h3>
-                                            {{voucher.value}} -
-                                            <a href="javascript:void(0)"
-                                               ng-click="$location.path('mission/mission-details/' + voucher.checkout.mission._id)">
-                                                #{{voucher.checkout.mission.hashtag}}
-                                            </a>
-                                        </h3>
-                                        <p ng-bind="voucher.prize.value"></p>
-                                    </div>
-                                </md-list-item>
-                            </md-list>
-                            <div layout="column"
-                                 layout-align="center center"
-                                 ng-if="vouchers.length == 0"
-                                 class="text-center color-light margin-top-double sm-padding-2">
-                                <md-icon class="margin-bottom">
-                                    <span class="mdi mdi-tag-outline md-display-2"></span>
-                                </md-icon>
-                                <h4 class="line-height-1-8">Participe das <a href="#mission/actives">#missões</a> e resgate prêmios para obter vouchers! ;)</h4>
                             </div>
                         </md-content>
                     </md-tab-body>

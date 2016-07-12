@@ -15,6 +15,14 @@
             function($rootScope, auth, store, jwtHelper, $location) {
                 $rootScope = $rootScope || {};
 
+                function _redirectToLogin(){
+                  $location.path(global.LOGIN_ROUTE);
+                }
+
+                function _redirectToStartView(){
+                  $location.path(global.START_VIEW);
+                }
+
                 $rootScope.pageTitle = "";
 
                 $rootScope.setPageTitle = function(title) {
@@ -33,8 +41,17 @@
 
                     if (!auth.isAuthenticated) {
                         $.jStorage.flush();
+                        if(global.REQUIRE_AUTHENTICATION)
+                          _redirectToLogin();
+
                         return;
                     }
+                });
+
+                $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
+                  if(nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin && !auth.isAuthenticated){
+                    _redirectToLogin();
+                  }
                 });
 
                 auth.hookEvents();

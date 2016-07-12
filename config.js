@@ -96,7 +96,7 @@
                 authProvider.init({
                     domain: AUTH0_DOMAIN,
                     clientID: AUTH0_CLIENT_ID,
-                    loginUrl: '/login'
+                    loginUrl: global.LOGIN_ROUTE
                 });
 
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };

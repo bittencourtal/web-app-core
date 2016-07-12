@@ -1,19 +1,11 @@
-<div
-    layout="column"
-    layout-align="space-between start"
-    layout-fill>
+<div layout="column" layout-align="space-between start" layout-fill>
     <div style="width: 100%;">
         <div class="menu-header">
             <md-list>
                 <md-list-item class="md-2-line">
-                    <img ng-src="{{auth.profile.picture}}"
-                         alt="{{auth.profile.name}}"
-                         ng-if="auth.isAuthenticated"
-                         class="md-avatar" />
+                    <img ng-src="{{auth.profile.picture}}" alt="{{auth.profile.name}}" ng-if="auth.isAuthenticated" class="md-avatar"/>
 
-                    <img ng-src="{{APP_DIR}}/images/no-img.jpg"
-                         ng-if="!auth.isAuthenticated"
-                         class="md-avatar" />
+                    <img ng-src="{{APP_DIR}}/images/no-img.jpg" ng-if="!auth.isAuthenticated" class="md-avatar"/>
 
                     <div class="md-list-item-text">
                         <h3 class="color-white">Bem-vindo</h3>
@@ -24,38 +16,47 @@
             </md-list>
         </div>
         <md-list>
-            <md-list-item ng-click="$location.path('my-profile')"
-                          ng-class="getButtonClass('my-profile')"
-                          ng-if="auth.isAuthenticated">
+            <md-list-item ng-click="$location.path('my-profile')" ng-class="getButtonClass('my-profile')" ng-if="auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-account-circle"></md-icon>
                 <p>Meu perfil</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('mission/actives')"
-                          ng-class="getButtonClass('mission')">
+            <md-list-item ng-click="$location.path('mission/actives')" ng-class="getButtonClass('mission')">
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
-                <p>Missões</p>
+                <p>Campanhas</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('checkout')"
-                          ng-class="getButtonClass('checkout')">
+            <md-list-item ng-click="$location.path('checkout')" ng-class="getButtonClass('checkout')">
                 <md-icon class="mdi md-headline mdi-briefcase-check"></md-icon>
                 <p>Meus Pontos</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('feed')"
-                          ng-class="getButtonClass('feed')">
+            <md-list-item ng-click="$location.path('feed')" ng-class="getButtonClass('feed')">
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
                 <p>Feed</p>
+            </md-list-item>
+            <md-list-item>
+                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" class="md-no-style md-button md-ink-ripple" ng-transclude="" style="padding: 0; margin: 0px; font-weight: normal;" target="_blank">
+                    <div class="md-list-item-inner ng-scope">
+                        <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>
+                        <p>Termos de uso</p>
+                    </div>
+                </a>
+            </md-list-item>
+            <md-list-item>
+                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" class="md-no-style md-button md-ink-ripple" ng-transclude="" style="padding: 0; margin: 0px; font-weight: normal;"  target="_blank">
+                    <div class="md-list-item-inner ng-scope">
+                        <md-icon aria-hidden="true" class="mdi md-headline mdi-eye ng-isolate-scope material-icons"></md-icon>
+                        <p>Política de privacidade</p>
+                    </div>
+                </a>
             </md-list-item>
         </md-list>
     </div>
     <div style="width: 100%;">
         <md-list>
-            <md-list-item ng-click="$location.path('login')"
-                          ng-if="!auth.isAuthenticated">
+            <md-list-item ng-click="$location.path('login')" ng-if="!auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-login"></md-icon>
                 <p>Login</p>
             </md-list-item>
-            <md-list-item ng-click="logout()"
-                          ng-if="auth.isAuthenticated">
+            <md-list-item ng-click="logout()" ng-if="auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-logout"></md-icon>
                 <p>Sair</p>
             </md-list-item>
