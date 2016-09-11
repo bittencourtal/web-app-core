@@ -1,8 +1,7 @@
 <header>
     <md-sidenav class="md-sidenav-left md-whiteframe-z2"
                 md-component-id="left"
-                ng-include
-                src="mobileSideMenuUrl">
+                ng-include="mobileSideMenuUrl">
     </md-sidenav>
     <md-toolbar md-scroll-shrink>
         <div class="md-toolbar-tools">
@@ -78,6 +77,12 @@
                         <md-button class="md-primary" href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" target="_blank">
                             <md-icon class="mdi md-headline mdi-eye"></md-icon>
                             <span md-menu-align-target>Política de privacidade</span>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button class="md-primary" ng-click="openTerms()">
+                            <md-icon class="mdi md-headline mdi-flag"></md-icon>
+                            <span md-menu-align-target>Sobre a campanha</span>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item>

@@ -1,3 +1,6 @@
 <div ng-controller="LoginController" layout="row" layout-align="center center" class="margin-top-4">
     <div id="login-box"></div>
+    <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoading">
+        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    </div>
 </div>

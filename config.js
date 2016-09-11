@@ -69,40 +69,41 @@
     }
 
     function _createClientPallete($mdThemingProvider){
-        if(global.THEME.CUSTOM){
-            $mdThemingProvider.definePalette(global.THEME.PRIMARY_COLOR.name, global.THEME.PRIMARY_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.PRIMARY_COLOR.name] = global.THEME.PRIMARY_COLOR.value;
+        if(global.APP_CONFIG.THEME.CUSTOM){
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.PRIMARY_COLOR.name, global.APP_CONFIG.THEME.PRIMARY_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.PRIMARY_COLOR.name] = global.APP_CONFIG.THEME.PRIMARY_COLOR.value;
 
-            $mdThemingProvider.definePalette(global.THEME.SECONDARY_COLOR.name, global.THEME.SECONDARY_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.SECONDARY_COLOR.name] = global.THEME.SECONDARY_COLOR.value;
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.SECONDARY_COLOR.name, global.APP_CONFIG.THEME.SECONDARY_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.SECONDARY_COLOR.name] = global.APP_CONFIG.THEME.SECONDARY_COLOR.value;
 
-            $mdThemingProvider.definePalette(global.THEME.WARN_COLOR.name, global.THEME.WARN_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.WARN_COLOR.name] = global.THEME.WARN_COLOR.value;
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.WARN_COLOR.name, global.APP_CONFIG.THEME.WARN_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.WARN_COLOR.name] = global.APP_CONFIG.THEME.WARN_COLOR.value;
         }
 
         $mdThemingProvider.theme('default')
-            .primaryPalette(global.THEME.PRIMARY_COLOR.name)
-            .accentPalette(global.THEME.SECONDARY_COLOR.name)
-            .warnPalette(global.THEME.WARN_COLOR.name);
+            .primaryPalette(global.APP_CONFIG.THEME.PRIMARY_COLOR.name)
+            .accentPalette(global.APP_CONFIG.THEME.SECONDARY_COLOR.name)
+            .warnPalette(global.APP_CONFIG.THEME.WARN_COLOR.name);
 
     }
 
     global.squid.app.config(
-        ['$httpProvider', 'authProvider', 'jwtInterceptorProvider', '$mdThemingProvider','$mdIconProvider', '$provide', '$compileProvider',
-            function($httpProvider, authProvider, jwtInterceptorProvider, $mdThemingProvider, $mdIconProvider, $provide, $compileProvider) {
+        ['$httpProvider', 'authProvider', 'jwtInterceptorProvider', '$mdThemingProvider','$mdIconProvider', '$provide', '$compileProvider', '$sceProvider',
+            function($httpProvider, authProvider, jwtInterceptorProvider, $mdThemingProvider, $mdIconProvider, $provide, $compileProvider, $sceProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
                 authProvider.init({
-                    domain: AUTH0_DOMAIN,
-                    clientID: AUTH0_CLIENT_ID,
-                    loginUrl: global.LOGIN_ROUTE
+                    domain: global.APP_CONFIG.AUTH0.DOMAIN,
+                    clientID: global.APP_CONFIG.AUTH0.CLIENT_ID,
+                    loginUrl: global.APP_CONFIG.LOGIN_ROUTE
                 });
 
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };
                 $httpProvider.interceptors.push('jwtInterceptor');
                 $httpProvider.interceptors.push('appIdInjector');
                 $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|whatsapp):/);
+                $sceProvider.enabled(false);
 
                 _createClientPallete($mdThemingProvider);
                 _initializeThemeColorFactory($mdThemingProvider, $provide);

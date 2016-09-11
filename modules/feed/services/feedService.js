@@ -3,7 +3,7 @@
 
     global.squid.feed.factory('feedService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/feed/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {

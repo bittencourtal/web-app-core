@@ -1,6 +1,8 @@
 (function (global) {
 	"use strict";
 
+	moment.locale('pt-br');
+
 	function _getEndPointUrl() {
 		var hostName = window.location.hostname;
 
@@ -8,68 +10,72 @@
 			return 'http://localhost:5003';
 		} else if (hostName.indexOf('-dev') > -1) {
 			return 'http://api.squidit.com.br:81';
-		}else {
+		} else {
 			return 'http://api.squidit.com.br';
 		}
 	}
 
-	function _getAppId(){
+	function _getAppId() {
 		var hostName = window.location.hostname;
 
 		if (hostName === 'localhost') {
-			return global.SQUID_APP_ID;
+			return global.APP_CONFIG.SQUID_APP_ID;
 		} else if (hostName.indexOf('-dev') > -1) {
-			return global.SQUID_APP_ID;
+			return global.APP_CONFIG.SQUID_APP_ID;
 		} else {
-			return global.SQUID_APP_ID;
+			return global.APP_CONFIG.SQUID_APP_ID;
 		}
 	}
 
-	moment.locale('pt-br');
-
-	global.APP_DIR = '';
-	global.VIEWS = {
-		TEMPLATES: {
-			DEFAULT: function(){ return global.APP_DIR + '/views/templates/default.html' },
-			LOGIN: function(){ return global.APP_DIR + '/views/templates/login.html' }
+	global.APP_CONFIG = {
+		APP_DIR: '',
+		VIEWS: {
+			TEMPLATES: {
+				DEFAULT: function () { return APP_CONFIG.APP_DIR + '/views/templates/default.html' },
+				LOGIN: function () { return APP_CONFIG.APP_DIR + '/views/templates/login.html' }
+			}
+		},
+		END_POINT_URL: _getEndPointUrl,
+		SERVICES_END_POINT_URL: _getEndPointUrl,
+		AUTH0: {
+			CLIENT_ID: 'xmwmLJ1KnUrU3vJVW1uNfvIb4TCpguVX',
+			DOMAIN: 'squid.auth0.com',
+			CALLBACK_URL: 'https://squid.auth0.com/login/callback'
+		},
+		SQUID_APP_ID: 'e2a61aa025a94de7908ee1a13abe7c54',
+		START_VIEW: '/checkout',
+		LOGIN_ROUTE: '/login',
+		REQUIRE_AUTHENTICATION: true,
+		APP_ID: _getAppId,
+		THEME: {
+			CUSTOM: false,
+			PRIMARY_COLOR: {
+				name: 'deep-orange',
+				value: {}
+			},
+			SECONDARY_COLOR: {
+				name: 'red',
+				value: {}
+			},
+			WARN_COLOR: {
+				name: 'red',
+				value: {}
+			}
 		}
 	};
-	global.END_POINT_URL = _getEndPointUrl();
-	global.SERVICES_END_POINT_URL = _getEndPointUrl();
-	global.AUTH0_CLIENT_ID = 'xmwmLJ1KnUrU3vJVW1uNfvIb4TCpguVX';
-	global.AUTH0_DOMAIN = 'squid.auth0.com';
-	global.AUTH0_CALLBACK_URL = 'https://squid.auth0.com/login/callback';
-	global.SQUID_APP_ID = 'e2a61aa025a94de7908ee1a13abe7c54';
-	global.START_VIEW = '/checkout'; 
-	global.LOGIN_ROUTE = '/login';
-	global.REQUIRE_AUTHENTICATION = true;
-	global.APP_ID = _getAppId();
-	global.squid = {};
-	global.squid.defaultDependencies = [
-		'ngRoute',
-		'ngResource',
-		'auth0',
-		'angular-storage',
-		'angular-jwt',
-		'ngMaterial',
-		'mdThemeColorsDSS',
-		'tagged.directives.infiniteScroll',
-		'ngMask'
-	];
-	global.THEME = {
-		CUSTOM: false,
-		PRIMARY_COLOR: {
-			name: 'deep-orange',
-			value: {}
-		},
-		SECONDARY_COLOR: {
-			name: 'red',
-			value: {}
-		},
-		WARN_COLOR: {
-			name: 'red',
-			value: {}
-		}
+
+	global.squid = {
+		defaultDependencies: [
+			'ngRoute',
+			'ngResource',
+			'auth0',
+			'angular-storage',
+			'angular-jwt',
+			'ngMaterial',
+			'mdThemeColorsDSS',
+			'tagged.directives.infiniteScroll',
+			'ngMask'
+		]
 	};
 
 })(window);

@@ -60,7 +60,7 @@ String.prototype.replaceAll = function (from, to) {
     };
 
 })(window);
-(function(global){
+(function (global) {
 
     var _modulesDependencies = [
         'squid-login',
@@ -74,24 +74,48 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.app.run(
         ['$rootScope', 'auth', 'store', 'jwtHelper', '$location',
-            function($rootScope, auth, store, jwtHelper, $location) {
+            function ($rootScope, auth, store, jwtHelper, $location) {
                 $rootScope = $rootScope || {};
 
-                function _redirectToLogin(){
-                  $location.path(global.LOGIN_ROUTE);
+                function _redirectToLogin() {
+                    $location.path(global.APP_CONFIG.LOGIN_ROUTE);
                 }
 
-                function _redirectToStartView(){
-                  $location.path(global.START_VIEW);
+                function _redirectToStartView() {
+                    $location.path(global.APP_CONFIG.START_VIEW);
+                }
+
+                function _nextRouteRequireLogin(nextRoute) {
+                    return nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin;
+                }
+
+                function _userAcceptedTerms() {
+                    if (!auth.profile || !auth.profile.app_metadata)
+                        return false;
+
+                    return auth.profile.app_metadata.acceptedTerms;
+                }
+
+                function _logout() {
+                    auth.signout();
+                    store.remove('profile');
+                    store.remove('token');
+                    $.jStorage.flush();
+
+                    if (global.APP_CONFIG.REQUIRE_AUTHENTICATION) {
+                        _redirectToLogin();
+                    } else {
+                        _redirectToStartView();
+                    }
                 }
 
                 $rootScope.pageTitle = "";
 
-                $rootScope.setPageTitle = function(title) {
+                $rootScope.setPageTitle = function (title) {
                     $rootScope.pageTitle = title;
                 };
 
-                $rootScope.$on('$locationChangeStart', function() {
+                $rootScope.$on('$locationChangeStart', function () {
                     var token = store.get('token');
                     if (token) {
                         if (!jwtHelper.isTokenExpired(token)) {
@@ -103,17 +127,19 @@ String.prototype.replaceAll = function (from, to) {
 
                     if (!auth.isAuthenticated) {
                         $.jStorage.flush();
-                        if(global.REQUIRE_AUTHENTICATION)
-                          _redirectToLogin();
+                        if (global.APP_CONFIG.REQUIRE_AUTHENTICATION)
+                            _redirectToLogin();
 
                         return;
                     }
                 });
 
                 $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
-                  if(nextRoute && nextRoute.$$route && nextRoute.$$route.requireLogin && !auth.isAuthenticated){
-                    _redirectToLogin();
-                  }
+                    if (!_userAcceptedTerms())
+                        _logout();
+
+                    if (_nextRouteRequireLogin(nextRoute) && !auth.isAuthenticated)
+                        _redirectToLogin();
                 });
 
                 auth.hookEvents();
@@ -193,40 +219,41 @@ String.prototype.replaceAll = function (from, to) {
     }
 
     function _createClientPallete($mdThemingProvider){
-        if(global.THEME.CUSTOM){
-            $mdThemingProvider.definePalette(global.THEME.PRIMARY_COLOR.name, global.THEME.PRIMARY_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.PRIMARY_COLOR.name] = global.THEME.PRIMARY_COLOR.value;
+        if(global.APP_CONFIG.THEME.CUSTOM){
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.PRIMARY_COLOR.name, global.APP_CONFIG.THEME.PRIMARY_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.PRIMARY_COLOR.name] = global.APP_CONFIG.THEME.PRIMARY_COLOR.value;
 
-            $mdThemingProvider.definePalette(global.THEME.SECONDARY_COLOR.name, global.THEME.SECONDARY_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.SECONDARY_COLOR.name] = global.THEME.SECONDARY_COLOR.value;
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.SECONDARY_COLOR.name, global.APP_CONFIG.THEME.SECONDARY_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.SECONDARY_COLOR.name] = global.APP_CONFIG.THEME.SECONDARY_COLOR.value;
 
-            $mdThemingProvider.definePalette(global.THEME.WARN_COLOR.name, global.THEME.WARN_COLOR.value);
-            $mdThemingProvider._PALETTES[global.THEME.WARN_COLOR.name] = global.THEME.WARN_COLOR.value;
+            $mdThemingProvider.definePalette(global.APP_CONFIG.THEME.WARN_COLOR.name, global.APP_CONFIG.THEME.WARN_COLOR.value);
+            $mdThemingProvider._PALETTES[global.APP_CONFIG.THEME.WARN_COLOR.name] = global.APP_CONFIG.THEME.WARN_COLOR.value;
         }
 
         $mdThemingProvider.theme('default')
-            .primaryPalette(global.THEME.PRIMARY_COLOR.name)
-            .accentPalette(global.THEME.SECONDARY_COLOR.name)
-            .warnPalette(global.THEME.WARN_COLOR.name);
+            .primaryPalette(global.APP_CONFIG.THEME.PRIMARY_COLOR.name)
+            .accentPalette(global.APP_CONFIG.THEME.SECONDARY_COLOR.name)
+            .warnPalette(global.APP_CONFIG.THEME.WARN_COLOR.name);
 
     }
 
     global.squid.app.config(
-        ['$httpProvider', 'authProvider', 'jwtInterceptorProvider', '$mdThemingProvider','$mdIconProvider', '$provide', '$compileProvider',
-            function($httpProvider, authProvider, jwtInterceptorProvider, $mdThemingProvider, $mdIconProvider, $provide, $compileProvider) {
+        ['$httpProvider', 'authProvider', 'jwtInterceptorProvider', '$mdThemingProvider','$mdIconProvider', '$provide', '$compileProvider', '$sceProvider',
+            function($httpProvider, authProvider, jwtInterceptorProvider, $mdThemingProvider, $mdIconProvider, $provide, $compileProvider, $sceProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
                 authProvider.init({
-                    domain: AUTH0_DOMAIN,
-                    clientID: AUTH0_CLIENT_ID,
-                    loginUrl: global.LOGIN_ROUTE
+                    domain: global.APP_CONFIG.AUTH0.DOMAIN,
+                    clientID: global.APP_CONFIG.AUTH0.CLIENT_ID,
+                    loginUrl: global.APP_CONFIG.LOGIN_ROUTE
                 });
 
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };
                 $httpProvider.interceptors.push('jwtInterceptor');
                 $httpProvider.interceptors.push('appIdInjector');
                 $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|whatsapp):/);
+                $sceProvider.enabled(false);
 
                 _createClientPallete($mdThemingProvider);
                 _initializeThemeColorFactory($mdThemingProvider, $provide);
@@ -262,7 +289,7 @@ String.prototype.replaceAll = function (from, to) {
             $scope.$location = $location;
             $scope.path = $location.$$path.split("/")[1];
             $scope.toggleObject = {item: -1};
-            $scope.APP_DIR = global.APP_DIR;
+            $scope.APP_DIR = global.APP_CONFIG.APP_DIR;
 
             $scope.scrollToUp = function(){
                 $('html, body').animate({
@@ -296,10 +323,10 @@ String.prototype.replaceAll = function (from, to) {
     "use strict";
 
     global.squid.app.directive('toolbar',
-        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia',
-            function($mdSidenav, $location, auth, store, $mdMedia){
+        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'TermsDialogService',
+            function($mdSidenav, $location, auth, store, $mdMedia, TermsDialogService){
                 return {
-                    templateUrl: global.APP_DIR + '/directives/toolbar/toolbar.html',
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
                     scope: {},
@@ -310,7 +337,15 @@ String.prototype.replaceAll = function (from, to) {
                         $scope.auth = auth;
                         $scope.$location = $location;
                         $scope.isSmallDevice = $mdMedia('sm');
-                        $scope.mobileSideMenuUrl = global.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+                        $scope.mobileSideMenuUrl = global.APP_CONFIG.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+
+                        function _logout() {
+                            auth.signout();
+                            store.remove('profile');
+                            store.remove('token');
+                            $.jStorage.flush();
+                            _redirectToLogin();
+                        }
 
                         function _redirectToLogin(){
                           $location.path(global.LOGIN_ROUTE);
@@ -346,13 +381,18 @@ String.prototype.replaceAll = function (from, to) {
                             }
                         };
 
+                        $scope.openTerms = function(){
+                            TermsDialogService.openDialog(auth.profile)
+                                .then(function(){}, _logout);
+                        };
+
                         $scope.logout = function () {
                             auth.signout();
                             store.remove('profile');
                             store.remove('token');
                             $.jStorage.flush();
 
-                            if(global.REQUIRE_AUTHENTICATION){
+                            if(global.APP_CONFIG.REQUIRE_AUTHENTICATION){
                               _redirectToLogin();
                             }else{
                               _redirectToStartView();
@@ -370,7 +410,7 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.app.factory('appIdInjector', [function() {
         var appIdInjector = {
             request: function(config) {
-                config.headers['app_id'] = global.APP_ID;
+                config.headers['app_id'] = global.APP_CONFIG.APP_ID();
                 return config;
             }
         };
@@ -402,17 +442,17 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
+	global.squid.user = angular.module("squid-user", []);
+
+})(window);
+(function(global) {
+
 	global.squid.mission = angular.module("squid-mission", []);
 
 })(window);
 (function(global) {
 
 	global.squid.login = angular.module("squid-login", []);
-
-})(window);
-(function(global) {
-
-	global.squid.user = angular.module("squid-user", []);
 
 })(window);
 (function (global) {
@@ -656,14 +696,14 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.checkout.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/checkout', {
-                viewUrl: global.APP_DIR + '/modules/checkout/views/checkout.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Meus Pontos',
                 requireLogin: true
             })
             .when('/checkout/:prizeId', {
-                viewUrl: global.APP_DIR + '/modules/checkout/views/checkout-prize.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout-prize.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Resgatar prêmio',
                 secondaryNav: true,
                 requireLogin: true
@@ -677,7 +717,7 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.checkout.factory('checkoutService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/checkout/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/checkout/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -716,7 +756,7 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.checkout.factory('prizeService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/prize/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/prize/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -731,30 +771,142 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
+    var _manualPausedVideos = [];
+
     global.squid.feed.controller('FeedController', [
-        '$scope', 'feedService',
-        function ($scope, feedService) {
+        '$scope', 'feedService', '$element', '$timeout', '$q',
+        function ($scope, feedService, $element, $timeout, $q) {
 
             $scope.feedList = [];
             $scope.paginationMetadata = {};
             $scope.isLoading = false;
 
+            function _autoPlayVideosOnScreen() {
+                var videos = $($element).find('video').not("[autoplay='autoplay']");
+                var tolerancePixel = 80;
+
+                function _hasPausedManualy(video){
+                    return _manualPausedVideos.any(function(manualPausedVideo){
+                        return manualPausedVideo.currentSrc == video.currentSrc;
+                    });
+                }
+
+                function _playVideo(video){
+                    if(_hasPausedManualy(video))
+                        return;
+
+                    video.play();
+                }
+
+                function _videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia){
+                    return scrollTop < yBottomMedia && scrollBottom > yTopMedia;
+                }
+
+                function _checkMedia() {
+                    var scrollTop = $(window).scrollTop() + tolerancePixel;
+                    var scrollBottom = $(window).scrollTop() + $(window).height() - tolerancePixel;
+
+                    videos.each(function (index, el) {
+                        var yTopMedia = $(this).offset().top;
+                        var yBottomMedia = $(this).height() + yTopMedia;
+                        var $video = $(this).get(0);
+
+                        if (_videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia))
+                            _playVideo($video);
+                        else
+                            $video.pause();
+                    });
+                }
+
+                $(document).unbind('scroll');
+                $(document).on('scroll', _checkMedia);
+            }
+
+            function _handleVideoEvents() {
+                var $videos = $($element).find('video');
+
+                function _attachVideoEvent(index, $video) {
+                    var $card = $($video).closest('.card');
+                    $video.onplay = function () {
+                        $card.addClass('video-playing');
+                    };
+
+                    $video.onpause = function () {
+                        $card.removeClass('video-playing');
+                    };
+                }
+
+                $.each($videos, _attachVideoEvent);
+            }
+
+            function _attachEvents(){
+                var defer = $q.defer();
+
+                $timeout(function(){
+                    _handleVideoEvents();
+                    _autoPlayVideosOnScreen();
+                    defer.resolve();
+                }, 100);
+
+                return defer.promise;
+            }
+
+            function _populateFeedList(result){
+                var defer = $q.defer();
+
+                $scope.feedList = $scope.feedList.concat(result.data);
+                $scope.paginationMetadata = result.paginationMetadata;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _stopLoading(){
+                $scope.isLoading = false;
+            }
+
             function _loadFeed(minId){
-                var query = {};
-
-                if(minId)
-                    query.minId = minId;
-
                 $scope.isLoading = true;
 
-                feedService.getFeedParticipation(query, function (result) {
-                    $scope.feedList = $scope.feedList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
+                _getFeed(minId)
+                    .then(_populateFeedList)
+                    .then(_attachEvents)
+                    .then(_stopLoading);
             }
+
+            function _getFeed(minId) {
+                var defer = $q.defer();
+                var query = {};
+
+                if (minId)
+                    query.minId = minId;
+
+                feedService.getFeedParticipation(query, defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            $scope.getCardClass = function (feedItem) {
+                var objClass = {};
+                objClass['card-feed-' + feedItem.mediaType] = true;
+
+                return objClass;
+            }
+
+            $scope.playVideo = function ($event, feedItem) {
+                var $video = $($event.currentTarget).get(0);
+                if (!$video)
+                    return;
+
+                if ($video.paused)
+                    return $video.play();
+
+                _manualPausedVideos.push($video);
+                _manualPausedVideos = _manualPausedVideos.distinct(function(v1, v2){
+                    return v1.currentSrc == v2.currentSrc;
+                });
+                return $video.pause();
+            };
 
             $scope.loadMore = function () {
                 if ($scope.isLoading || !$scope.paginationMetadata.next)
@@ -764,18 +916,17 @@ String.prototype.replaceAll = function (from, to) {
             };
 
             _loadFeed();
-
         }]);
 
-
 })(window);
+
 (function (global) {
 
     global.squid.feed.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/feed', {
-                viewUrl: global.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/feed/views/feed.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Feed'
             });
     }]);
@@ -786,7 +937,7 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.feed.factory('feedService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/feed/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/feed/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -807,29 +958,150 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
-(function(global) {
+(function (global) {
+    "use strict";
+
+    global.squid.user.controller('MyProfileController', [
+        '$scope', 'auth', 'userService', '$location','participationService', 'checkoutService', 'userStatisticsService',
+        function ($scope, auth, userService, $location, participationService, checkoutService, userStatisticsService) {
+
+            var firstLoad = true;
+            $scope.isLoadingParticipations = false;
+            $scope.auth = auth;
+            $scope.selectedTabIndex = 0;
+            $scope.isLoading = false;
+            $scope.userStatistics = {};
+            $scope.maxYear = moment().subtract(14, 'years').year();
+            $scope.vouchers = [];
+            $scope.participations = {
+                data: [],
+                minId: ''
+            };
+
+            function _getUserStatistics(){
+                userStatisticsService.getUserProfileStatistics(function(userStatistics){
+                    $scope.userStatistics = userStatistics;
+                });
+            }
+
+            function _getUserVouchers(){
+                checkoutService.getVouchersByUser(function(vouchers){
+                    $scope.vouchers = vouchers;
+                });
+            }
+
+            function _getUserParticipation(){
+                if($scope.isLoadingParticipations
+                    || $scope.participations.data.length > 0 && !$scope.participations.minId
+                    || $scope.participations.data.length == 0 && !firstLoad
+                )
+                    return;
+
+                firstLoad = false;
+                $scope.isLoadingParticipations = true;
+
+                participationService.getUserParticipations({
+                    id: auth.profile.user_id,
+                    minId: $scope.participations.minId,
+                    take: 12
+                }, function(response){
+                    $scope.participations.data = $scope.participations.data
+                        .concat(response.data)
+                        .distinct(function(c, n){
+                            return c._id == n._id;
+                        });
+                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
+                    $scope.isLoadingParticipations = false;
+                }, function(){
+                    $scope.isLoadingParticipations = false;
+                });
+            }
+
+            function _init(){
+                if(!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+                _getUserVouchers();
+                _getUserStatistics();
+            }
+
+            $scope.getVoucherUsedLabel = function(isUsed){
+                return isUsed ? 'Usado': 'Não usado';
+            };
+
+            $scope.loadMoreParticipations = function(){
+                if(!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+            };
+
+            _init();
+        }]);
+
+
+})(window);
+(function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                email: {
+                    method: 'PUT',
+                    params:{
+                        action: 'email'
+                    }
+                },
+                update: {
+                    method: 'PUT'
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userStatisticsService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/statistics/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getUserProfileStatistics: {
+                    method: 'GET',
+                    params:{
+                        action: 'me'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
     "use strict";
     global.squid.mission.controller('ActiveMissionController', ['$scope', 'feedService', '$location',
-        function($scope, feedService, $location) {
-            $scope.isLoading = false;
-
-            (function() {
-                $scope.isLoading = true;
-
-                feedService.getMissionsActive({}).$promise
-                    .then(function(result) {
-                        if (result.data.length) {
-                            var mission = result.data[0];
-                            $location.path('mission/mission-details/' + mission._id)
-                        }
-                    })
-                    .catch(function(err) {
-                        console.log(err);
-                    })
-                    .then(function() {
-                        $scope.isLoading = false;
-                    });
-            }());
+        function ($scope, feedService, $location) {
+            
         }
     ]);
 })(window);
@@ -980,7 +1252,7 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ParticipateController',
-                    templateUrl: global.APP_DIR + '/modules/mission/templates/participate.html',
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/participate.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,
@@ -998,7 +1270,7 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.menuIsOpen = false;
                 $mdDialog.show({
                     controller: 'ChallengeController',
-                    templateUrl: global.APP_DIR + '/modules/mission/templates/challenge.html',
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/challenge.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
                     clickOutsideToClose: true,
@@ -1064,13 +1336,13 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.mission.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/mission/actives', {
-                viewUrl: global.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Missões'
             })
             .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
+                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: '',
                 secondaryNav: true
             });
@@ -1082,7 +1354,7 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.mission.factory('missionService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/mission/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/mission/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -1094,12 +1366,13 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+
 (function (global) {
     "use strict";
 
     global.squid.mission.factory('participationService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/participation/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/participation/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -1125,7 +1398,7 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.mission.factory('shareService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/share/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/share/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {
@@ -1146,17 +1419,29 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
 
     global.squid.login.controller('LoginController', [
-        '$scope', 'auth', '$location', 'store',
-        function ($scope, auth, $location, store) {
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'TermsDialogService',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, TermsDialogService) {
+
+            $scope.isLoading = false;
 
             var dict = {
                 loadingTitle: 'carregando...',
                 close: 'fechar',
                 signin: {
+                    title: 'Faça seu login ;)',
+                    signinText: 'Entrar',
+                    signupText: 'Cadastrar-se',
+                    usernamePlaceholder: 'e-mail',
+                    emailPlaceholder: 'e-mail',
+                    passwordPlaceholder: "Senha",
+                    separatorText: "ou",
                     wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
                     serverErrorText: 'Você não está autorizado.',
                     strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.'
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.',
+                    returnUserLabel: 'Da última vez você acessou como...',
+                    all: 'Não é sua conta?',
+                    forgotText: 'Esqueceu sua senha? Clique aqui.'
                 },
                 signup: {
                     serverErrorText: 'Não foi possível se cadastrar.'
@@ -1166,36 +1451,88 @@ String.prototype.replaceAll = function (from, to) {
                 }
             };
 
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                        connections: ['instagram'],
-                        container: 'login-box',
-                        dict: dict
-                    }, function (profile, token) {
-                        store.set('profile', profile);
-                        store.set('token', token);
+            function _termsIsAccepted(profile){
+                if(!profile || !profile.app_metadata)
+                    return false;
 
-                        if (_containsAllData(profile))
-                            $location.path(global.START_VIEW);
-                        else
-                            $location.path('/register');
-                    }
-                    ,
-                    function (error) {
-
-                    }
-                )
-                ;
+                return profile.app_metadata.acceptedTerms;
             }
 
-            function _containsAllData(profile) {
-                return profile.birthDate && profile.gender;
+            function _logout() {
+                auth.signout();
+                store.remove('profile');
+                store.remove('token');
+                $.jStorage.flush();
+                _hideLoader();
+                _redirectToLogin();
+            }
+
+            function _redirectToLogin(){
+                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+            }
+
+            function _redirectToStartView(){
+                $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _redirectOnSuccessLogin(profile){
+                if (_containsAllData(profile))
+                    _redirectToStartView();
+                else
+                    $location.path('/register');
             }
 
             function _redirectIfIsLoggedIn() {
                 if (auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
+                    $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _containsAllData(profile) {
+                if(!profile)
+                    return;
+
+                return profile.birthDate && profile.gender;
+            }
+
+            function _hideLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = false;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _showLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = true;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                }, function (profile, token) {
+                    store.set('profile', profile);
+                    store.set('token', token);
+
+                    if(_termsIsAccepted(profile))
+                        return _redirectOnSuccessLogin(profile);
+
+                    _showLoader();
+
+                    TermsDialogService.openDialog(profile)
+                        .then(_redirectOnSuccessLogin, _logout);
+                }, function (error) {
+
+                });
             }
 
             _redirectIfIsLoggedIn();
@@ -1213,151 +1550,126 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.login.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/login', {
-                viewUrl: global.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.VIEWS.TEMPLATES.LOGIN,
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
                 pageTitle: 'Login',
                 secondaryNav: true
             });
     }]);
 
 })(window);
-(function (global) {
-    "use strict";
+(function(global){
 
-    global.squid.user.controller('MyProfileController', [
-        '$scope', 'auth', 'userService', '$location','participationService', 'checkoutService', 'userStatisticsService',
-        function ($scope, auth, userService, $location, participationService, checkoutService, userStatisticsService) {
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
 
-            var firstLoad = true;
-            $scope.isLoadingParticipations = false;
-            $scope.auth = auth;
-            $scope.selectedTabIndex = 0;
-            $scope.isLoading = false;
-            $scope.userStatistics = {};
-            $scope.maxYear = moment().subtract(14, 'years').year();
-            $scope.vouchers = [];
-            $scope.participations = {
-                data: [],
-                minId: ''
-            };
+    function TermsDialogController($scope, $mdDialog){
 
-            function _getUserStatistics(){
-                userStatisticsService.getUserProfileStatistics(function(userStatistics){
-                    $scope.userStatistics = userStatistics;
-                });
-            }
+        $scope.currentStep = 'campanha';
 
-            function _getUserVouchers(){
-                checkoutService.getVouchersByUser(function(vouchers){
-                    $scope.vouchers = vouchers;
-                });
-            }
+        $scope.next = function(){
+            $scope.currentStep = 'regulamento';
+        };
 
-            function _getUserParticipation(){
-                if($scope.isLoadingParticipations
-                    || $scope.participations.data.length > 0 && !$scope.participations.minId
-                    || $scope.participations.data.length == 0 && !firstLoad
-                )
-                    return;
+        $scope.back = function(){
+            $scope.currentStep = 'campanha';
+        };
 
-                firstLoad = false;
-                $scope.isLoadingParticipations = true;
+        $scope.cancel = function(){
+            $mdDialog.cancel();
+        };
 
-                participationService.getUserParticipations({
-                    id: auth.profile.user_id,
-                    minId: $scope.participations.minId,
-                    take: 12
-                }, function(response){
-                    $scope.participations.data = $scope.participations.data
-                        .concat(response.data)
-                        .distinct(function(c, n){
-                            return c._id == n._id;
-                        });
-                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
-                    $scope.isLoadingParticipations = false;
-                }, function(){
-                    $scope.isLoadingParticipations = false;
-                });
-            }
-
-            function _init(){
-                if(!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-                _getUserVouchers();
-                _getUserStatistics();
-            }
-
-            $scope.getVoucherUsedLabel = function(isUsed){
-                return isUsed ? 'Usado': 'Não usado';
-            };
-
-            $scope.loadMoreParticipations = function(){
-                if(!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-            };
-
-            _init();
-        }]);
-
-
-})(window);
-(function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userService', ['$resource',
-        function ($resource) {
-            return $resource(END_POINT_URL + '/api/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                email: {
-                    method: 'PUT',
-                    params:{
-                        action: 'email'
-                    }
-                },
-                update: {
-                    method: 'PUT'
-                }
-            });
+        $scope.ok = function(){
+            $mdDialog.hide(true);
         }
-    ]);
+    }
 
-})(window);
-(function (global) {
-    "use strict";
+    global.squid.login.controller('TermsDialogController', ['$scope', '$mdDialog', TermsDialogController]);
 
-    global.squid.user.factory('userStatisticsService', ['$resource',
-        function ($resource) {
-            return $resource(END_POINT_URL + '/api/statistics/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getUserProfileStatistics: {
-                    method: 'GET',
-                    params:{
-                        action: 'me'
+    global.squid.login.factory('TermsDialogService',
+        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
+            function($rootScope, $q, $mdDialog, $mdToast, userService, store){
+
+                function _getToastPosition(){
+                    if($rootScope.isSmallDevice){
+                        return 'bottom left';
+                    }else{
+                        return 'top right';
                     }
                 }
-            });
-        }
-    ]);
+
+                function _updateUserMetadata(profile){
+                    var defer = $q.defer();
+
+                    userService.update(profile.app_metadata, function(response){
+                        defer.resolve(profile);
+                    }, function(err){
+                        defer.reject(profile);
+                    });
+
+                    return defer.promise;
+                }
+
+                function _termsNotAccepted(profile){
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = false;
+                    store.set('profile', profile);
+
+                    var toast = $mdToast.simple()
+                        .content('Você deve aceitar os termos de uso para poder navegar.')
+                        .action(toastConfig.close)
+                        .parent($('main').get(0))
+                        .hideDelay(toastConfig.delay)
+                        .highlightAction(false)
+                        .position(_getToastPosition());
+
+                    $mdToast.show(toast).then(function(response) {});
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _termsAccepted(acceptTerms, profile){
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = acceptTerms;
+                    store.set('profile', profile);
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                return {
+                    openDialog: function(profile){
+                        var defer = $q.defer();
+
+                        $mdDialog.show({
+                                controller: TermsDialogController,
+                                templateUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/term-dialog.html',
+                                parent: angular.element(document.body),
+                                clickOutsideToClose: true
+                            })
+                            .then(function(acceptTerms) {
+                                _termsAccepted(acceptTerms, profile)
+                                    .then(defer.resolve, defer.reject);
+                            }, function() {
+                                _termsNotAccepted(profile)
+                                    .then(defer.reject, defer.reject);
+                            });
+
+                        return defer.promise;
+                    }
+                }
+            }]);
 
 })(window);
 (function (global) {

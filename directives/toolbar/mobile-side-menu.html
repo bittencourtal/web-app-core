@@ -5,7 +5,7 @@
                 <md-list-item class="md-2-line">
                     <img ng-src="{{auth.profile.picture}}" alt="{{auth.profile.name}}" ng-if="auth.isAuthenticated" class="md-avatar"/>
 
-                    <img ng-src="{{APP_DIR}}/images/no-img.jpg" ng-if="!auth.isAuthenticated" class="md-avatar"/>
+                    <img ng-src="{{APP_CONFIG.APP_DIR}}/images/no-img.jpg" ng-if="!auth.isAuthenticated" class="md-avatar"/>
 
                     <div class="md-list-item-text">
                         <h3 class="color-white">Bem-vindo</h3>
@@ -33,7 +33,7 @@
                 <p>Feed</p>
             </md-list-item>
             <md-list-item>
-                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" class="md-no-style md-button md-ink-ripple" ng-transclude="" style="padding: 0; margin: 0px; font-weight: normal;" target="_blank">
+                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" class="md-no-style md-button md-ink-ripple" target="_blank">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>
                         <p>Termos de uso</p>
@@ -41,10 +41,18 @@
                 </a>
             </md-list-item>
             <md-list-item>
-                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" class="md-no-style md-button md-ink-ripple" ng-transclude="" style="padding: 0; margin: 0px; font-weight: normal;"  target="_blank">
+                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" class="md-no-style md-button md-ink-ripple" target="_blank">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-eye ng-isolate-scope material-icons"></md-icon>
                         <p>Política de privacidade</p>
+                    </div>
+                </a>
+            </md-list-item>
+            <md-list-item>
+                <a ng-click="openTerms()" class="md-no-style md-button md-ink-ripple">
+                    <div class="md-list-item-inner ng-scope">
+                        <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>
+                        <p>Sobre a campanha</p>
                     </div>
                 </a>
             </md-list-item>

@@ -4,16 +4,18 @@
 (function (global) {
 
     global.squid.login.controller('LoginController', [
-        '$scope', 'auth', '$location', 'store',
-        function ($scope, auth, $location, store) {
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'TermsDialogService',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, TermsDialogService) {
+
+            $scope.isLoading = false;
 
             var dict = {
                 loadingTitle: 'carregando...',
                 close: 'fechar',
                 signin: {
                     title: 'Faça seu login ;)',
-					signinText: 'Entrar',
-					signupText: 'Cadastrar-se',
+                    signinText: 'Entrar',
+                    signupText: 'Cadastrar-se',
                     usernamePlaceholder: 'e-mail',
                     emailPlaceholder: 'e-mail',
                     passwordPlaceholder: "Senha",
@@ -34,37 +36,88 @@
                 }
             };
 
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                        connections: ['instagram'],
-                        container: 'login-box',
-                        icon: '../images/logo.png',
-                        dict: dict
-                    }, function (profile, token) {
-                        store.set('profile', profile);
-                        store.set('token', token);
+            function _termsIsAccepted(profile){
+                if(!profile || !profile.app_metadata)
+                    return false;
 
-                        if (_containsAllData(profile))
-                            $location.path(global.START_VIEW);
-                        else
-                            $location.path('/register');
-                    }
-                    ,
-                    function (error) {
-
-                    }
-                )
-                ;
+                return profile.app_metadata.acceptedTerms;
             }
 
-            function _containsAllData(profile) {
-                return profile.birthDate && profile.gender;
+            function _logout() {
+                auth.signout();
+                store.remove('profile');
+                store.remove('token');
+                $.jStorage.flush();
+                _hideLoader();
+                _redirectToLogin();
+            }
+
+            function _redirectToLogin(){
+                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+            }
+
+            function _redirectToStartView(){
+                $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _redirectOnSuccessLogin(profile){
+                if (_containsAllData(profile))
+                    _redirectToStartView();
+                else
+                    $location.path('/register');
             }
 
             function _redirectIfIsLoggedIn() {
                 if (auth.isAuthenticated)
-                    $location.path(global.START_VIEW);
+                    $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _containsAllData(profile) {
+                if(!profile)
+                    return;
+
+                return profile.birthDate && profile.gender;
+            }
+
+            function _hideLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = false;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _showLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = true;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                }, function (profile, token) {
+                    store.set('profile', profile);
+                    store.set('token', token);
+
+                    if(_termsIsAccepted(profile))
+                        return _redirectOnSuccessLogin(profile);
+
+                    _showLoader();
+
+                    TermsDialogService.openDialog(profile)
+                        .then(_redirectOnSuccessLogin, _logout);
+                }, function (error) {
+
+                });
             }
 
             _redirectIfIsLoggedIn();

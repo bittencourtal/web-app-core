@@ -3,7 +3,7 @@
 
     global.squid.user.factory('userService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/user/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {

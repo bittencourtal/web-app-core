@@ -3,7 +3,7 @@
 
     global.squid.mission.factory('participationService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/participation/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/participation/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {

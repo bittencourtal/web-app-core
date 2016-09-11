@@ -2,10 +2,10 @@
     "use strict";
 
     global.squid.app.directive('toolbar',
-        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia',
-            function($mdSidenav, $location, auth, store, $mdMedia){
+        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'TermsDialogService',
+            function($mdSidenav, $location, auth, store, $mdMedia, TermsDialogService){
                 return {
-                    templateUrl: global.APP_DIR + '/directives/toolbar/toolbar.html',
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
                     scope: {},
@@ -16,7 +16,15 @@
                         $scope.auth = auth;
                         $scope.$location = $location;
                         $scope.isSmallDevice = $mdMedia('sm');
-                        $scope.mobileSideMenuUrl = global.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+                        $scope.mobileSideMenuUrl = global.APP_CONFIG.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+
+                        function _logout() {
+                            auth.signout();
+                            store.remove('profile');
+                            store.remove('token');
+                            $.jStorage.flush();
+                            _redirectToLogin();
+                        }
 
                         function _redirectToLogin(){
                           $location.path(global.LOGIN_ROUTE);
@@ -52,13 +60,18 @@
                             }
                         };
 
+                        $scope.openTerms = function(){
+                            TermsDialogService.openDialog(auth.profile)
+                                .then(function(){}, _logout);
+                        };
+
                         $scope.logout = function () {
                             auth.signout();
                             store.remove('profile');
                             store.remove('token');
                             $.jStorage.flush();
 
-                            if(global.REQUIRE_AUTHENTICATION){
+                            if(global.APP_CONFIG.REQUIRE_AUTHENTICATION){
                               _redirectToLogin();
                             }else{
                               _redirectToStartView();

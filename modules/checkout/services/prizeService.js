@@ -3,7 +3,7 @@
 
     global.squid.checkout.factory('prizeService', ['$resource',
         function ($resource) {
-            return $resource(END_POINT_URL + '/api/prize/:action/:id', {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/prize/:action/:id', {
                 action: '@action',
                 id: '@id'
             }, {

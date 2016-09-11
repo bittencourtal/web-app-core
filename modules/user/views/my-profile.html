@@ -8,7 +8,7 @@
                      ng-if="auth.isAuthenticated"
                      class="md-avatar" />
 
-                <img ng-src="{{APP_DIR}}/images/no-img.jpg"
+                <img ng-src="{{APP_CONFIG.APP_DIR}}/images/no-img.jpg"
                      ng-if="!auth.isAuthenticated"
                      class="md-avatar" />
                 <h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
