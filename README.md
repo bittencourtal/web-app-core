@@ -7,7 +7,7 @@
 - `npm install`
 - `bower install`
 - `gulp`
-- Abra outra janela do terminal e navegue até a raíz do projeto
+- Abra outra janela do terminal e navegue até a raíz do projeto 
 - `npm run start-dev`
 
 # Publicar uma nova versão
