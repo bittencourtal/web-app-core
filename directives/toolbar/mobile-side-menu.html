@@ -32,24 +32,24 @@
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
                 <p>Feed</p>
             </md-list-item>
-            <md-list-item>
-                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" class="md-no-style md-button md-ink-ripple" target="_blank">
+            <md-list-item ng-show="APP_CONFIG.TERMS_OF_USE.SHOW">
+                <a ng-href="{{APP_CONFIG.TERMS_OF_USE.LINK}}" class="md-no-style md-button md-ink-ripple" target="_blank">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>
                         <p>Termos de uso</p>
                     </div>
                 </a>
             </md-list-item>
-            <md-list-item>
-                <a href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" class="md-no-style md-button md-ink-ripple" target="_blank">
+            <md-list-item ng-show="APP_CONFIG.PRIVACY_POLICY.SHOW">
+                <a ng-href="{{APP_CONFIG.PRIVACY_POLICY.LINK}}" class="md-no-style md-button md-ink-ripple" target="_blank">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-eye ng-isolate-scope material-icons"></md-icon>
                         <p>Política de privacidade</p>
                     </div>
                 </a>
             </md-list-item>
-            <md-list-item>
-                <a ng-click="openTerms()" class="md-no-style md-button md-ink-ripple">
+            <md-list-item ng-show="APP_CONFIG.ABOUT_CAMPAIGN.SHOW">
+                <a ng-click="openAboutCampaign()" class="md-no-style md-button md-ink-ripple">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>
                         <p>Sobre a campanha</p>

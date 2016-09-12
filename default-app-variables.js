@@ -35,6 +35,21 @@
 				LOGIN: function () { return APP_CONFIG.APP_DIR + '/views/templates/login.html' }
 			}
 		},
+		ABOUT_CAMPAIGN: {
+			SHOW: true,
+			TEXTS: {
+				STEP_1: '<p>APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_1<p>',
+				STEP_2: '<p>APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_2</p>'
+			}
+		},
+		TERMS_OF_USE: {
+			SHOW: true,
+			LINK: 'https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view',
+		},
+		PRIVACY_POLICY: {
+			SHOW: true,
+			LINK: 'https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view'
+		},
 		END_POINT_URL: _getEndPointUrl,
 		SERVICES_END_POINT_URL: _getEndPointUrl,
 		AUTH0: {

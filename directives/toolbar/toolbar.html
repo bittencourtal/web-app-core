@@ -67,20 +67,20 @@
                             <span md-menu-align-target>Meu perfil</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item>
-                        <md-button class="md-primary" href="https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view" target="_blank">
+                    <md-menu-item ng-show="APP_CONFIG.TERMS_OF_USE.SHOW">
+                        <md-button class="md-primary" ng-href="{{APP_CONFIG.TERMS_OF_USE.LINK}}" target="_blank">
                             <md-icon class="mdi md-headline mdi-flag"></md-icon>
                             <span md-menu-align-target>Termos de uso</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item>
-                        <md-button class="md-primary" href="https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view" target="_blank">
+                    <md-menu-item ng-show="APP_CONFIG.PRIVACY_POLICY.SHOW">
+                        <md-button class="md-primary" ng-href="{{APP_CONFIG.PRIVACY_POLICY.LINK}}" target="_blank">
                             <md-icon class="mdi md-headline mdi-eye"></md-icon>
                             <span md-menu-align-target>Política de privacidade</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item>
-                        <md-button class="md-primary" ng-click="openTerms()">
+                    <md-menu-item ng-show="APP_CONFIG.ABOUT_CAMPAIGN.SHOW">
+                        <md-button class="md-primary" ng-click="openAboutCampaign()">
                             <md-icon class="mdi md-headline mdi-flag"></md-icon>
                             <span md-menu-align-target>Sobre a campanha</span>
                         </md-button>

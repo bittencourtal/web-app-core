@@ -4,8 +4,8 @@
 (function (global) {
 
     global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'TermsDialogService',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, TermsDialogService) {
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'AboutCampaignModalService',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, AboutCampaignModalService) {
 
             $scope.isLoading = false;
 
@@ -113,7 +113,7 @@
 
                     _showLoader();
 
-                    TermsDialogService.openDialog(profile)
+                    AboutCampaignModalService.openDialog(profile)
                         .then(_redirectOnSuccessLogin, _logout);
                 }, function (error) {
 

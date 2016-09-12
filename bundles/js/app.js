@@ -323,8 +323,8 @@ String.prototype.replaceAll = function (from, to) {
     "use strict";
 
     global.squid.app.directive('toolbar',
-        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'TermsDialogService',
-            function($mdSidenav, $location, auth, store, $mdMedia, TermsDialogService){
+        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService',
+            function($mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService){
                 return {
                     templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
@@ -332,6 +332,7 @@ String.prototype.replaceAll = function (from, to) {
                     scope: {},
                     link: function($scope, $element, $attrs, $controllers){
 
+                        $scope.APP_CONFIG = global.APP_CONFIG;
                         $scope.$mdSidenav = $mdSidenav;
                         $scope.path = $location.$$path.split("/")[1];
                         $scope.auth = auth;
@@ -381,8 +382,8 @@ String.prototype.replaceAll = function (from, to) {
                             }
                         };
 
-                        $scope.openTerms = function(){
-                            TermsDialogService.openDialog(auth.profile)
+                        $scope.openAboutCampaign = function(){
+                            AboutCampaignModalService.openDialog(auth.profile)
                                 .then(function(){}, _logout);
                         };
 
@@ -442,7 +443,7 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.user = angular.module("squid-user", []);
+	global.squid.login = angular.module("squid-login", []);
 
 })(window);
 (function(global) {
@@ -452,7 +453,126 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.login = angular.module("squid-login", []);
+	global.squid.user = angular.module("squid-user", []);
+
+})(window);
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
+
+        $scope.currentStep = 'step-1';
+        $scope.TEXTS = {
+            STEP1: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_1,
+            STEP2: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_2
+        };
+
+        $scope.next = function () {
+            $scope.currentStep = 'step-2';
+        };
+
+        $scope.back = function () {
+            $scope.currentStep = 'step-1';
+        };
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.ok = function () {
+            $mdDialog.hide(true);
+        }
+    }
+
+    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
+
+    global.squid.login.factory('AboutCampaignModalService',
+        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
+            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
+
+                function _getToastPosition() {
+                    if ($rootScope.isSmallDevice) {
+                        return 'bottom left';
+                    } else {
+                        return 'top right';
+                    }
+                }
+
+                function _updateUserMetadata(profile) {
+                    var defer = $q.defer();
+
+                    userService.update(profile.app_metadata, function (response) {
+                        defer.resolve(profile);
+                    }, function (err) {
+                        defer.reject(profile);
+                    });
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignNotRead(profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = false;
+                    store.set('profile', profile);
+
+                    var toast = $mdToast.simple()
+                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
+                        .action(toastConfig.close)
+                        .parent($('main').get(0))
+                        .hideDelay(toastConfig.delay)
+                        .highlightAction(false)
+                        .position(_getToastPosition());
+
+                    $mdToast.show(toast).then(function (response) { });
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignRead(acceptTerms, profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = acceptTerms;
+                    store.set('profile', profile);
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _openDialog(profile) {
+                    var defer = $q.defer();
+
+                    $mdDialog.show({
+                        controller: AboutCampaignController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: true
+                    }).then(function (aboutCampaignRead) {
+                        _aboutCampaignRead(aboutCampaignRead, profile)
+                            .then(defer.resolve, defer.reject);
+                    }, function () {
+                        _aboutCampaignNotRead(profile)
+                            .then(defer.reject, defer.reject);
+                    });
+
+                    return defer.promise;
+                }
+
+                return {
+                    openDialog: _openDialog
+                }
+            }]);
 
 })(window);
 (function (global) {
@@ -958,143 +1078,149 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+/* jshint undef: true, unused: false */
+/* global app, window */
+
 (function (global) {
-    "use strict";
 
-    global.squid.user.controller('MyProfileController', [
-        '$scope', 'auth', 'userService', '$location','participationService', 'checkoutService', 'userStatisticsService',
-        function ($scope, auth, userService, $location, participationService, checkoutService, userStatisticsService) {
+    global.squid.login.controller('LoginController', [
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'AboutCampaignModalService',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, AboutCampaignModalService) {
 
-            var firstLoad = true;
-            $scope.isLoadingParticipations = false;
-            $scope.auth = auth;
-            $scope.selectedTabIndex = 0;
             $scope.isLoading = false;
-            $scope.userStatistics = {};
-            $scope.maxYear = moment().subtract(14, 'years').year();
-            $scope.vouchers = [];
-            $scope.participations = {
-                data: [],
-                minId: ''
+
+            var dict = {
+                loadingTitle: 'carregando...',
+                close: 'fechar',
+                signin: {
+                    title: 'Faça seu login ;)',
+                    signinText: 'Entrar',
+                    signupText: 'Cadastrar-se',
+                    usernamePlaceholder: 'e-mail',
+                    emailPlaceholder: 'e-mail',
+                    passwordPlaceholder: "Senha",
+                    separatorText: "ou",
+                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
+                    serverErrorText: 'Você não está autorizado.',
+                    strategyEmailInvalid: 'O e-mail é invalido.',
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.',
+                    returnUserLabel: 'Da última vez você acessou como...',
+                    all: 'Não é sua conta?',
+                    forgotText: 'Esqueceu sua senha? Clique aqui.'
+                },
+                signup: {
+                    serverErrorText: 'Não foi possível se cadastrar.'
+                },
+                reset: {
+                    serverErrorText: 'Não foi possível resetar a senha.'
+                }
             };
 
-            function _getUserStatistics(){
-                userStatisticsService.getUserProfileStatistics(function(userStatistics){
-                    $scope.userStatistics = userStatistics;
+            function _termsIsAccepted(profile){
+                if(!profile || !profile.app_metadata)
+                    return false;
+
+                return profile.app_metadata.acceptedTerms;
+            }
+
+            function _logout() {
+                auth.signout();
+                store.remove('profile');
+                store.remove('token');
+                $.jStorage.flush();
+                _hideLoader();
+                _redirectToLogin();
+            }
+
+            function _redirectToLogin(){
+                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+            }
+
+            function _redirectToStartView(){
+                $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _redirectOnSuccessLogin(profile){
+                if (_containsAllData(profile))
+                    _redirectToStartView();
+                else
+                    $location.path('/register');
+            }
+
+            function _redirectIfIsLoggedIn() {
+                if (auth.isAuthenticated)
+                    $location.path(global.APP_CONFIG.START_VIEW);
+            }
+
+            function _containsAllData(profile) {
+                if(!profile)
+                    return;
+
+                return profile.birthDate && profile.gender;
+            }
+
+            function _hideLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = false;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _showLoader(){
+                var defer = $q.defer();
+
+                $scope.isLoading = true;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _initAuthLockComponent() {
+                auth.config.auth0lib.$container = null;
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                }, function (profile, token) {
+                    store.set('profile', profile);
+                    store.set('token', token);
+
+                    if(_termsIsAccepted(profile))
+                        return _redirectOnSuccessLogin(profile);
+
+                    _showLoader();
+
+                    AboutCampaignModalService.openDialog(profile)
+                        .then(_redirectOnSuccessLogin, _logout);
+                }, function (error) {
+
                 });
             }
 
-            function _getUserVouchers(){
-                checkoutService.getVouchersByUser(function(vouchers){
-                    $scope.vouchers = vouchers;
-                });
-            }
+            _redirectIfIsLoggedIn();
+            _initAuthLockComponent();
 
-            function _getUserParticipation(){
-                if($scope.isLoadingParticipations
-                    || $scope.participations.data.length > 0 && !$scope.participations.minId
-                    || $scope.participations.data.length == 0 && !firstLoad
-                )
-                    return;
+        }
 
-                firstLoad = false;
-                $scope.isLoadingParticipations = true;
-
-                participationService.getUserParticipations({
-                    id: auth.profile.user_id,
-                    minId: $scope.participations.minId,
-                    take: 12
-                }, function(response){
-                    $scope.participations.data = $scope.participations.data
-                        .concat(response.data)
-                        .distinct(function(c, n){
-                            return c._id == n._id;
-                        });
-                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
-                    $scope.isLoadingParticipations = false;
-                }, function(){
-                    $scope.isLoadingParticipations = false;
-                });
-            }
-
-            function _init(){
-                if(!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-                _getUserVouchers();
-                _getUserStatistics();
-            }
-
-            $scope.getVoucherUsedLabel = function(isUsed){
-                return isUsed ? 'Usado': 'Não usado';
-            };
-
-            $scope.loadMoreParticipations = function(){
-                if(!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-            };
-
-            _init();
-        }]);
-
+    ])
+    ;
 
 })(window);
+
 (function (global) {
 
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
+            .when('/login', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
             });
     }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                email: {
-                    method: 'PUT',
-                    params:{
-                        action: 'email'
-                    }
-                },
-                update: {
-                    method: 'PUT'
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userStatisticsService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/statistics/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getUserProfileStatistics: {
-                    method: 'GET',
-                    params:{
-                        action: 'me'
-                    }
-                }
-            });
-        }
-    ]);
 
 })(window);
 (function (global) {
@@ -1413,263 +1539,143 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
-/* jshint undef: true, unused: false */
-/* global app, window */
-
 (function (global) {
+    "use strict";
 
-    global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'TermsDialogService',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, TermsDialogService) {
+    global.squid.user.controller('MyProfileController', [
+        '$scope', 'auth', 'userService', '$location','participationService', 'checkoutService', 'userStatisticsService',
+        function ($scope, auth, userService, $location, participationService, checkoutService, userStatisticsService) {
 
+            var firstLoad = true;
+            $scope.isLoadingParticipations = false;
+            $scope.auth = auth;
+            $scope.selectedTabIndex = 0;
             $scope.isLoading = false;
-
-            var dict = {
-                loadingTitle: 'carregando...',
-                close: 'fechar',
-                signin: {
-                    title: 'Faça seu login ;)',
-                    signinText: 'Entrar',
-                    signupText: 'Cadastrar-se',
-                    usernamePlaceholder: 'e-mail',
-                    emailPlaceholder: 'e-mail',
-                    passwordPlaceholder: "Senha",
-                    separatorText: "ou",
-                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
-                    serverErrorText: 'Você não está autorizado.',
-                    strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.',
-                    returnUserLabel: 'Da última vez você acessou como...',
-                    all: 'Não é sua conta?',
-                    forgotText: 'Esqueceu sua senha? Clique aqui.'
-                },
-                signup: {
-                    serverErrorText: 'Não foi possível se cadastrar.'
-                },
-                reset: {
-                    serverErrorText: 'Não foi possível resetar a senha.'
-                }
+            $scope.userStatistics = {};
+            $scope.maxYear = moment().subtract(14, 'years').year();
+            $scope.vouchers = [];
+            $scope.participations = {
+                data: [],
+                minId: ''
             };
 
-            function _termsIsAccepted(profile){
-                if(!profile || !profile.app_metadata)
-                    return false;
-
-                return profile.app_metadata.acceptedTerms;
-            }
-
-            function _logout() {
-                auth.signout();
-                store.remove('profile');
-                store.remove('token');
-                $.jStorage.flush();
-                _hideLoader();
-                _redirectToLogin();
-            }
-
-            function _redirectToLogin(){
-                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-            }
-
-            function _redirectToStartView(){
-                $location.path(global.APP_CONFIG.START_VIEW);
-            }
-
-            function _redirectOnSuccessLogin(profile){
-                if (_containsAllData(profile))
-                    _redirectToStartView();
-                else
-                    $location.path('/register');
-            }
-
-            function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.APP_CONFIG.START_VIEW);
-            }
-
-            function _containsAllData(profile) {
-                if(!profile)
-                    return;
-
-                return profile.birthDate && profile.gender;
-            }
-
-            function _hideLoader(){
-                var defer = $q.defer();
-
-                $scope.isLoading = false;
-                defer.resolve();
-
-                return defer.promise;
-            }
-
-            function _showLoader(){
-                var defer = $q.defer();
-
-                $scope.isLoading = true;
-                defer.resolve();
-
-                return defer.promise;
-            }
-
-            function _initAuthLockComponent() {
-                auth.config.auth0lib.$container = null;
-                auth.signin({
-                    connections: ['instagram'],
-                    container: 'login-box',
-                    icon: '../images/logo.png',
-                    dict: dict
-                }, function (profile, token) {
-                    store.set('profile', profile);
-                    store.set('token', token);
-
-                    if(_termsIsAccepted(profile))
-                        return _redirectOnSuccessLogin(profile);
-
-                    _showLoader();
-
-                    TermsDialogService.openDialog(profile)
-                        .then(_redirectOnSuccessLogin, _logout);
-                }, function (error) {
-
+            function _getUserStatistics(){
+                userStatisticsService.getUserProfileStatistics(function(userStatistics){
+                    $scope.userStatistics = userStatistics;
                 });
             }
 
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
+            function _getUserVouchers(){
+                checkoutService.getVouchersByUser(function(vouchers){
+                    $scope.vouchers = vouchers;
+                });
+            }
 
-        }
+            function _getUserParticipation(){
+                if($scope.isLoadingParticipations
+                    || $scope.participations.data.length > 0 && !$scope.participations.minId
+                    || $scope.participations.data.length == 0 && !firstLoad
+                )
+                    return;
 
-    ])
-    ;
+                firstLoad = false;
+                $scope.isLoadingParticipations = true;
+
+                participationService.getUserParticipations({
+                    id: auth.profile.user_id,
+                    minId: $scope.participations.minId,
+                    take: 12
+                }, function(response){
+                    $scope.participations.data = $scope.participations.data
+                        .concat(response.data)
+                        .distinct(function(c, n){
+                            return c._id == n._id;
+                        });
+                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
+                    $scope.isLoadingParticipations = false;
+                }, function(){
+                    $scope.isLoadingParticipations = false;
+                });
+            }
+
+            function _init(){
+                if(!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+                _getUserVouchers();
+                _getUserStatistics();
+            }
+
+            $scope.getVoucherUsedLabel = function(isUsed){
+                return isUsed ? 'Usado': 'Não usado';
+            };
+
+            $scope.loadMoreParticipations = function(){
+                if(!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+            };
+
+            _init();
+        }]);
+
 
 })(window);
-
 (function (global) {
 
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
             });
     }]);
 
 })(window);
-(function(global){
+(function (global) {
+    "use strict";
 
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    function TermsDialogController($scope, $mdDialog){
-
-        $scope.currentStep = 'campanha';
-
-        $scope.next = function(){
-            $scope.currentStep = 'regulamento';
-        };
-
-        $scope.back = function(){
-            $scope.currentStep = 'campanha';
-        };
-
-        $scope.cancel = function(){
-            $mdDialog.cancel();
-        };
-
-        $scope.ok = function(){
-            $mdDialog.hide(true);
+    global.squid.user.factory('userService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                email: {
+                    method: 'PUT',
+                    params:{
+                        action: 'email'
+                    }
+                },
+                update: {
+                    method: 'PUT'
+                }
+            });
         }
-    }
+    ]);
 
-    global.squid.login.controller('TermsDialogController', ['$scope', '$mdDialog', TermsDialogController]);
+})(window);
+(function (global) {
+    "use strict";
 
-    global.squid.login.factory('TermsDialogService',
-        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
-            function($rootScope, $q, $mdDialog, $mdToast, userService, store){
-
-                function _getToastPosition(){
-                    if($rootScope.isSmallDevice){
-                        return 'bottom left';
-                    }else{
-                        return 'top right';
+    global.squid.user.factory('userStatisticsService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/statistics/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getUserProfileStatistics: {
+                    method: 'GET',
+                    params:{
+                        action: 'me'
                     }
                 }
-
-                function _updateUserMetadata(profile){
-                    var defer = $q.defer();
-
-                    userService.update(profile.app_metadata, function(response){
-                        defer.resolve(profile);
-                    }, function(err){
-                        defer.reject(profile);
-                    });
-
-                    return defer.promise;
-                }
-
-                function _termsNotAccepted(profile){
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = false;
-                    store.set('profile', profile);
-
-                    var toast = $mdToast.simple()
-                        .content('Você deve aceitar os termos de uso para poder navegar.')
-                        .action(toastConfig.close)
-                        .parent($('main').get(0))
-                        .hideDelay(toastConfig.delay)
-                        .highlightAction(false)
-                        .position(_getToastPosition());
-
-                    $mdToast.show(toast).then(function(response) {});
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _termsAccepted(acceptTerms, profile){
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = acceptTerms;
-                    store.set('profile', profile);
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                return {
-                    openDialog: function(profile){
-                        var defer = $q.defer();
-
-                        $mdDialog.show({
-                                controller: TermsDialogController,
-                                templateUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/term-dialog.html',
-                                parent: angular.element(document.body),
-                                clickOutsideToClose: true
-                            })
-                            .then(function(acceptTerms) {
-                                _termsAccepted(acceptTerms, profile)
-                                    .then(defer.resolve, defer.reject);
-                            }, function() {
-                                _termsNotAccepted(profile)
-                                    .then(defer.reject, defer.reject);
-                            });
-
-                        return defer.promise;
-                    }
-                }
-            }]);
+            });
+        }
+    ]);
 
 })(window);
 (function (global) {

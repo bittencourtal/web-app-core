@@ -1,0 +1,27 @@
+<md-dialog aria-label="Sobre a campanha" ng-cloak>
+    <div ng-if="currentStep == 'step-1'">
+        <md-dialog-content style="max-width:800px;max-height:810px; ">
+            <div class="md-dialog-content" ng-bind-html="TEXTS.STEP1">
+            </div>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+            <md-button ng-click="next()" style="margin-right:20px;" >
+                Avançar
+            </md-button>
+        </div>
+    </div>
+    <div ng-if="currentStep == 'step-2'">
+        <md-dialog-content style="max-width:800px;max-height:810px; ">
+            <div class="md-dialog-content" ng-bind-html="TEXTS.STEP2">
+            </div>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+            <md-button ng-click="back()">
+                Voltar
+            </md-button>
+            <md-button ng-click="ok()" style="margin-right:20px;" >
+                OK
+            </md-button>
+        </div>
+    </div>
+</md-dialog>

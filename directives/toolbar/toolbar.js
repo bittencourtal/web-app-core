@@ -2,8 +2,8 @@
     "use strict";
 
     global.squid.app.directive('toolbar',
-        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'TermsDialogService',
-            function($mdSidenav, $location, auth, store, $mdMedia, TermsDialogService){
+        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService',
+            function($mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService){
                 return {
                     templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
@@ -11,6 +11,7 @@
                     scope: {},
                     link: function($scope, $element, $attrs, $controllers){
 
+                        $scope.APP_CONFIG = global.APP_CONFIG;
                         $scope.$mdSidenav = $mdSidenav;
                         $scope.path = $location.$$path.split("/")[1];
                         $scope.auth = auth;
@@ -60,8 +61,8 @@
                             }
                         };
 
-                        $scope.openTerms = function(){
-                            TermsDialogService.openDialog(auth.profile)
+                        $scope.openAboutCampaign = function(){
+                            AboutCampaignModalService.openDialog(auth.profile)
                                 .then(function(){}, _logout);
                         };
 
