@@ -154,4 +154,4 @@ gulp.task('watch', function () {
     gulp.watch(styles.vendors, ['stylesVendors']);
 });
 
-gulp.task('default', ['watch', 'scriptsApp', 'stylesMain', 'styleTheme', 'stylesVendors']);
+gulp.task('default', ['watch', 'scriptsApp', 'scriptsVendors', 'stylesMain', 'styleTheme', 'stylesVendors']);
