@@ -113,12 +113,49 @@ header md-toolbar .md-toolbar-brand {
     border-radius: 50%;
 
 }
+md-dialog figure{
+    margin: 0;
+    padding: 0;
+}
+
+md-dialog img{
+    max-width: 100%;
+}
+
+md-dialog ul{
+    list-style: none;
+    padding:0;
+    margin:0;
+}
+
+md-dialog li{
+    text-indent: -14px;
+    margin-left: 30px;
+}
+
+md-dialog li:before{
+    content: "• ";
+    color: ||primary.default||;
+    position: relative;
+    right: -8px;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 2em;
+}
+
+md-dialog .push{
+    margin: -24px;
+    margin-bottom: 0;
+}
 md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]).md-active{
     color: ||primary.default||;
 }
 
 md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]){
     color: ||primary.200||;
+}
+.md-toolbar-tools h2{
+    color: ||primary.50||;
 }
 .card.profile .card-header{
     background: ||accent.500||;
@@ -138,4 +175,8 @@ a {
 a:hover,
 a:focus {
     color: ||primary.900||;
+}
+
+strong{
+    color: ||primary.default||;
 }

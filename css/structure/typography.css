@@ -28,11 +28,13 @@ h4{
     margin-bottom: 12px;
 }
 
-p {
-    margin-bottom: 20px;
+p, li {
+    margin: 0;
+    margin-bottom: 12px;
     font-size: 1.2em;
     line-height: 1.5em;
     font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+    color: #484747;
 }
 
 label{

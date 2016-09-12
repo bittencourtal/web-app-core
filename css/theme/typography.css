@@ -6,3 +6,7 @@ a:hover,
 a:focus {
     color: ||primary.900||;
 }
+
+strong{
+    color: ||primary.default||;
+}

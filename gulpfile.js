@@ -140,7 +140,7 @@ gulp.task('styleThemeConcat', function () {
 //        .pipe(gulp.dest(cssOutputFolder));
 //});
 
-gulp.task('scriptsVendors', ['scriptVendorsConcat', 'scriptVendorsCompress']);
+gulp.task('scriptsVendors', ['scriptVendorsConcat']); // 'scriptVendorsCompress'
 gulp.task('scriptsApp', ['scriptAppConcat', 'scriptAppCompress']);
 gulp.task('stylesVendors', ['styleVendorsConcat']);
 gulp.task('stylesMain', ['styleMainConcat']);
