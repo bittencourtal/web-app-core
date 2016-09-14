@@ -3,7 +3,7 @@
     global.squid.app.config(['$routeProvider', function($routeProvider) {
         $routeProvider
             .otherwise({
-                redirectTo: '/mission/actives'
+                redirectTo: global.APP_CONFIG.START_VIEW
             });
     }]);
 

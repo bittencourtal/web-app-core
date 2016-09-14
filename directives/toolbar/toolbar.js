@@ -1,14 +1,9 @@
 (function (global) {
     "use strict";
 
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
     global.squid.app.directive('toolbar',
-        ['$rootScope', '$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService', 'feedService', '$mdToast',
-            function ($rootScope, $mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService, feedService, $mdToast) {
+        ['$rootScope', '$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService', 'feedService', 'uniqueCampaignService',
+            function ($rootScope, $mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService, feedService, uniqueCampaignService) {
                 return {
                     templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
@@ -41,37 +36,14 @@
                             $location.path(global.START_VIEW);
                         }
 
-                        function _getToastPosition() {
-                            if ($rootScope.isSmallDevice) {
-                                return 'bottom left';
-                            } else {
-                                return 'top right';
-                            }
-                        }
-
-                        function _notifyNotHaveCampaign() {
-                            var toast = $mdToast.simple()
-                                .content('Não há campanha cadastrada no momento.')
-                                .action(toastConfig.close)
-                                .parent($('main').get(0))
-                                .hideDelay(toastConfig.delay)
-                                .highlightAction(false)
-                                .position(_getToastPosition());
-
-                            $mdToast.show(toast).then(function (response) { });
-                        }
-
                         function _loadUniqueCampaign() {
                             if (!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
                                 return;
 
-                            feedService.getMissionsActive(function (result) {
-                                if (!result)
-                                    return;
-
-                                var mission = result.data.first();
-                                $scope.uniqueCampaign = !!mission ? mission : null;
-                            });
+                            uniqueCampaignService.getUniqueCampaign()
+                                .then(function(campaign){
+                                    $scope.uniqueCampaign = campaign; 
+                                });
                         }
 
                         $scope.getButtonClass = function (menu) {
@@ -102,9 +74,9 @@
 
                         $scope.goToUniqueCampaign = function () {
                             if (!$scope.uniqueCampaign)
-                                return _notifyNotHaveCampaign();
+                                return uniqueCampaignService.notifyNotHaveCampaign();
 
-                            $location.path('mission/mission-details/' + $scope.uniqueCampaign._id);
+                            uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                         };
 
                         $scope.openAboutCampaign = function () {
