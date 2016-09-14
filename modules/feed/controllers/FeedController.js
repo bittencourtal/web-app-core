@@ -106,7 +106,9 @@
 
             function _getFeed(minId) {
                 var defer = $q.defer();
-                var query = {};
+                var query = {
+                    status: 'approved'
+                };
 
                 if (minId)
                     query.minId = minId;

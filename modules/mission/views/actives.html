@@ -1,4 +1,44 @@
 <div ng-controller="ActiveMissionController">
+    <div tagged-infinite-scroll="loadMore()"
+         tagged-infinite-scroll-disabled="isLoading"
+         tagged-infinite-scroll-distance="100">
+        <div class="card" ng-repeat="feed in feedList">
+            <div class="card-header">
+                <div class="card-header-text">
+                    <h3>
+                        <a href="#/mission/mission-details/{{feed.mission._id}}" ng-bind="'#' + feed.mission.hashtag"></a>
+                    </h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <figure>
+                    <img ng-src="{{feed.mission.images.banner.standard_resolution}}" alt="">
+                </figure>
+            </div>
+            <div class="card-footer">
+                <md-list>
+                    <md-list-item
+                            class="md-2-line">
+                        <img class="md-avatar" alt="{{feed.mission.owner.name}}" ng-src="{{feed.mission.owner.images.logo}}" />
+                        <div class="md-list-item-text">
+                            <h3 ng-bind="feed.mission.owner.name"></h3>
+                            <p>Patrocinador</p>
+                        </div>
+                        <md-button  class="md-primary md-fab md-raised"
+                                    ng-click="$location.path('mission/mission-details/' + feed.mission._id)"
+                                    style="top:-55px;">
+                            <md-icon>
+                                <span class="mdi mdi-eye"></span>
+                            </md-icon>
+                        </md-button>
+                    </md-list-item>
+                    <md-list-item class="md-no-proxy">
+                        <p class="md-subhead" ng-bind="feed.mission.shortDescription"></p>
+                    </md-list-item>
+                </md-list>
+            </div>
+        </div>
+    </div>
     <div layout="row" layout-align="center center" class="md-progress-wrapper">
         <md-progress-circular md-mode="indeterminate" ng-if="isLoading"></md-progress-circular>
     </div>

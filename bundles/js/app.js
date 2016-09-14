@@ -319,24 +319,30 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
-(function(global){
+(function (global) {
     "use strict";
 
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
     global.squid.app.directive('toolbar',
-        ['$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService',
-            function($mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService){
+        ['$rootScope', '$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService', 'feedService', '$mdToast',
+            function ($rootScope, $mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService, feedService, $mdToast) {
                 return {
                     templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
                     restrict: 'EA',
                     replace: true,
                     scope: {},
-                    link: function($scope, $element, $attrs, $controllers){
+                    link: function ($scope, $element, $attrs, $controllers) {
 
                         $scope.APP_CONFIG = global.APP_CONFIG;
                         $scope.$mdSidenav = $mdSidenav;
                         $scope.path = $location.$$path.split("/")[1];
                         $scope.auth = auth;
                         $scope.$location = $location;
+                        $scope.uniqueCampaign = null;
                         $scope.isSmallDevice = $mdMedia('sm');
                         $scope.mobileSideMenuUrl = global.APP_CONFIG.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
 
@@ -348,12 +354,45 @@ String.prototype.replaceAll = function (from, to) {
                             _redirectToLogin();
                         }
 
-                        function _redirectToLogin(){
-                          $location.path(global.LOGIN_ROUTE);
+                        function _redirectToLogin() {
+                            $location.path(global.LOGIN_ROUTE);
                         }
 
-                        function _redirectToStartView(){
-                          $location.path(global.START_VIEW);
+                        function _redirectToStartView() {
+                            $location.path(global.START_VIEW);
+                        }
+
+                        function _getToastPosition() {
+                            if ($rootScope.isSmallDevice) {
+                                return 'bottom left';
+                            } else {
+                                return 'top right';
+                            }
+                        }
+
+                        function _notifyNotHaveCampaign() {
+                            var toast = $mdToast.simple()
+                                .content('Não há campanha cadastrada no momento.')
+                                .action(toastConfig.close)
+                                .parent($('main').get(0))
+                                .hideDelay(toastConfig.delay)
+                                .highlightAction(false)
+                                .position(_getToastPosition());
+
+                            $mdToast.show(toast).then(function (response) { });
+                        }
+
+                        function _loadUniqueCampaign() {
+                            if (!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
+                                return;
+
+                            feedService.getMissionsActive(function (result) {
+                                if (!result)
+                                    return;
+
+                                var mission = result.data.first();
+                                $scope.uniqueCampaign = !!mission ? mission : null;
+                            });
                         }
 
                         $scope.getButtonClass = function (menu) {
@@ -362,7 +401,7 @@ String.prototype.replaceAll = function (from, to) {
                             };
                         };
 
-                        $scope.goBack = function(){
+                        $scope.goBack = function () {
                             window.history.go(-1);
                         };
 
@@ -382,9 +421,16 @@ String.prototype.replaceAll = function (from, to) {
                             }
                         };
 
-                        $scope.openAboutCampaign = function(){
+                        $scope.goToUniqueCampaign = function () {
+                            if (!$scope.uniqueCampaign)
+                                return _notifyNotHaveCampaign();
+
+                            $location.path('mission/mission-details/' + $scope.uniqueCampaign._id);
+                        };
+
+                        $scope.openAboutCampaign = function () {
                             AboutCampaignModalService.openDialog(auth.profile)
-                                .then(function(){}, _logout);
+                                .then(function () { }, _logout);
                         };
 
                         $scope.logout = function () {
@@ -393,13 +439,14 @@ String.prototype.replaceAll = function (from, to) {
                             store.remove('token');
                             $.jStorage.flush();
 
-                            if(global.APP_CONFIG.REQUIRE_AUTHENTICATION){
-                              _redirectToLogin();
-                            }else{
-                              _redirectToStartView();
+                            if (global.APP_CONFIG.REQUIRE_AUTHENTICATION) {
+                                _redirectToLogin();
+                            } else {
+                                _redirectToStartView();
                             }
                         };
 
+                        _loadUniqueCampaign();
                     }
                 }
             }]);
@@ -454,125 +501,6 @@ String.prototype.replaceAll = function (from, to) {
 (function(global) {
 
 	global.squid.user = angular.module("squid-user", []);
-
-})(window);
-(function (global) {
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
-
-        $scope.currentStep = 'step-1';
-        $scope.TEXTS = {
-            STEP1: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_1,
-            STEP2: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_2
-        };
-
-        $scope.next = function () {
-            $scope.currentStep = 'step-2';
-        };
-
-        $scope.back = function () {
-            $scope.currentStep = 'step-1';
-        };
-
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
-
-        $scope.ok = function () {
-            $mdDialog.hide(true);
-        }
-    }
-
-    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
-
-    global.squid.login.factory('AboutCampaignModalService',
-        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
-            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
-
-                function _getToastPosition() {
-                    if ($rootScope.isSmallDevice) {
-                        return 'bottom left';
-                    } else {
-                        return 'top right';
-                    }
-                }
-
-                function _updateUserMetadata(profile) {
-                    var defer = $q.defer();
-
-                    userService.update(profile.app_metadata, function (response) {
-                        defer.resolve(profile);
-                    }, function (err) {
-                        defer.reject(profile);
-                    });
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignNotRead(profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = false;
-                    store.set('profile', profile);
-
-                    var toast = $mdToast.simple()
-                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
-                        .action(toastConfig.close)
-                        .parent($('main').get(0))
-                        .hideDelay(toastConfig.delay)
-                        .highlightAction(false)
-                        .position(_getToastPosition());
-
-                    $mdToast.show(toast).then(function (response) { });
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignRead(acceptTerms, profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = acceptTerms;
-                    store.set('profile', profile);
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _openDialog(profile) {
-                    var defer = $q.defer();
-
-                    $mdDialog.show({
-                        controller: AboutCampaignController,
-                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
-                        parent: angular.element(document.body),
-                        clickOutsideToClose: true
-                    }).then(function (aboutCampaignRead) {
-                        _aboutCampaignRead(aboutCampaignRead, profile)
-                            .then(defer.resolve, defer.reject);
-                    }, function () {
-                        _aboutCampaignNotRead(profile)
-                            .then(defer.reject, defer.reject);
-                    });
-
-                    return defer.promise;
-                }
-
-                return {
-                    openDialog: _openDialog
-                }
-            }]);
 
 })(window);
 (function (global) {
@@ -889,6 +817,125 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
+
+        $scope.currentStep = 'step-1';
+        $scope.TEXTS = {
+            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
+            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
+        };
+
+        $scope.next = function () {
+            $scope.currentStep = 'step-2';
+        };
+
+        $scope.back = function () {
+            $scope.currentStep = 'step-1';
+        };
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.ok = function () {
+            $mdDialog.hide(true);
+        }
+    }
+
+    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
+
+    global.squid.login.factory('AboutCampaignModalService',
+        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
+            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
+
+                function _getToastPosition() {
+                    if ($rootScope.isSmallDevice) {
+                        return 'bottom left';
+                    } else {
+                        return 'top right';
+                    }
+                }
+
+                function _updateUserMetadata(profile) {
+                    var defer = $q.defer();
+
+                    userService.update(profile.app_metadata, function (response) {
+                        defer.resolve(profile);
+                    }, function (err) {
+                        defer.reject(profile);
+                    });
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignNotRead(profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = false;
+                    store.set('profile', profile);
+
+                    var toast = $mdToast.simple()
+                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
+                        .action(toastConfig.close)
+                        .parent($('main').get(0))
+                        .hideDelay(toastConfig.delay)
+                        .highlightAction(false)
+                        .position(_getToastPosition());
+
+                    $mdToast.show(toast).then(function (response) { });
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignRead(acceptTerms, profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = acceptTerms;
+                    store.set('profile', profile);
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _openDialog(profile) {
+                    var defer = $q.defer();
+
+                    $mdDialog.show({
+                        controller: AboutCampaignController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: true
+                    }).then(function (aboutCampaignRead) {
+                        _aboutCampaignRead(aboutCampaignRead, profile)
+                            .then(defer.resolve, defer.reject);
+                    }, function () {
+                        _aboutCampaignNotRead(profile)
+                            .then(defer.reject, defer.reject);
+                    });
+
+                    return defer.promise;
+                }
+
+                return {
+                    openDialog: _openDialog
+                }
+            }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     var _manualPausedVideos = [];
@@ -996,7 +1043,9 @@ String.prototype.replaceAll = function (from, to) {
 
             function _getFeed(minId) {
                 var defer = $q.defer();
-                var query = {};
+                var query = {
+                    status: 'approved'
+                };
 
                 if (minId)
                     query.minId = minId;
@@ -1225,13 +1274,43 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
     "use strict";
-    global.squid.mission.controller('ActiveMissionController', ['$scope', 'feedService', '$location',
-        function ($scope, feedService, $location) {
-            
-        }
-    ]);
-})(window);
 
+    global.squid.mission.controller('ActiveMissionController', [
+        '$scope', 'feedService',
+        function ($scope, feedService) {
+
+            $scope.feedList = [];
+            $scope.paginationMetadata = {};
+            $scope.isLoading = false;
+
+            function _loadFeed(minId){
+                var query = {};
+
+                if(minId)
+                    query.minId = minId;
+
+                $scope.isLoading = true;
+
+                feedService.getMissionsActive(query, function (result) {
+                    $scope.feedList = $scope.feedList.concat(result.data);
+                    $scope.paginationMetadata = result.paginationMetadata;
+                    $scope.isLoading = false;
+                }, function (err) {
+                    $scope.isLoading = false;
+                });
+            }
+
+            $scope.loadMore = function () {
+                if ($scope.isLoading || !$scope.paginationMetadata.next)
+                    return;
+
+                _loadFeed($scope.paginationMetadata.next.minId);
+            };
+
+            _loadFeed();
+        }]);
+
+})(window);
 (function(global){
 
     global.squid.mission.controller('ChallengeController',
@@ -1339,7 +1418,8 @@ String.prototype.replaceAll = function (from, to) {
                 participationService.getMissionParticipations({
                     id: $scope.mission._id,
                     minId: $scope.participations.minId,
-                    take: 12
+                    take: 12,
+                    status: 'approved'
                 }, function(response){
                     $scope.participations.data = $scope.participations.data
                         .concat(response.data)

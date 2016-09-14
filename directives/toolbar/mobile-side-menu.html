@@ -20,9 +20,13 @@
                 <md-icon class="mdi md-headline mdi-account-circle"></md-icon>
                 <p>Meu perfil</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('mission/actives')" ng-class="getButtonClass('mission')">
+            <md-list-item ng-click="$location.path('mission/actives')" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" ng-class="getButtonClass('mission'">
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
                 <p>Campanhas</p>
+            </md-list-item>
+            <md-list-item ng-click="goToUniqueCampaign()" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" ng-class="getButtonClass('mission')">
+                <md-icon class="mdi md-headline mdi-pound"></md-icon>
+                <p>Campanha</p>
             </md-list-item>
             <md-list-item ng-click="$location.path('checkout')" ng-class="getButtonClass('checkout')">
                 <md-icon class="mdi md-headline mdi-briefcase-check"></md-icon>
@@ -48,7 +52,7 @@
                     </div>
                 </a>
             </md-list-item>
-            <md-list-item ng-show="APP_CONFIG.ABOUT_CAMPAIGN.SHOW">
+            <md-list-item ng-show="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.SHOW">
                 <a ng-click="openAboutCampaign()" class="md-no-style md-button md-ink-ripple">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>

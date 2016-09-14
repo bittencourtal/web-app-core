@@ -1,62 +1,41 @@
 <header>
-    <md-sidenav class="md-sidenav-left md-whiteframe-z2"
-                md-component-id="left"
-                ng-include="mobileSideMenuUrl">
+    <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" ng-include="mobileSideMenuUrl">
     </md-sidenav>
     <md-toolbar md-scroll-shrink>
         <div class="md-toolbar-tools">
             <a href="javascript:void(0)" target="_blank" class="md-toolbar-brand"></a>
-            <md-button
-                    class="md-icon-button hide-gt-sm"
-                    aria-label="Menu"
-                    ng-click="$mdSidenav('left').toggle()"
-                    ng-if="!secondaryNav">
+            <md-button class="md-icon-button hide-gt-sm" aria-label="Menu" ng-click="$mdSidenav('left').toggle()" ng-if="!secondaryNav">
                 <md-icon class="mdi md-headline mdi-menu"></md-icon>
             </md-button>
-            <md-button
-                    class="md-icon-button hide-gt-sm"
-                    aria-label="Menu"
-                    ng-click="goBack()"
-                    ng-if="secondaryNav">
+            <md-button class="md-icon-button hide-gt-sm" aria-label="Menu" ng-click="goBack()" ng-if="secondaryNav">
                 <md-icon class="mdi md-headline mdi-arrow-left"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm"
-                       aria-label="Campanhas"
-                       ng-class="getButtonClass('mission')"
-                       ng-click="$location.path('mission/actives')">
+            <md-button class="md-icon-button hide-sm" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" aria-label="Campanhas" ng-class="getButtonClass('mission')" ng-click="$location.path('mission/actives')">
                 <md-tooltip>Campanhas</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm"
-                       aria-label="Resgatar prêmios"
-                       ng-class="getButtonClass('checkout')"
-                       ng-click="$location.path('checkout')">
+            <md-button class="md-icon-button hide-sm" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" aria-label="Campanha" ng-class="getButtonClass('mission')" ng-click="goToUniqueCampaign()">
+                <md-tooltip>Campanha</md-tooltip>
+                <md-icon class="mdi md-headline mdi-pound"></md-icon>
+            </md-button>
+            <md-button class="md-icon-button hide-sm" aria-label="Resgatar prêmios" ng-class="getButtonClass('checkout')" ng-click="$location.path('checkout')">
                 <md-tooltip>Meus Pontos</md-tooltip>
                 <md-icon class="mdi md-headline mdi-briefcase-check"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm"
-                       aria-label="Feed"
-                       ng-class="getButtonClass('feed')"
-                       ng-click="$location.path('feed')">
+            <md-button class="md-icon-button hide-sm" aria-label="Feed" ng-class="getButtonClass('feed')" ng-click="$location.path('feed')">
                 <md-tooltip>Feed</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
             </md-button>
             <span flex class="hide-sm"></span>
             <h2 class="hide-gt-sm" flex ng-bind="pageTitle"></h2>
 
-            <md-button aria-label="Login"
-                       ng-class="getButtonClass('login')"
-                       ng-click="$location.path('login')"
-                       ng-if="!auth.isAuthenticated" class="hide-sm">
+            <md-button aria-label="Login" ng-class="getButtonClass('login')" ng-click="$location.path('login')" ng-if="!auth.isAuthenticated" class="hide-sm">
                 <md-icon md-menu-origin class="mdi md-headline mdi-signin"></md-icon>
                 <span>Entrar</span>
             </md-button>
 
             <md-menu ng-if="auth.isAuthenticated" class="hide-sm">
-                <md-button aria-label="Open menu"
-                           ng-click="$mdOpenMenu($event)"
-                           class="md-primry"
-                           ng-class="getButtonClass('my-profile')">
+                <md-button aria-label="Open menu" ng-click="$mdOpenMenu($event)" class="md-primry" ng-class="getButtonClass('my-profile')">
                     <md-icon md-menu-origin class="mdi md-headline mdi-account-circle"></md-icon>
                     <span ng-bind="auth.profile.name"></span>
                 </md-button>
@@ -79,7 +58,7 @@
                             <span md-menu-align-target>Política de privacidade</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item ng-show="APP_CONFIG.ABOUT_CAMPAIGN.SHOW">
+                    <md-menu-item ng-show="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.SHOW">
                         <md-button class="md-primary" ng-click="openAboutCampaign()">
                             <md-icon class="mdi md-headline mdi-flag"></md-icon>
                             <span md-menu-align-target>Sobre a campanha</span>

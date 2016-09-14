@@ -35,11 +35,16 @@
 				LOGIN: function () { return APP_CONFIG.APP_DIR + '/views/templates/login.html' }
 			}
 		},
-		ABOUT_CAMPAIGN: {
-			SHOW: true,
-			TEXTS: {
-				STEP_1: '<p>APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_1<p>',
-				STEP_2: '<p>APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_2</p>'
+		CAMPAIGNS: {
+			UNIQUE_CAMPAIGN: {
+				IS_UNIQUE: true,
+				ABOUT: {
+					SHOW: true,
+					TEXTS: {
+						STEP_1: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1<p>',
+						STEP_2: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2</p>'
+					}
+				}
 			}
 		},
 		TERMS_OF_USE: {

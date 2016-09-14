@@ -66,7 +66,8 @@
                 participationService.getMissionParticipations({
                     id: $scope.mission._id,
                     minId: $scope.participations.minId,
-                    take: 12
+                    take: 12,
+                    status: 'approved'
                 }, function(response){
                     $scope.participations.data = $scope.participations.data
                         .concat(response.data)

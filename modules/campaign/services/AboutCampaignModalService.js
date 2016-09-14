@@ -9,8 +9,8 @@
 
         $scope.currentStep = 'step-1';
         $scope.TEXTS = {
-            STEP1: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_1,
-            STEP2: APP_CONFIG.ABOUT_CAMPAIGN.TEXTS.STEP_2
+            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
+            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
         };
 
         $scope.next = function () {

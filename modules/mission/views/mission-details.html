@@ -1,5 +1,4 @@
 <div ng-controller="MissionDetailsController">
-
     <md-fab-speed-dial md-open="menuIsOpen" md-direction="up" class="md-scale fixed" style="bottom:12px; right: 12px;">
         <md-fab-trigger ng-click="toggleMenu()">
             <md-button aria-label="menu" class="md-fab md-primary">
@@ -13,10 +12,10 @@
                 <md-tooltip md-direction="left" md-visible="tooltipIsOpen">Participar</md-tooltip>
                 <md-icon class="mdi mdi-instagram" aria-label="Participar"></md-icon>
             </md-button>
-            <md-button aria-label="Share" class="md-fab md-raised md-mini md-warn" ng-click="challenge()">
-                <md-tooltip md-direction="left" md-visible="tooltipIsOpen">Desafiar</md-tooltip>
-                <md-icon class="mdi mdi-share" aria-label="Share"></md-icon>
-            </md-button>
+            <!--<md-button aria-label="Share" class="md-fab md-raised md-mini md-warn" ng-click="challenge()">-->
+                <!--<md-tooltip md-direction="left" md-visible="tooltipIsOpen">Desafiar</md-tooltip>-->
+                <!--<md-icon class="mdi mdi-share" aria-label="Share"></md-icon>-->
+            <!--</md-button>-->
         </md-fab-actions>
     </md-fab-speed-dial>
 
@@ -49,9 +48,13 @@
                     </md-tab-label>
                     <md-tab-body>
                         <md-content class="md-padding">
+                            <h4>Prêmios</h4>
                             <md-list>
                                 <md-list-item class="md-2-line" ng-repeat="prize in mission.prizes">
-                                    <md-icon class="margin-right-2">
+                                    <a data-ng-href="{{prize.image.standard_resolution}}" rel="lightbox" class="md-avatar" data-lightbox="prizes" style="width: 100px; height:auto;">
+                                        <img ng-if="prize.image.standard_resolution" data-ng-src="{{prize.image.standard_resolution}}" style="width:100%;" />
+                                    </a>
+                                    <md-icon class="margin-right-2" ng-if="!prize.image.standard_resolution">
                                         <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
                                     </md-icon>
                                     <div class="md-list-item-text">
@@ -69,6 +72,7 @@
                     </md-tab-label>
                     <md-tab-body>
                         <md-content class="md-padding">
+                            <h4>Participações</h4>
                             <div
                                 tagged-infinite-scroll="loadMoreParticipations()"
                                 tagged-infinite-scroll-disabled="isLoadingParticipations"
@@ -108,22 +112,23 @@
                     </md-tab-label>
                     <md-tab-body>
                         <md-content class="md-padding">
+                            <h4>Formas de pontuação</h4>
                             <md-list>
+                                <!--<md-list-item class="md-2-line">-->
+                                    <!--<md-icon class="margin-right-2">-->
+                                        <!--<span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>-->
+                                    <!--</md-icon>-->
+                                    <!--<div class="md-list-item-text">-->
+                                        <!--<h3>Desafiar</h3>-->
+                                        <!--<p ng-bind="mission.score.challenge + ' pontos'"></p>-->
+                                    <!--</div>-->
+                                <!--</md-list-item>-->
                                 <md-list-item class="md-2-line">
                                     <md-icon class="margin-right-2">
                                         <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
                                     </md-icon>
                                     <div class="md-list-item-text">
-                                        <h3>Desafiar</h3>
-                                        <p ng-bind="mission.score.challenge + ' pontos'"></p>
-                                    </div>
-                                </md-list-item>
-                                <md-list-item class="md-2-line">
-                                    <md-icon class="margin-right-2">
-                                        <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
-                                    </md-icon>
-                                    <div class="md-list-item-text">
-                                        <h3>Participar</h3>
+                                        <h3>Post</h3>
                                         <p ng-bind="mission.score.participate + ' pontos'"></p>
                                     </div>
                                 </md-list-item>
@@ -147,6 +152,7 @@
                     </md-tab-label>
                     <md-tab-body>
                         <md-content class="md-padding">
+                            <h4>Tempo restante</h4>
                             <md-list>
                                 <md-list-item class="md-2-line">
                                     <md-icon class="margin-right-2">
