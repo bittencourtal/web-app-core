@@ -32,9 +32,9 @@
 		if (isLocalhost()) {
 			return 'http://localhost:5555/v1';
 		} else if (hostName.indexOf('-dev') > -1) {
-			return 'http://api.squidit.com.br:81/v1'; // PRECISA ATUALIZAR URL
+			return 'http://api-spiderman.azurewebsites.net/v1';
 		} else {
-			return 'http://api.squidit.com.br/v1'; // PRECISA ATUALIZAR URL
+			return 'http://api-spiderman.azurewebsites.net/v1';
 		}
 	}
 
