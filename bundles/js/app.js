@@ -67,14 +67,15 @@ String.prototype.replaceAll = function (from, to) {
         'squid-feed',
         'squid-mission',
         'squid-checkout',
-        'squid-user'
+        'squid-user',
+        'squid-workflow'
     ];
 
     global.squid.app = angular.module("squid-app", global.squid.defaultDependencies.concat(_modulesDependencies));
 
     global.squid.app.run(
-        ['$rootScope', 'auth', 'store', 'jwtHelper', '$location',
-            function ($rootScope, auth, store, jwtHelper, $location) {
+        ['$rootScope', 'auth', 'store', 'jwtHelper', '$location', 'WorkflowInitializer',
+            function ($rootScope, auth, store, jwtHelper, $location, WorkflowInitializer) {
                 $rootScope = $rootScope || {};
 
                 function _redirectToLogin() {
@@ -135,8 +136,9 @@ String.prototype.replaceAll = function (from, to) {
                 });
 
                 $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
-                    if (!_userAcceptedTerms())
-                        _logout();
+                    WorkflowInitializer
+                        .initWorkflows(global.APP_CONFIG.WORKFLOWS.ROUTES.CHANGED)
+                        .catch(_logout);
 
                     if (_nextRouteRequireLogin(nextRoute) && !auth.isAuthenticated)
                         _redirectToLogin();
@@ -450,6 +452,12 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
+(function (global) {
+
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
+
+})(window);
 (function(global) {
 
 	global.squid.checkout = angular.module("squid-checkout", []);
@@ -460,9 +468,10 @@ String.prototype.replaceAll = function (from, to) {
 	global.squid.feed = angular.module("squid-feed", []);
 
 })(window);
-(function(global) {
+(function (global) {
 
 	global.squid.login = angular.module("squid-login", []);
+	global.squid.login.controllers = {};
 
 })(window);
 (function(global) {
@@ -473,6 +482,206 @@ String.prototype.replaceAll = function (from, to) {
 (function(global) {
 
 	global.squid.user = angular.module("squid-user", []);
+	global.squid.user.controllers = {};
+
+})(window);
+(function (global) {
+
+    global.squid.workflow = angular.module("squid-workflow", []);
+    global.squid.workflow.controllers = {};
+    global.squid.workflow.models = {};
+
+})(window);
+(function (global) {
+    "use strict"
+
+    function AboutCampaignDialogController($scope, $mdDialog, store) {
+
+        $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
+        $scope.currentText = ($scope.TEXTS.length > 0) ?
+            $scope.TEXTS.first() : {};
+
+        $scope.isFirstText = function (text) {
+            return $scope.TEXTS.first().ORDER == text.ORDER;
+        };
+
+        $scope.isLastText = function (text) {
+            return $scope.TEXTS.last().ORDER == text.ORDER;
+        };
+
+        $scope.isCurrentText = function (text) {
+            return $scope.currentText.ORDER == text.ORDER;
+        };
+
+        $scope.back = function () {
+            var _previousText = $scope.TEXTS.first(function (text) {
+                return text.ORDER < $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_previousText ? _previousText : $scope.currentText;
+        };
+
+        $scope.next = function () {
+            var _nextText = $scope.TEXTS.first(function (text) {
+                return text.ORDER > $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_nextText ? _nextText : $scope.currentText;
+        };
+
+        $scope.ok = function () {
+            store.set('about-campaign-read', true);
+            $mdDialog.hide();
+        };
+    }
+
+    global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
+    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
+
+})(window);
+(function (global) {
+  "use strict"
+
+  var toastConfig = {
+    delay: 10000,
+    close: 'OK'
+  };
+
+  function TermsOfUseDialogController($scope, $rootScope, $timeout, $location, store, $mdDialog, userService, $q, $mdToast, auth, squidSpidermanService) {
+    $scope.isLoading = false;
+    $scope.TERMS_OF_USE = global.APP_CONFIG.TERMS_OF_USE;
+
+    function _getToastPosition() {
+      if ($rootScope.isSmallDevice) {
+        return 'bottom left';
+      } else {
+        return 'top right';
+      }
+    }
+
+    function _getProfile() {
+      return store.get('profile');
+    }
+
+    function _getUserMetadata() {
+      var userProfile = _getProfile();
+
+      if (!userProfile.user_metadata || !userProfile.user_metadata.infos)
+        return null;
+
+      return userProfile.user_metadata.infos.first(function (userMetadata) {
+        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
+      });
+    }
+
+    function _updateUserMetadata(userMetadata) {
+      var defer = $q.defer();
+
+      squidSpidermanService.updateUserMetadata(userMetadata, defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _answerTerms(answer) {
+      var userMetadata = _getUserMetadata();
+
+      if (!userMetadata)
+        userMetadata = {};
+
+      userMetadata.acceptedTerms = answer;
+      return _updateUserMetadata(userMetadata);
+    }
+
+    function _logout() {
+      auth.signout();
+      store.remove('profile');
+      store.remove('token');
+      $.jStorage.flush();
+      $rootScope.$broadcast('refreshLogin');
+      _redirectToLogin();
+    }
+
+    function _redirectToLogin() {
+      $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+    }
+
+    function _termsDisagreed() {
+      var defer = $q.defer();
+
+      _answerTerms(false)
+        .then(defer.resolve, defer.reject);
+
+      var toast = $mdToast.simple()
+        .content('Para participar da(s) campanha(s) você deve concordar com o regulamento.')
+        .action(toastConfig.close)
+        .parent($('main').get(0))
+        .hideDelay(toastConfig.delay)
+        .highlightAction(false)
+        .position(_getToastPosition());
+
+      _logout();
+      $timeout(function () {
+        $mdToast.show(toast).then(function (result) {});
+      }, 800);
+
+      return defer.promise;
+    }
+
+    function _termsAgreed() {
+      var defer = $q.defer();
+
+      _answerTerms(true)
+        .then(defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _closeModal() {
+      $mdDialog.hide();
+    }
+
+    function _cancelModal() {
+      $mdDialog.cancel();
+    }
+
+    function _stopLoadingAndCloseModal() {
+      _closeModal();
+      $scope.isLoading = false;
+    }
+
+    function _stopLoadingAndCancelModal() {
+      _cancelModal();
+      $scope.isLoading = false;
+    }
+
+    $scope.agree = function () {
+      $scope.isLoading = true;
+      _termsAgreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+
+    $scope.disagree = function () {
+      $scope.isLoading = true;
+      _termsDisagreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+  }
+
+  global.squid.campaign.controllers.TermsOfUseDialogController = TermsOfUseDialogController;
+  global.squid.campaign.controller('TermsOfUseDialogController', [
+    '$scope',
+    '$rootScope',
+    '$timeout',
+    '$location',
+    'store',
+    '$mdDialog',
+    'userService',
+    '$q',
+    '$mdToast',
+    'auth',
+    'squidSpidermanService',
+    TermsOfUseDialogController
+  ]);
 
 })(window);
 (function (global) {
@@ -1104,17 +1313,24 @@ String.prototype.replaceAll = function (from, to) {
 
 (function (global) {
 
-    global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'AboutCampaignModalService',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, AboutCampaignModalService) {
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
 
+    var _campaignControllers = global.squid.campaign.controllers;
+    var _loginControllers = global.squid.login.controllers;
+
+    global.squid.login.controller('LoginController', [
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
             $scope.isLoading = false;
 
             var dict = {
                 loadingTitle: 'carregando...',
                 close: 'fechar',
                 signin: {
-                    title: 'Faça seu login ;)',
+                    title: 'Seja bem-vindo!',
                     signinText: 'Entrar',
                     signupText: 'Cadastrar-se',
                     usernamePlaceholder: 'e-mail',
@@ -1137,13 +1353,6 @@ String.prototype.replaceAll = function (from, to) {
                 }
             };
 
-            function _termsIsAccepted(profile){
-                if(!profile || !profile.app_metadata)
-                    return false;
-
-                return profile.app_metadata.acceptedTerms;
-            }
-
             function _logout() {
                 auth.signout();
                 store.remove('profile');
@@ -1153,15 +1362,15 @@ String.prototype.replaceAll = function (from, to) {
                 _redirectToLogin();
             }
 
-            function _redirectToLogin(){
+            function _redirectToLogin() {
                 $location.path(global.APP_CONFIG.LOGIN_ROUTE);
             }
 
-            function _redirectToStartView(){
+            function _redirectToStartView() {
                 $location.path(global.APP_CONFIG.START_VIEW);
             }
 
-            function _redirectOnSuccessLogin(profile){
+            function _redirectOnSuccessLogin(profile) {
                 if (_containsAllData(profile))
                     _redirectToStartView();
                 else
@@ -1169,18 +1378,30 @@ String.prototype.replaceAll = function (from, to) {
             }
 
             function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.APP_CONFIG.START_VIEW);
+                var defer = $q.defer();
+
+                if (!auth.isAuthenticated) {
+                    defer.resolve();
+                    return defer.promise;;
+                }
+
+                _loggedIn()
+                    .then(function () {
+                        _redirectToStartView();
+                        defer.resolve();
+                    }, defer.reject);
+
+                return defer.promise;
             }
 
             function _containsAllData(profile) {
-                if(!profile)
+                if (!profile)
                     return;
 
                 return profile.birthDate && profile.gender;
             }
 
-            function _hideLoader(){
+            function _hideLoader() {
                 var defer = $q.defer();
 
                 $scope.isLoading = false;
@@ -1189,7 +1410,7 @@ String.prototype.replaceAll = function (from, to) {
                 return defer.promise;
             }
 
-            function _showLoader(){
+            function _showLoader() {
                 var defer = $q.defer();
 
                 $scope.isLoading = true;
@@ -1198,7 +1419,19 @@ String.prototype.replaceAll = function (from, to) {
                 return defer.promise;
             }
 
+            function _initWorkflow(){
+                return WorkflowInitializer
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+            }
+
+            function _loggedIn() {
+                return _showLoader()
+                        .then(_initWorkflow)
+                        .then(_hideLoader);
+            }
+
             function _initAuthLockComponent() {
+                $scope.isLoading = false;
                 auth.config.auth0lib.$container = null;
                 auth.signin({
                     connections: ['instagram'],
@@ -1208,29 +1441,20 @@ String.prototype.replaceAll = function (from, to) {
                 }, function (profile, token) {
                     store.set('profile', profile);
                     store.set('token', token);
-
-                    if(_termsIsAccepted(profile))
-                        return _redirectOnSuccessLogin(profile);
-
-                    _showLoader();
-
-                    AboutCampaignModalService.openDialog(profile)
-                        .then(_redirectOnSuccessLogin, _logout);
+                    _loggedIn()
+                        .then(_redirectToStartView);
                 }, function (error) {
 
                 });
             }
 
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
+            _redirectIfIsLoggedIn()
+                .then(_initAuthLockComponent);
 
+            $rootScope.$on('refreshLogin', _initAuthLockComponent);
         }
-
-    ])
-    ;
-
+    ]);
 })(window);
-
 (function (global) {
 
     global.squid.login.config(['$routeProvider', function ($routeProvider) {
@@ -1758,6 +1982,117 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function UserMetadataDialogController($scope, $rootScope, $mdDialog, $mdToast, squidSpidermanService, userMetadataHelper) {
+
+        var EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+        $scope.isLoading = false;
+        $scope.userMetadata = userMetadataHelper.getUserMetadata() || {};
+
+        function _getToastPosition() {
+            if ($rootScope.isSmallDevice) {
+                return 'bottom left';
+            } else {
+                return 'top right';
+            }
+        }
+
+        function _isValidEmail(email) {
+            return EMAIL_REGEX.test(email);
+        }
+
+        function _metadataUpdated() {
+            $scope.isLoading = false;
+            $mdDialog.hide();
+        }
+
+        function _metadataNotUpdated() {
+            $scope.isLoading = false;
+            var toast = $mdToast.simple()
+                .content('Não foi possível salvar os dados, contate o administrador.')
+                .action(toastConfig.close)
+                .parent($('main').get(0))
+                .hideDelay(toastConfig.delay)
+                .highlightAction(false)
+                .position(_getToastPosition());
+
+            $mdToast.show(toast);
+        }
+
+        function _invalidEmail() {
+            var toast = $mdToast.simple()
+                .content('Insira um e-mail válido.')
+                .action(toastConfig.close)
+                .parent($('main').get(0))
+                .hideDelay(toastConfig.delay)
+                .highlightAction(false)
+                .position(_getToastPosition());
+
+            $mdToast.show(toast);
+        }
+
+        $scope.save = function (userMetadata) {
+            if (!_isValidEmail(userMetadata.email))
+                return _invalidEmail();
+
+            $scope.isLoading = true;
+            squidSpidermanService
+                .updateUserMetadata(userMetadata, _metadataUpdated, _metadataNotUpdated);
+        };
+
+    }
+
+    global.squid.user.controllers.UserMetadataDialogController = UserMetadataDialogController;
+    global.squid.user.controller('UserMetadataDialogController', [
+        '$scope',
+        '$rootScope',
+        '$mdDialog',
+        '$mdToast',
+        'squidSpidermanService',
+        'userMetadataHelper',
+        UserMetadataDialogController
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
+
+        function _getProfile() {
+            return store.get('profile');
+        }
+
+        function _termsIsAccepted() {
+            var userMetadata = _getUserMetadata();
+            return !userMetadata ? false : userMetadata.acceptedTerms;
+        }
+
+        function _getUserMetadata() {
+            var userProfile = _getProfile();
+
+            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
+                return null;
+
+            return userProfile.user_metadata.infos.first(function (userMetadata) {
+                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
+            });
+        }
+
+        return {
+            getProfile: _getProfile,
+            getUserMetadata: _getUserMetadata,
+            termsIsAccepted: _termsIsAccepted
+        };
+    }]);
+
+})(window);
+(function (global) {
+
     global.squid.user.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
             .when('/my-profile', {
@@ -1766,6 +2101,26 @@ String.prototype.replaceAll = function (from, to) {
                 pageTitle: 'Meu Perfil'
             });
     }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('squidSpidermanService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.SPIDERMAN_END_POINT_URL() + '/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                updateUserMetadata: {
+                    method: 'PATCH',
+                    params:{
+                        action: 'usermetadata'
+                    }
+                }
+            });
+        }
+    ]);
 
 })(window);
 (function (global) {
@@ -1809,6 +2164,164 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
+
+})(window);
+(function (global) {
+
+    var _campaignControllers = global.squid.campaign.controllers;
+
+    function AboutCampaignWorkflowInitializer($q, store, $mdDialog) {
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                var _aboutCampaignRead = store.get('about-campaign-read');
+                if (_aboutCampaignRead) {
+                    defer.resolve();
+                } else {
+                    $mdDialog.show({
+                        controller: _campaignControllers.AboutCampaignDialogController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: false,
+                        escapeToClose: false
+                    }).then(defer.resolve, defer.reject);
+                }
+
+                return defer.promise;
+            }
+        };
+    }
+    AboutCampaignWorkflowInitializer.$inject = ['$q', 'store', '$mdDialog'];
+    var _factoryInjector = AboutCampaignWorkflowInitializer.$inject.concat(AboutCampaignWorkflowInitializer);
+    global.squid.workflow.factory('AboutCampaignWorkflowInitializer', _factoryInjector);
+
+})(window);
+(function (global) {
+
+    var _campaignControllers = global.squid.campaign.controllers;
+
+    function TermsOfUseWorkflowInitializer($q, $mdDialog, TermsOfUseValidator) {
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                TermsOfUseValidator
+                    .init()
+                    .then(defer.resolve)
+                    .catch(function () {
+                        $mdDialog.show({
+                            controller: _campaignControllers.TermsOfUseDialogController,
+                            templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/terms-of-use-dialog.html',
+                            parent: angular.element(document.body),
+                            clickOutsideToClose: false,
+                            escapeToClose: false
+                        }).then(defer.resolve, defer.reject);
+                    });
+
+                return defer.promise;
+            }
+        };
+    }
+    TermsOfUseWorkflowInitializer.$inject = ['$q', '$mdDialog', 'TermsOfUseValidator'];
+    global.squid.workflow.factory('TermsOfUseWorkflowInitializer', TermsOfUseWorkflowInitializer);
+
+})(window);
+(function (global) {
+
+    var _userControllers = global.squid.user.controllers;
+
+    function UserMetadataWorkflowInitializer($q, store, $mdDialog, userMetadataHelper) {
+
+        function _requiredUserInfosFilled() {
+            var userMetadata = userMetadataHelper.getUserMetadata();
+
+            if (!userMetadata)
+                return false;
+
+            return global.APP_CONFIG.USER_METADATA.REQUIRED_INFOS.all(function (requiredInfo) {
+                return !!userMetadata[requiredInfo];
+            });
+        }
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                if (_requiredUserInfosFilled()) {
+                    defer.resolve();
+                } else {
+                    $mdDialog.show({
+                        controller: _userControllers.UserMetadataDialogController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/user-metadata-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: false,
+                        escapeToClose: false
+                    }).then(defer.resolve, defer.reject);
+                }
+
+                return defer.promise;
+            }
+        };
+    }
+    UserMetadataWorkflowInitializer.$inject = ['$q', 'store', '$mdDialog', 'userMetadataHelper'];
+    var _factoryInjector = UserMetadataWorkflowInitializer.$inject.concat(UserMetadataWorkflowInitializer);
+    global.squid.workflow.factory('UserMetadataWorkflowInitializer', _factoryInjector);
+
+})(window);
+(function(global){
+
+    function WorkflowInitializer($q, $injector){
+
+        this.initWorkflows = function(workflows){
+            var defer = $q.defer();
+
+            function _processWorkflowsInitializers(){
+                var workflowInitializers = arguments;
+                
+                async.eachSeries(workflowInitializers, function(workflowInitializer, callback){
+                    workflowInitializer.init().then(function(result){
+                        callback(null);
+                    }).catch(callback)
+                }, function(err){
+                    if(err)
+                        return defer.reject(err);
+
+                    defer.resolve();
+                })
+            }
+            _processWorkflowsInitializers.$inject = workflows;
+            $injector.invoke(_processWorkflowsInitializers); 
+
+            return defer.promise;
+        };
+    }
+
+    global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
+        return new WorkflowInitializer($q, $injector);
+    }]);
+
+})(window);
+(function (global) {
+
+    function TermsOfUseValidator($q, store, userMetadataHelper) {
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                userMetadataHelper.termsIsAccepted() 
+                    ? defer.resolve()
+                    : defer.reject();
+
+                return defer.promise;
+            }
+        };
+    }
+    TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
+    var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
+    global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
 
 })(window);
 (function (global) {

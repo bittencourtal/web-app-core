@@ -3,17 +3,24 @@
 
 (function (global) {
 
-    global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'AboutCampaignModalService',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, AboutCampaignModalService) {
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
 
+    var _campaignControllers = global.squid.campaign.controllers;
+    var _loginControllers = global.squid.login.controllers;
+
+    global.squid.login.controller('LoginController', [
+        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
+        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
             $scope.isLoading = false;
 
             var dict = {
                 loadingTitle: 'carregando...',
                 close: 'fechar',
                 signin: {
-                    title: 'Faça seu login ;)',
+                    title: 'Seja bem-vindo!',
                     signinText: 'Entrar',
                     signupText: 'Cadastrar-se',
                     usernamePlaceholder: 'e-mail',
@@ -36,13 +43,6 @@
                 }
             };
 
-            function _termsIsAccepted(profile){
-                if(!profile || !profile.app_metadata)
-                    return false;
-
-                return profile.app_metadata.acceptedTerms;
-            }
-
             function _logout() {
                 auth.signout();
                 store.remove('profile');
@@ -52,15 +52,15 @@
                 _redirectToLogin();
             }
 
-            function _redirectToLogin(){
+            function _redirectToLogin() {
                 $location.path(global.APP_CONFIG.LOGIN_ROUTE);
             }
 
-            function _redirectToStartView(){
+            function _redirectToStartView() {
                 $location.path(global.APP_CONFIG.START_VIEW);
             }
 
-            function _redirectOnSuccessLogin(profile){
+            function _redirectOnSuccessLogin(profile) {
                 if (_containsAllData(profile))
                     _redirectToStartView();
                 else
@@ -68,18 +68,30 @@
             }
 
             function _redirectIfIsLoggedIn() {
-                if (auth.isAuthenticated)
-                    $location.path(global.APP_CONFIG.START_VIEW);
+                var defer = $q.defer();
+
+                if (!auth.isAuthenticated) {
+                    defer.resolve();
+                    return defer.promise;;
+                }
+
+                _loggedIn()
+                    .then(function () {
+                        _redirectToStartView();
+                        defer.resolve();
+                    }, defer.reject);
+
+                return defer.promise;
             }
 
             function _containsAllData(profile) {
-                if(!profile)
+                if (!profile)
                     return;
 
                 return profile.birthDate && profile.gender;
             }
 
-            function _hideLoader(){
+            function _hideLoader() {
                 var defer = $q.defer();
 
                 $scope.isLoading = false;
@@ -88,7 +100,7 @@
                 return defer.promise;
             }
 
-            function _showLoader(){
+            function _showLoader() {
                 var defer = $q.defer();
 
                 $scope.isLoading = true;
@@ -97,7 +109,19 @@
                 return defer.promise;
             }
 
+            function _initWorkflow(){
+                return WorkflowInitializer
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+            }
+
+            function _loggedIn() {
+                return _showLoader()
+                        .then(_initWorkflow)
+                        .then(_hideLoader);
+            }
+
             function _initAuthLockComponent() {
+                $scope.isLoading = false;
                 auth.config.auth0lib.$container = null;
                 auth.signin({
                     connections: ['instagram'],
@@ -107,25 +131,17 @@
                 }, function (profile, token) {
                     store.set('profile', profile);
                     store.set('token', token);
-
-                    if(_termsIsAccepted(profile))
-                        return _redirectOnSuccessLogin(profile);
-
-                    _showLoader();
-
-                    AboutCampaignModalService.openDialog(profile)
-                        .then(_redirectOnSuccessLogin, _logout);
+                    _loggedIn()
+                        .then(_redirectToStartView);
                 }, function (error) {
 
                 });
             }
 
-            _redirectIfIsLoggedIn();
-            _initAuthLockComponent();
+            _redirectIfIsLoggedIn()
+                .then(_initAuthLockComponent);
 
+            $rootScope.$on('refreshLogin', _initAuthLockComponent);
         }
-
-    ])
-    ;
-
+    ]);
 })(window);

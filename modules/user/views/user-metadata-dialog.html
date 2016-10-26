@@ -1,0 +1,28 @@
+<md-dialog class="small-dialog" aria-label="Informações do usuário'" ng-cloak>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>Informações</h2>
+		</div>
+	</md-toolbar>
+	<md-dialog-content>
+		<div class="md-dialog-content">
+			<form name="userMetadataForm" ng-hide="isLoading">
+				<md-input-container class="md-block">
+					<label>Email</label>
+					<input required type="email" name="email" ng-model="userMetadata.email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"/>
+				</md-input-container>
+			</form>
+			<div ng-show="isLoading">
+				<h2 class="md-title text-center">Aguarde...</h2>
+				<div class="md-progress-wrapper" ng-show="isLoading">
+					<md-progress-circular md-mode="indeterminate" style="margin:0 auto;"></md-progress-circular>
+				</div>
+			</div>
+		</div>
+	</md-dialog-content>
+	<div class="md-actions" layout="row" ng-hide="isLoading">
+		<md-button ng-click="save(userMetadata)">
+			OK
+		</md-button>
+	</div>
+</md-dialog>

@@ -1,24 +1,24 @@
-md-dialog figure{
+md-dialog figure {
     margin: 0;
     padding: 0;
 }
 
-md-dialog img{
+md-dialog img {
     max-width: 100%;
 }
 
-md-dialog ul{
+md-dialog ul {
     list-style: none;
-    padding:0;
-    margin:0;
+    padding: 0;
+    margin: 0;
 }
 
-md-dialog li{
+md-dialog li {
     text-indent: -14px;
     margin-left: 30px;
 }
 
-md-dialog li:before{
+md-dialog li:before {
     content: "• ";
     color: ||primary.default||;
     position: relative;
@@ -28,7 +28,7 @@ md-dialog li:before{
     font-size: 2em;
 }
 
-md-dialog .push{
+md-dialog .push {
     margin: -24px;
     margin-bottom: 0;
 }

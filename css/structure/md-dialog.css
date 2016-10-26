@@ -1,0 +1,11 @@
+md-dialog.small-dialog .md-dialog-content {
+    width: 500px;
+    max-height: 810px;
+}
+
+@media (max-width: 767px) {
+    md-dialog.small-dialog .md-dialog-content {
+        width: 90%;
+        box-sizing: border-box;
+    }
+}

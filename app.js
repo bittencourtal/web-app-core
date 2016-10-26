@@ -5,14 +5,15 @@
         'squid-feed',
         'squid-mission',
         'squid-checkout',
-        'squid-user'
+        'squid-user',
+        'squid-workflow'
     ];
 
     global.squid.app = angular.module("squid-app", global.squid.defaultDependencies.concat(_modulesDependencies));
 
     global.squid.app.run(
-        ['$rootScope', 'auth', 'store', 'jwtHelper', '$location',
-            function ($rootScope, auth, store, jwtHelper, $location) {
+        ['$rootScope', 'auth', 'store', 'jwtHelper', '$location', 'WorkflowInitializer',
+            function ($rootScope, auth, store, jwtHelper, $location, WorkflowInitializer) {
                 $rootScope = $rootScope || {};
 
                 function _redirectToLogin() {
@@ -73,8 +74,9 @@
                 });
 
                 $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
-                    if (!_userAcceptedTerms())
-                        _logout();
+                    WorkflowInitializer
+                        .initWorkflows(global.APP_CONFIG.WORKFLOWS.ROUTES.CHANGED)
+                        .catch(_logout);
 
                     if (_nextRouteRequireLogin(nextRoute) && !auth.isAuthenticated)
                         _redirectToLogin();

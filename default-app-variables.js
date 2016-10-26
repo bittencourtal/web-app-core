@@ -2,11 +2,14 @@
 	"use strict";
 
 	moment.locale('pt-br');
+	var hostName = window.location.hostname;
+
+	function isLocalhost() {
+		return window.location.hostname === 'localhost' || window.location.hostname.contains('.local');
+	}
 
 	function _getEndPointUrl() {
-		var hostName = window.location.hostname;
-
-		if (hostName === 'localhost') {
+		if (isLocalhost()) {
 			return 'http://localhost:5003';
 		} else if (hostName.indexOf('-dev') > -1) {
 			return 'http://api.squidit.com.br:81';
@@ -15,10 +18,28 @@
 		}
 	}
 
-	function _getAppId() {
-		var hostName = window.location.hostname;
+	function _getCampaignEndPointUrl() {
+		if (isLocalhost()) {
+			return 'http://localhost:5021/v1';
+		} else if (hostName.indexOf('-dev') > -1) {
+			return 'https://campanhas-dev.squidit.com.br/v1';
+		} else {
+			return 'https://campanhas.squidit.com.br/v1';
+		}
+	}
 
-		if (hostName === 'localhost') {
+	function _getSpidermanUrl() {
+		if (isLocalhost()) {
+			return 'http://localhost:5555/v1';
+		} else if (hostName.indexOf('-dev') > -1) {
+			return 'http://api.squidit.com.br:81/v1'; // PRECISA ATUALIZAR URL
+		} else {
+			return 'http://api.squidit.com.br/v1'; // PRECISA ATUALIZAR URL
+		}
+	}
+
+	function _getAppId() {
+		if (isLocalhost()) {
 			return global.APP_CONFIG.SQUID_APP_ID;
 		} else if (hostName.indexOf('-dev') > -1) {
 			return global.APP_CONFIG.SQUID_APP_ID;
@@ -29,10 +50,23 @@
 
 	global.APP_CONFIG = {
 		APP_DIR: '',
+		END_POINT_URL: _getEndPointUrl,
+		SERVICES_END_POINT_URL: _getEndPointUrl,
+		CAMPAIGN_END_POINT_URL: _getCampaignEndPointUrl,
+		SPIDERMAN_END_POINT_URL: _getSpidermanUrl,
+		SQUID_APP_ID: 'e2a61aa025a94de7908ee1a13abe7c54',
+		START_VIEW: '/checkout',
+		LOGIN_ROUTE: '/login',
+		REQUIRE_AUTHENTICATION: true,
+		APP_ID: _getAppId,
 		VIEWS: {
 			TEMPLATES: {
-				DEFAULT: function () { return APP_CONFIG.APP_DIR + '/views/templates/default.html' },
-				LOGIN: function () { return APP_CONFIG.APP_DIR + '/views/templates/login.html' }
+				DEFAULT: function () {
+					return APP_CONFIG.APP_DIR + '/views/templates/default.html'
+				},
+				LOGIN: function () {
+					return APP_CONFIG.APP_DIR + '/views/templates/login.html'
+				}
 			}
 		},
 		CAMPAIGNS: {
@@ -40,33 +74,46 @@
 				IS_UNIQUE: true,
 				ABOUT: {
 					SHOW: true,
-					TEXTS: {
-						STEP_1: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1<p>',
-						STEP_2: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2</p>'
-					}
+					TEXTS: [{
+						ORDER: 1,
+						CONTENT: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1<p>'
+					}, {
+						ORDER: 2,
+						CONTENT: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2<p>'
+					}]
 				}
 			}
 		},
+		WORKFLOWS: {
+			LOGIN: {
+				AFTER: [
+					'TermsOfUseWorkflowInitializer',
+					'AboutCampaignWorkflowInitializer',
+					'UserMetadataWorkflowInitializer'
+				]
+			},
+			ROUTES: {
+				CHANGED: ['TermsOfUseValidator']
+			}
+		},
+		USER_METADATA: {
+			REQUIRED_INFOS: ['email']
+		},
+		SHOW_INSTAGRAM_LINKER: true,
 		TERMS_OF_USE: {
 			SHOW: true,
 			LINK: 'https://drive.google.com/file/d/0BzGcM7wAXRLFOERBcHhlWkhZaE0/view',
+			TEXT: 'TEXTO_REGULAMENTO'
 		},
 		PRIVACY_POLICY: {
 			SHOW: true,
 			LINK: 'https://drive.google.com/file/d/0BzGcM7wAXRLFSnZYVjdoY0pOWUk/view'
 		},
-		END_POINT_URL: _getEndPointUrl,
-		SERVICES_END_POINT_URL: _getEndPointUrl,
 		AUTH0: {
 			CLIENT_ID: 'xmwmLJ1KnUrU3vJVW1uNfvIb4TCpguVX',
 			DOMAIN: 'squid.auth0.com',
 			CALLBACK_URL: 'https://squid.auth0.com/login/callback'
 		},
-		SQUID_APP_ID: 'e2a61aa025a94de7908ee1a13abe7c54',
-		START_VIEW: '/checkout',
-		LOGIN_ROUTE: '/login',
-		REQUIRE_AUTHENTICATION: true,
-		APP_ID: _getAppId,
 		THEME: {
 			CUSTOM: false,
 			PRIMARY_COLOR: {
@@ -94,7 +141,8 @@
 			'ngMaterial',
 			'mdThemeColorsDSS',
 			'tagged.directives.infiniteScroll',
-			'ngMask'
+			'ngMask',
+			'ngMessages'
 		]
 	};
 
