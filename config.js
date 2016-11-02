@@ -102,6 +102,7 @@
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };
                 $httpProvider.interceptors.push('jwtInterceptor');
                 $httpProvider.interceptors.push('appIdInjector');
+                $httpProvider.interceptors.push('corsHeaderFilterInjector');
                 $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|whatsapp):/);
                 $sceProvider.enabled(false);
 

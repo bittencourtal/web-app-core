@@ -31,6 +31,12 @@
                     params:{
                         action: 'prize'
                     }
+                },
+                checkoutPrizeWithoutEmailValidation: {
+                    method: 'POST',
+                    params:{
+                        action: 'prizeWithoutEmailValidation'
+                    }
                 }
             });
         }

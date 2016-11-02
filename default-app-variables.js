@@ -99,6 +99,9 @@
 		USER_METADATA: {
 			REQUIRED_INFOS: ['email']
 		},
+		CHECKOUT: {
+			REQUIRED_INFOS: ['name', 'gender', 'email', 'birthday', 'city', 'state']
+		},
 		SHOW_INSTAGRAM_LINKER: true,
 		TERMS_OF_USE: {
 			SHOW: true,

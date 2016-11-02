@@ -12,6 +12,12 @@
                     params:{
                         action: 'usermetadata'
                     }
+                },
+                getUserMetadata: {
+                    method: 'GET',
+                    params:{
+                        action: 'usermetadata'
+                    }
                 }
             });
         }

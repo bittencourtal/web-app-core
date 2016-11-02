@@ -1,0 +1,63 @@
+<div>
+	<form name="userMetadataForm" action="#" ng-disabled="isLoading">
+		<p>Os campos com asterisco (*) são de preenchimento obrigatório.</p>
+		<div layout="row">
+			<md-input-container class="md-block" flex="55">
+				<label>Nome *</label>
+				<input required type="text" name="name" ng-model="ngModel.name" />
+			</md-input-container>
+			<div flex="5" hide-xs hide-sm>
+				<!-- Spacer //-->
+			</div>
+			<md-input-container flex="40">
+				<label>Sexo *</label>
+				<md-select required ng-model="ngModel.gender">
+					<md-option>
+						<em>Selecione</em>
+					</md-option>
+					<md-option ng-value="'masculino'">
+						Masculino
+					</md-option>
+					<md-option ng-value="'feminino'">
+						Feminino
+					</md-option>
+				</md-select>
+			</md-input-container>
+		</div>
+		<div layout="row">
+			<md-input-container class="md-block" flex="55">
+				<label>Email *</label>
+				<input required type="email" name="email" ng-model="ngModel.email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"
+				/>
+			</md-input-container>
+			<div flex="5" hide-xs hide-sm>
+				<!-- Spacer //-->
+			</div>
+			<md-input-container flex="40">
+				<label>Data de nascimento *</label>
+				<input required type="date" name="birthday" ng-model="ngModel.birthday" />
+			</md-input-container>
+		</div>
+		<md-input-container class="md-block" flex="20">
+			<label>CEP *</label>
+			<input required type="text" name="name" ng-model="ngModel.cep" ng-change="tryGetCep(ngModel.cep)" />
+		</md-input-container>
+		<div layout="row">
+			<md-input-container>
+				<label>Estado *</label>
+				<input required type="text" name="state" ng-model="ngModel.state" ng-disabled="true" />
+			</md-input-container>
+			<div flex="5" hide-xs hide-sm>
+				<!-- Spacer //-->
+			</div>
+			<md-input-container>
+				<label>Cidade *</label>
+				<input required type="text" name="city" ng-model="ngModel.city" ng-disabled="true" />
+			</md-input-container>
+		</div>
+		<md-input-container>
+			<label>Endereço</label>
+			<input type="text" name="address" ng-model="ngModel.address" ng-disabled="!ngModel.cep || ngModel.cep.length < 8" />
+		</md-input-container>
+	</form>
+</div>

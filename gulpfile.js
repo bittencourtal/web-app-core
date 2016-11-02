@@ -21,6 +21,7 @@ var scripts = {
         './app.js',
         './config.js',
         './controllers/*.js',
+        './services/*.js',
         './directives/*.js',
         './directives/*/*.js',
         './factories/*.js',

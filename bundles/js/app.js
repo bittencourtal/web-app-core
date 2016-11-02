@@ -254,6 +254,7 @@ String.prototype.replaceAll = function (from, to) {
                 jwtInterceptorProvider.tokenGetter = function(store) { return store.get('token'); };
                 $httpProvider.interceptors.push('jwtInterceptor');
                 $httpProvider.interceptors.push('appIdInjector');
+                $httpProvider.interceptors.push('corsHeaderFilterInjector');
                 $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|whatsapp):/);
                 $sceProvider.enabled(false);
 
@@ -321,6 +322,16 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
+(function(global){
+    "use strict";
+
+    global.squid.app.factory('addressService', ['$resource', function($resource){
+        return $resource('https://viacep.com.br/ws/:cep/json/', {
+            cep: '@cep'
+        });
+    }]);
+
+})(window);
 (function (global) {
     "use strict";
 
@@ -427,17 +438,54 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
-(function(global){
+(function (global) {
 
-    global.squid.app.factory('appIdInjector', [function() {
-        var appIdInjector = {
-            request: function(config) {
+    global.squid.app.factory('appIdInjector', [function () {
+        return {
+            request: function (config) {
                 config.headers['app_id'] = global.APP_CONFIG.APP_ID();
                 return config;
             }
         };
+    }]);
 
-        return appIdInjector;
+})(window);
+(function (global) {
+
+    global.squid.app.factory('corsHeaderFilterInjector', [function () {
+
+        function _isRequestForSquidApi(url) {
+            return url.startsWith(global.APP_CONFIG.END_POINT_URL()) ||
+                url.startsWith(global.APP_CONFIG.CAMPAIGN_END_POINT_URL()) ||
+                url.startsWith(global.APP_CONFIG.SPIDERMAN_END_POINT_URL());
+        }
+
+        return {
+            request: function (config) {
+                if (_isRequestForSquidApi(config.url))
+                    return config;
+
+                delete config.headers.app_id;
+                delete config.headers.Authorization;
+                return config;
+            }
+        };
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.app.factory('syncPromise', ['$q', function ($q) {
+        return function (fn) {
+            return function (previouPromiseResponse) {
+                var defer = $q.defer();
+                
+                defer.resolve(fn(previouPromiseResponse));
+
+                return defer.promise;
+            }
+        }
     }]);
 
 })(window);
@@ -452,12 +500,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
-(function (global) {
-
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
-
-})(window);
 (function(global) {
 
 	global.squid.checkout = angular.module("squid-checkout", []);
@@ -472,6 +514,12 @@ String.prototype.replaceAll = function (from, to) {
 
 	global.squid.login = angular.module("squid-login", []);
 	global.squid.login.controllers = {};
+
+})(window);
+(function (global) {
+
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function(global) {
@@ -490,317 +538,6 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
-
-})(window);
-(function (global) {
-    "use strict"
-
-    function AboutCampaignDialogController($scope, $mdDialog, store) {
-
-        $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
-        $scope.currentText = ($scope.TEXTS.length > 0) ?
-            $scope.TEXTS.first() : {};
-
-        $scope.isFirstText = function (text) {
-            return $scope.TEXTS.first().ORDER == text.ORDER;
-        };
-
-        $scope.isLastText = function (text) {
-            return $scope.TEXTS.last().ORDER == text.ORDER;
-        };
-
-        $scope.isCurrentText = function (text) {
-            return $scope.currentText.ORDER == text.ORDER;
-        };
-
-        $scope.back = function () {
-            var _previousText = $scope.TEXTS.first(function (text) {
-                return text.ORDER < $scope.currentText.ORDER;
-            });
-            $scope.currentText = !!_previousText ? _previousText : $scope.currentText;
-        };
-
-        $scope.next = function () {
-            var _nextText = $scope.TEXTS.first(function (text) {
-                return text.ORDER > $scope.currentText.ORDER;
-            });
-            $scope.currentText = !!_nextText ? _nextText : $scope.currentText;
-        };
-
-        $scope.ok = function () {
-            store.set('about-campaign-read', true);
-            $mdDialog.hide();
-        };
-    }
-
-    global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
-    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
-
-})(window);
-(function (global) {
-  "use strict"
-
-  var toastConfig = {
-    delay: 10000,
-    close: 'OK'
-  };
-
-  function TermsOfUseDialogController($scope, $rootScope, $timeout, $location, store, $mdDialog, userService, $q, $mdToast, auth, squidSpidermanService) {
-    $scope.isLoading = false;
-    $scope.TERMS_OF_USE = global.APP_CONFIG.TERMS_OF_USE;
-
-    function _getToastPosition() {
-      if ($rootScope.isSmallDevice) {
-        return 'bottom left';
-      } else {
-        return 'top right';
-      }
-    }
-
-    function _getProfile() {
-      return store.get('profile');
-    }
-
-    function _getUserMetadata() {
-      var userProfile = _getProfile();
-
-      if (!userProfile.user_metadata || !userProfile.user_metadata.infos)
-        return null;
-
-      return userProfile.user_metadata.infos.first(function (userMetadata) {
-        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
-      });
-    }
-
-    function _updateUserMetadata(userMetadata) {
-      var defer = $q.defer();
-
-      squidSpidermanService.updateUserMetadata(userMetadata, defer.resolve, defer.reject);
-
-      return defer.promise;
-    }
-
-    function _answerTerms(answer) {
-      var userMetadata = _getUserMetadata();
-
-      if (!userMetadata)
-        userMetadata = {};
-
-      userMetadata.acceptedTerms = answer;
-      return _updateUserMetadata(userMetadata);
-    }
-
-    function _logout() {
-      auth.signout();
-      store.remove('profile');
-      store.remove('token');
-      $.jStorage.flush();
-      $rootScope.$broadcast('refreshLogin');
-      _redirectToLogin();
-    }
-
-    function _redirectToLogin() {
-      $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-    }
-
-    function _termsDisagreed() {
-      var defer = $q.defer();
-
-      _answerTerms(false)
-        .then(defer.resolve, defer.reject);
-
-      var toast = $mdToast.simple()
-        .content('Para participar da(s) campanha(s) você deve concordar com o regulamento.')
-        .action(toastConfig.close)
-        .parent($('main').get(0))
-        .hideDelay(toastConfig.delay)
-        .highlightAction(false)
-        .position(_getToastPosition());
-
-      _logout();
-      $timeout(function () {
-        $mdToast.show(toast).then(function (result) {});
-      }, 800);
-
-      return defer.promise;
-    }
-
-    function _termsAgreed() {
-      var defer = $q.defer();
-
-      _answerTerms(true)
-        .then(defer.resolve, defer.reject);
-
-      return defer.promise;
-    }
-
-    function _closeModal() {
-      $mdDialog.hide();
-    }
-
-    function _cancelModal() {
-      $mdDialog.cancel();
-    }
-
-    function _stopLoadingAndCloseModal() {
-      _closeModal();
-      $scope.isLoading = false;
-    }
-
-    function _stopLoadingAndCancelModal() {
-      _cancelModal();
-      $scope.isLoading = false;
-    }
-
-    $scope.agree = function () {
-      $scope.isLoading = true;
-      _termsAgreed()
-        .then(_stopLoadingAndCloseModal)
-        .catch(_stopLoadingAndCancelModal);
-    };
-
-    $scope.disagree = function () {
-      $scope.isLoading = true;
-      _termsDisagreed()
-        .then(_stopLoadingAndCloseModal)
-        .catch(_stopLoadingAndCancelModal);
-    };
-  }
-
-  global.squid.campaign.controllers.TermsOfUseDialogController = TermsOfUseDialogController;
-  global.squid.campaign.controller('TermsOfUseDialogController', [
-    '$scope',
-    '$rootScope',
-    '$timeout',
-    '$location',
-    'store',
-    '$mdDialog',
-    'userService',
-    '$q',
-    '$mdToast',
-    'auth',
-    'squidSpidermanService',
-    TermsOfUseDialogController
-  ]);
-
-})(window);
-(function (global) {
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
-
-        $scope.currentStep = 'step-1';
-        $scope.TEXTS = {
-            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
-            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
-        };
-
-        $scope.next = function () {
-            $scope.currentStep = 'step-2';
-        };
-
-        $scope.back = function () {
-            $scope.currentStep = 'step-1';
-        };
-
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
-
-        $scope.ok = function () {
-            $mdDialog.hide(true);
-        }
-    }
-
-    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
-
-    global.squid.login.factory('AboutCampaignModalService',
-        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
-            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
-
-                function _getToastPosition() {
-                    if ($rootScope.isSmallDevice) {
-                        return 'bottom left';
-                    } else {
-                        return 'top right';
-                    }
-                }
-
-                function _updateUserMetadata(profile) {
-                    var defer = $q.defer();
-
-                    userService.update(profile.app_metadata, function (response) {
-                        defer.resolve(profile);
-                    }, function (err) {
-                        defer.reject(profile);
-                    });
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignNotRead(profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = false;
-                    store.set('profile', profile);
-
-                    var toast = $mdToast.simple()
-                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
-                        .action(toastConfig.close)
-                        .parent($('main').get(0))
-                        .hideDelay(toastConfig.delay)
-                        .highlightAction(false)
-                        .position(_getToastPosition());
-
-                    $mdToast.show(toast).then(function (response) { });
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignRead(acceptTerms, profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = acceptTerms;
-                    store.set('profile', profile);
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _openDialog(profile) {
-                    var defer = $q.defer();
-
-                    $mdDialog.show({
-                        controller: AboutCampaignController,
-                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
-                        parent: angular.element(document.body),
-                        clickOutsideToClose: true
-                    }).then(function (aboutCampaignRead) {
-                        _aboutCampaignRead(aboutCampaignRead, profile)
-                            .then(defer.resolve, defer.reject);
-                    }, function () {
-                        _aboutCampaignNotRead(profile)
-                            .then(defer.reject, defer.reject);
-                    });
-
-                    return defer.promise;
-                }
-
-                return {
-                    openDialog: _openDialog
-                }
-            }]);
 
 })(window);
 (function (global) {
@@ -856,82 +593,13 @@ String.prototype.replaceAll = function (from, to) {
     };
 
     global.squid.checkout.controller('CheckoutPrizeController', [
-        '$scope', '$rootScope', 'checkoutService', 'userService', 'prizeService', '$mdToast', '$mdDialog', '$routeParams', 'auth', '$location',
-        function ($scope, $rootScope, checkoutService, userService, prizeService, $mdToast, $mdDialog, $routeParams, auth, $location) {
+        '$scope', '$rootScope', 'checkoutService', 'userService', 'prizeService', '$mdToast', '$mdDialog', '$routeParams', 'auth', '$location', '$q',
+        function ($scope, $rootScope, checkoutService, userService, prizeService, $mdToast, $mdDialog, $routeParams, auth, $location, $q) {
 
             $scope.auth = auth;
             $scope.userMetadata = {};
             $scope.isLoading = false;
-            $scope.currentTabIndex = 0;
-            $scope.maxYear = moment().subtract(5, 'year').year();
             $scope.prize = {};
-
-            function _bindProfileData(){
-                var _profileBirthDate = moment(auth.profile.birthDate);
-
-                $scope.birthDate = {
-                    day: auth.profile.birthDate ? _profileBirthDate.date() : '',
-                    month: auth.profile.birthDate ? _profileBirthDate.month() + 1 : '',
-                    year: auth.profile.birthDate ? _profileBirthDate.year() : ''
-                };
-
-                $scope.userMetadata.emailContact = auth.profile.emailContact;
-                $scope.userMetadata.phone = auth.profile.phone;
-                $scope.userMetadata.address = auth.profile.address;
-                $scope.userMetadata.birthDate = auth.profile.birthDate;
-                $scope.userMetadata.gender = auth.profile.gender;
-            }
-
-            function _getPrize() {
-                var deferred = new $.Deferred();
-
-                prizeService.get({
-                    id: $routeParams.prizeId
-                }, function (prize) {
-                    $scope.prize = prize;
-                    deferred.resolve(prize);
-                }, function (err) {
-                    deferred.reject(err);
-                });
-
-                return deferred.promise();
-            }
-
-            function _bindBirthDate(){
-                $scope.userMetadata.birthDate = moment({
-                    day: $scope.birthDate.day,
-                    month: ($scope.birthDate.month - 1),
-                    year: $scope.birthDate.year
-                });
-            }
-
-            function _updateUserMetadata(){
-                var deferred = new $.Deferred();
-
-                _bindBirthDate();
-
-                userService.update($scope.userMetadata, function(result){
-                    deferred.resolve(result);
-                }, function(err){
-                    deferred.reject(err);
-                });
-
-                return deferred.promise();
-            }
-
-            function _checkoutPrize(){
-                var deferred = new $.Deferred();
-
-                checkoutService.checkoutPrize({
-                    id: $routeParams.prizeId
-                }, function(result){
-                    deferred.resolve(result);
-                }, function(err){
-                    deferred.reject(err);
-                });
-
-                return deferred.promise();
-            }
 
             function _getToastPosition(){
                 if($rootScope.isSmallDevice){
@@ -939,6 +607,29 @@ String.prototype.replaceAll = function (from, to) {
                 }else{
                     return 'top right';
                 }
+            }
+
+            function _getPrize() {
+                var defer = $q.defer();
+
+                prizeService.get({
+                    id: $routeParams.prizeId
+                }, function (prize) {
+                    $scope.prize = prize;
+                    defer.resolve(prize);
+                }, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _checkoutPrize(){
+                var defer = $q.defer();
+
+                checkoutService.checkoutPrizeWithoutEmailValidation({
+                    id: $routeParams.prizeId
+                }, defer.resolve, defer.reject);
+
+                return defer.promise;
             }
 
             function _successCheckout(result){
@@ -957,8 +648,12 @@ String.prototype.replaceAll = function (from, to) {
             }
 
             function _failCheckout(err){
-                var data = err.data;
+                $scope.isLoading = false;
 
+                if(!err)
+                    return;
+
+                var data = err.data;
                 var toast = $mdToast.simple()
                     .content(data.message)
                     .action(toastConfig.close)
@@ -968,73 +663,29 @@ String.prototype.replaceAll = function (from, to) {
                     .position(_getToastPosition());
 
                 $mdToast.show(toast).then(function(response) {});
-
-                $scope.isLoading = false;
-            }
-
-            function _failUpdateProfileInfo(){
-
-                var toast = $mdToast.simple()
-                    .content('Não foi possível atualizar as informações de perfil.')
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
-
-                $mdToast.show(toast).then(function(response) {});
-
-                $scope.isLoading = false;
             }
 
             function _init(){
                 $scope.isLoading = true;
 
-                _getPrize().then(function(){
-                    $scope.isLoading = false;
-                });
+                _getPrize()
+                    .then(function(){
+                        $scope.isLoading = false;
+                    });
             }
 
-            $scope.onTabSelected = function(tabIndex){
-                $scope.currentTabIndex = tabIndex;
-            };
-
-            $scope.currentStepIsValid = function(){
-                if(!$scope.userProfile || !$scope.userProfile.emailContact)
-                    return false;
-
-                switch($scope.currentTabIndex){
-                    case 0:
-                        return $scope.userProfile.emailContact.$valid && $scope.userProfile.phone.$valid;
-
-                    case 1:
-                        return $scope.userProfile.address.$valid;
-
-                    case 2:
-                        return $scope.userProfile.birthDateDay.$valid && $scope.userProfile.birthDateMonth.$valid && $scope.userProfile.birthDateYear.$valid;
-
-                    case 3:
-                        return $scope.userProfile.gender.$valid;
-                }
-            };
-
-            $scope.nextStep = function(){
-              $scope.currentTabIndex++;
-            };
+            $scope.saveUserMetadata = function(){ }; // user-metadata-directive will override this method!
 
             $scope.rescue = function(){
                 $scope.isLoading = true;
 
-                _updateUserMetadata().then(function(result){
-                    _checkoutPrize().then(_successCheckout, _failCheckout);
-                }, _failUpdateProfileInfo);
+                $scope.saveUserMetadata()
+                    .then(_checkoutPrize)
+                    .then(_successCheckout)
+                    .catch(_failCheckout);
             };
 
             _init();
-
-            $scope.$watch('auth.profile', function(){
-                _bindProfileData();
-            });
         }
     ]);
 
@@ -1092,6 +743,12 @@ String.prototype.replaceAll = function (from, to) {
                     method: 'POST',
                     params:{
                         action: 'prize'
+                    }
+                },
+                checkoutPrizeWithoutEmailValidation: {
+                    method: 'POST',
+                    params:{
+                        action: 'prizeWithoutEmailValidation'
                     }
                 }
             });
@@ -1466,6 +1123,317 @@ String.prototype.replaceAll = function (from, to) {
                 secondaryNav: true
             });
     }]);
+
+})(window);
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
+
+        $scope.currentStep = 'step-1';
+        $scope.TEXTS = {
+            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
+            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
+        };
+
+        $scope.next = function () {
+            $scope.currentStep = 'step-2';
+        };
+
+        $scope.back = function () {
+            $scope.currentStep = 'step-1';
+        };
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.ok = function () {
+            $mdDialog.hide(true);
+        }
+    }
+
+    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
+
+    global.squid.login.factory('AboutCampaignModalService',
+        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
+            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
+
+                function _getToastPosition() {
+                    if ($rootScope.isSmallDevice) {
+                        return 'bottom left';
+                    } else {
+                        return 'top right';
+                    }
+                }
+
+                function _updateUserMetadata(profile) {
+                    var defer = $q.defer();
+
+                    userService.update(profile.app_metadata, function (response) {
+                        defer.resolve(profile);
+                    }, function (err) {
+                        defer.reject(profile);
+                    });
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignNotRead(profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = false;
+                    store.set('profile', profile);
+
+                    var toast = $mdToast.simple()
+                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
+                        .action(toastConfig.close)
+                        .parent($('main').get(0))
+                        .hideDelay(toastConfig.delay)
+                        .highlightAction(false)
+                        .position(_getToastPosition());
+
+                    $mdToast.show(toast).then(function (response) { });
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignRead(acceptTerms, profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = acceptTerms;
+                    store.set('profile', profile);
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _openDialog(profile) {
+                    var defer = $q.defer();
+
+                    $mdDialog.show({
+                        controller: AboutCampaignController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: true
+                    }).then(function (aboutCampaignRead) {
+                        _aboutCampaignRead(aboutCampaignRead, profile)
+                            .then(defer.resolve, defer.reject);
+                    }, function () {
+                        _aboutCampaignNotRead(profile)
+                            .then(defer.reject, defer.reject);
+                    });
+
+                    return defer.promise;
+                }
+
+                return {
+                    openDialog: _openDialog
+                }
+            }]);
+
+})(window);
+(function (global) {
+    "use strict"
+
+    function AboutCampaignDialogController($scope, $mdDialog, store) {
+
+        $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
+        $scope.currentText = ($scope.TEXTS.length > 0) ?
+            $scope.TEXTS.first() : {};
+
+        $scope.isFirstText = function (text) {
+            return $scope.TEXTS.first().ORDER == text.ORDER;
+        };
+
+        $scope.isLastText = function (text) {
+            return $scope.TEXTS.last().ORDER == text.ORDER;
+        };
+
+        $scope.isCurrentText = function (text) {
+            return $scope.currentText.ORDER == text.ORDER;
+        };
+
+        $scope.back = function () {
+            var _previousText = $scope.TEXTS.first(function (text) {
+                return text.ORDER < $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_previousText ? _previousText : $scope.currentText;
+        };
+
+        $scope.next = function () {
+            var _nextText = $scope.TEXTS.first(function (text) {
+                return text.ORDER > $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_nextText ? _nextText : $scope.currentText;
+        };
+
+        $scope.ok = function () {
+            store.set('about-campaign-read', true);
+            $mdDialog.hide();
+        };
+    }
+
+    global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
+    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
+
+})(window);
+(function (global) {
+  "use strict"
+
+  var toastConfig = {
+    delay: 10000,
+    close: 'OK'
+  };
+
+  function TermsOfUseDialogController($scope, $rootScope, $timeout, $location, store, $mdDialog, userService, $q, $mdToast, auth, squidSpidermanService) {
+    $scope.isLoading = false;
+    $scope.TERMS_OF_USE = global.APP_CONFIG.TERMS_OF_USE;
+
+    function _getToastPosition() {
+      if ($rootScope.isSmallDevice) {
+        return 'bottom left';
+      } else {
+        return 'top right';
+      }
+    }
+
+    function _getProfile() {
+      return store.get('profile');
+    }
+
+    function _getUserMetadata() {
+      var userProfile = _getProfile();
+
+      if (!userProfile.user_metadata || !userProfile.user_metadata.infos)
+        return null;
+
+      return userProfile.user_metadata.infos.first(function (userMetadata) {
+        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
+      });
+    }
+
+    function _updateUserMetadata(userMetadata) {
+      var defer = $q.defer();
+
+      squidSpidermanService.updateUserMetadata(userMetadata, defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _answerTerms(answer) {
+      var userMetadata = _getUserMetadata();
+
+      if (!userMetadata)
+        userMetadata = {};
+
+      userMetadata.acceptedTerms = answer;
+      return _updateUserMetadata(userMetadata);
+    }
+
+    function _logout() {
+      auth.signout();
+      store.remove('profile');
+      store.remove('token');
+      $.jStorage.flush();
+      $rootScope.$broadcast('refreshLogin');
+      _redirectToLogin();
+    }
+
+    function _redirectToLogin() {
+      $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+    }
+
+    function _termsDisagreed() {
+      var defer = $q.defer();
+
+      _answerTerms(false)
+        .then(defer.resolve, defer.reject);
+
+      var toast = $mdToast.simple()
+        .content('Para participar da(s) campanha(s) você deve concordar com o regulamento.')
+        .action(toastConfig.close)
+        .parent($('main').get(0))
+        .hideDelay(toastConfig.delay)
+        .highlightAction(false)
+        .position(_getToastPosition());
+
+      _logout();
+      $timeout(function () {
+        $mdToast.show(toast).then(function (result) {});
+      }, 800);
+
+      return defer.promise;
+    }
+
+    function _termsAgreed() {
+      var defer = $q.defer();
+
+      _answerTerms(true)
+        .then(defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _closeModal() {
+      $mdDialog.hide();
+    }
+
+    function _cancelModal() {
+      $mdDialog.cancel();
+    }
+
+    function _stopLoadingAndCloseModal() {
+      _closeModal();
+      $scope.isLoading = false;
+    }
+
+    function _stopLoadingAndCancelModal() {
+      _cancelModal();
+      $scope.isLoading = false;
+    }
+
+    $scope.agree = function () {
+      $scope.isLoading = true;
+      _termsAgreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+
+    $scope.disagree = function () {
+      $scope.isLoading = true;
+      _termsDisagreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+  }
+
+  global.squid.campaign.controllers.TermsOfUseDialogController = TermsOfUseDialogController;
+  global.squid.campaign.controller('TermsOfUseDialogController', [
+    '$scope',
+    '$rootScope',
+    '$timeout',
+    '$location',
+    'store',
+    '$mdDialog',
+    'userService',
+    '$q',
+    '$mdToast',
+    'auth',
+    'squidSpidermanService',
+    TermsOfUseDialogController
+  ]);
 
 })(window);
 (function (global) {
@@ -1899,40 +1867,87 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
     global.squid.user.controller('MyProfileController', [
-        '$scope', 'auth', 'userService', '$location','participationService', 'checkoutService', 'userStatisticsService',
-        function ($scope, auth, userService, $location, participationService, checkoutService, userStatisticsService) {
+        '$scope',
+        '$rootScope',
+        'auth',
+        'userService',
+        '$location',
+        'participationService',
+        'checkoutService',
+        'userStatisticsService',
+        '$mdToast',
+        function (
+            $scope,
+            $rootScope,
+            auth,
+            userService,
+            $location,
+            participationService,
+            checkoutService,
+            userStatisticsService,
+            $mdToast
+        ) {
 
             var firstLoad = true;
+            $scope.isSaving = false;
             $scope.isLoadingParticipations = false;
             $scope.auth = auth;
+            $scope.userMetadata = {};
             $scope.selectedTabIndex = 0;
             $scope.isLoading = false;
             $scope.userStatistics = {};
-            $scope.maxYear = moment().subtract(14, 'years').year();
             $scope.vouchers = [];
             $scope.participations = {
                 data: [],
                 minId: ''
             };
 
-            function _getUserStatistics(){
-                userStatisticsService.getUserProfileStatistics(function(userStatistics){
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
+                    return 'bottom left';
+                } else {
+                    return 'top right';
+                }
+            }
+
+            function _getUserStatistics() {
+                userStatisticsService.getUserProfileStatistics(function (userStatistics) {
                     $scope.userStatistics = userStatistics;
                 });
             }
 
-            function _getUserVouchers(){
-                checkoutService.getVouchersByUser(function(vouchers){
+            function _getUserVouchers() {
+                checkoutService.getVouchersByUser(function (vouchers) {
                     $scope.vouchers = vouchers;
                 });
             }
 
-            function _getUserParticipation(){
-                if($scope.isLoadingParticipations
-                    || $scope.participations.data.length > 0 && !$scope.participations.minId
-                    || $scope.participations.data.length == 0 && !firstLoad
-                )
+            function _canNotLoadParticipations() {
+                return $scope.isLoadingParticipations ||
+                    $scope.participations.data.length > 0 && !$scope.participations.minId ||
+                    $scope.participations.data.length == 0 && !firstLoad;
+            }
+
+            function _onUserMetadataSaved(userMetadata) {
+                var toast = $mdToast.simple()
+                    .content('Dados salvos :)')
+                    .action(toastConfig.close)
+                    .parent($('main').get(0))
+                    .hideDelay(toastConfig.delay)
+                    .highlightAction(false)
+                    .position(_getToastPosition());
+
+                $mdToast.show(toast).then(function (response) {});
+            }
+
+            function _getUserParticipation() {
+                if (_canNotLoadParticipations())
                     return;
 
                 firstLoad = false;
@@ -1942,21 +1957,21 @@ String.prototype.replaceAll = function (from, to) {
                     id: auth.profile.user_id,
                     minId: $scope.participations.minId,
                     take: 12
-                }, function(response){
+                }, function (response) {
                     $scope.participations.data = $scope.participations.data
                         .concat(response.data)
-                        .distinct(function(c, n){
+                        .distinct(function (c, n) {
                             return c._id == n._id;
                         });
                     $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
                     $scope.isLoadingParticipations = false;
-                }, function(){
+                }, function () {
                     $scope.isLoadingParticipations = false;
                 });
             }
 
-            function _init(){
-                if(!auth.isAuthenticated)
+            function _init() {
+                if (!auth.isAuthenticated)
                     return;
 
                 _getUserParticipation();
@@ -1964,19 +1979,31 @@ String.prototype.replaceAll = function (from, to) {
                 _getUserStatistics();
             }
 
-            $scope.getVoucherUsedLabel = function(isUsed){
-                return isUsed ? 'Usado': 'Não usado';
+            $scope.getVoucherUsedLabel = function (isUsed) {
+                return isUsed ? 'Usado' : 'Não usado';
             };
 
-            $scope.loadMoreParticipations = function(){
-                if(!auth.isAuthenticated)
+            $scope.loadMoreParticipations = function () {
+                if (!auth.isAuthenticated)
                     return;
 
                 _getUserParticipation();
             };
 
+            $scope.save = function () {
+                $scope.saveUserMetadata()
+                    .then(_onUserMetadataSaved);
+            };
+
+            $scope.saveUserMetadata = function () {}; // user-metadata-directive will override this method!
+
+            $scope.getSaveButtonLabel = function () {
+                return $scope.isSaving ? 'Salvando...' : 'Salvar';
+            };
+
             _init();
-        }]);
+        }
+    ]);
 
 
 })(window);
@@ -2059,39 +2086,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-    "use strict";
-
-    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
-
-        function _getProfile() {
-            return store.get('profile');
-        }
-
-        function _termsIsAccepted() {
-            var userMetadata = _getUserMetadata();
-            return !userMetadata ? false : userMetadata.acceptedTerms;
-        }
-
-        function _getUserMetadata() {
-            var userProfile = _getProfile();
-
-            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
-                return null;
-
-            return userProfile.user_metadata.infos.first(function (userMetadata) {
-                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
-            });
-        }
-
-        return {
-            getProfile: _getProfile,
-            getUserMetadata: _getUserMetadata,
-            termsIsAccepted: _termsIsAccepted
-        };
-    }]);
-
-})(window);
-(function (global) {
 
     global.squid.user.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
@@ -2114,6 +2108,12 @@ String.prototype.replaceAll = function (from, to) {
             }, {
                 updateUserMetadata: {
                     method: 'PATCH',
+                    params:{
+                        action: 'usermetadata'
+                    }
+                },
+                getUserMetadata: {
+                    method: 'GET',
                     params:{
                         action: 'usermetadata'
                     }
@@ -2164,6 +2164,60 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
+
+        function _getProfile() {
+            return store.get('profile');
+        }
+
+        function _termsIsAccepted() {
+            var userMetadata = _getUserMetadata();
+            return !userMetadata ? false : userMetadata.acceptedTerms;
+        }
+
+        function _getUserMetadata() {
+            var userProfile = _getProfile();
+
+            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
+                return null;
+
+            return userProfile.user_metadata.infos.first(function (userMetadata) {
+                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
+            });
+        }
+
+        return {
+            getProfile: _getProfile,
+            getUserMetadata: _getUserMetadata,
+            termsIsAccepted: _termsIsAccepted
+        };
+    }]);
+
+})(window);
+(function (global) {
+
+    function TermsOfUseValidator($q, store, userMetadataHelper) {
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                userMetadataHelper.termsIsAccepted() 
+                    ? defer.resolve()
+                    : defer.reject();
+
+                return defer.promise;
+            }
+        };
+    }
+    TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
+    var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
+    global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
 
 })(window);
 (function (global) {
@@ -2304,27 +2358,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    function TermsOfUseValidator($q, store, userMetadataHelper) {
-
-        return {
-            init: function () {
-                var defer = $q.defer();
-
-                userMetadataHelper.termsIsAccepted() 
-                    ? defer.resolve()
-                    : defer.reject();
-
-                return defer.promise;
-            }
-        };
-    }
-    TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
-    var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
-    global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.checkout.controller('CheckoutRescueModalController',
@@ -2399,3 +2432,185 @@ String.prototype.replaceAll = function (from, to) {
         ]);
 
 }(window));
+(function (global) {
+    "use strict";
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    global.squid.user.directive('userMetadataForm', [
+        'addressService',
+        '$q',
+        '$rootScope',
+        '$mdToast',
+        'syncPromise',
+        'squidSpidermanService',
+        function (
+            addressService,
+            $q,
+            $rootScope,
+            $mdToast,
+            syncPromise,
+            squidSpidermanService
+        ) {
+            return {
+                scope: {
+                    ngModel: '=',
+                    isSaving: '=',
+                    save: '='
+                },
+                templateUrl: global.APP_CONFIG.APP_DIR + '/modules/user/directives/user-metadata-form/user-metadata-form.html',
+                link: function ($scope, $element, $attrs, $controller) {
+
+                    $scope.isLoading = false;
+                    $scope.states = [
+                        'AC', 'AL', 'AP', 'AM',
+                        'BA', 'CE', 'DF', 'ES',
+                        'GO', 'MA', 'MT', 'MS',
+                        'MG', 'PA', 'PB', 'PR',
+                        'PE', 'PI', 'RJ', 'RN',
+                        'RS', 'RO', 'RR', 'SC',
+                        'SP', 'SE', 'TO'
+                    ];
+
+                    function _getToastPosition() {
+                        if ($rootScope.isSmallDevice) {
+                            return 'bottom left';
+                        } else {
+                            return 'top right';
+                        }
+                    }
+
+                    function _getAddressByCep(cep) {
+                        var defer = $q.defer();
+
+                        if (!cep) {
+                            defer.reject();
+                            return defer.promise;
+                        }
+
+                        addressService.get({
+                            cep: cep
+                        }, defer.resolve, defer.reject);
+
+                        return defer.promise;
+                    }
+
+                    function _getAddress(addressMetadata) {
+                        return !!addressMetadata.logradouro ?
+                            addressMetadata.logradouro + ', ' + addressMetadata.complemento + ', ' + addressMetadata.bairro :
+                            '';
+                    }
+
+                    function _populateCep(addressMetadata) {
+                        $scope.ngModel.state = addressMetadata.uf;
+                        $scope.ngModel.city = addressMetadata.localidade;
+                        $scope.ngModel.address = _getAddress(addressMetadata);
+                    }
+
+                    function _getUserMetadata() {
+                        var defer = $q.defer();
+                        squidSpidermanService.getUserMetadata(defer.resolve, defer.reject);
+                        return defer.promise;
+                    }
+
+                    function _populateUserMetadata(userMetadata) {
+                        delete userMetadata.$promise;
+                        delete userMetadata.$resolved;
+                        userMetadata.birthday = moment(userMetadata.birthday)._d;
+                        $scope.ngModel = userMetadata;
+                    }
+
+                    function _updateUserMetadata(metadata) {
+                        var defer = $q.defer();
+                        squidSpidermanService.updateUserMetadata(metadata, defer.resolve, defer.reject);
+                        return defer.promise;
+                    }
+
+                    function _showLoader() {
+                        $scope.isLoading = true;
+                    }
+
+                    function _hideLoader() {
+                        $scope.isLoading = false;
+                    }
+
+                    function _showMessage(message) {
+                        var toast = $mdToast.simple()
+                            .content(message)
+                            .action(toastConfig.close)
+                            .parent($('main').get(0))
+                            .hideDelay(toastConfig.delay)
+                            .highlightAction(false)
+                            .position(_getToastPosition());
+
+                        $mdToast.show(toast).then(function (response) {});
+                    }
+
+                    function _validateUserMetadata(userMetadata) {
+                        var hasAnyUnfilledRequiredField = global.APP_CONFIG.CHECKOUT.REQUIRED_INFOS.any(function (field) {
+                            return !userMetadata[field];
+                        });
+
+                        if (hasAnyUnfilledRequiredField)
+                            _showMessage('Preencha os campos obrigatórios.');
+
+                        return !hasAnyUnfilledRequiredField;
+                    }
+
+                    function _interUserMetadataSaved(result){
+                        $scope.isSaving = false;
+                        return result;
+                    }
+
+                    function _interUserMetadataNotSaved(defer){
+                        return function(error){
+                            $scope.isSaving = false;
+                            defer.reject(error);
+                        }
+                    }
+
+                    function _init() {
+                        _showLoader();
+                        _getUserMetadata()
+                            .then(syncPromise(_populateUserMetadata))
+                            .then(_hideLoader);
+                    }
+
+                    $scope.save = function () {
+                        var defer = $q.defer();
+
+                        if (!_validateUserMetadata($scope.ngModel)) {
+                            defer.reject();
+                            return defer.promise;
+                        }
+
+                        _showLoader();
+                        $scope.isSaving = true;
+                        _updateUserMetadata($scope.ngModel)
+                            .then(syncPromise(_hideLoader))
+                            .then(syncPromise(_interUserMetadataSaved))
+                            .then(defer.resolve)
+                            .catch(_interUserMetadataNotSaved(defer));
+
+                        return defer.promise;
+                    };
+
+                    $scope.tryGetCep = function (cep) {
+                        if (cep.length < 8)
+                            return;
+
+                        _getAddressByCep(cep)
+                            .then(syncPromise(_populateCep));
+                    };
+
+                    _init();
+                }
+            };
+        }
+    ]);
+
+
+})(window);

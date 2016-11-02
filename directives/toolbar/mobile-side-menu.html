@@ -20,19 +20,19 @@
                 <md-icon class="mdi md-headline mdi-account-circle"></md-icon>
                 <p>Meu perfil</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('mission/actives')" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" ng-class="getButtonClass('mission'">
+            <md-list-item ng-click="$location.path('mission/actives')" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" ng-class="getButtonClass('mission'">
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
                 <p>Campanhas</p>
             </md-list-item>
-            <md-list-item ng-click="goToUniqueCampaign()" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" ng-class="getButtonClass('mission')">
+            <md-list-item ng-click="goToUniqueCampaign()" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" ng-class="getButtonClass('mission')">
                 <md-icon class="mdi md-headline mdi-pound"></md-icon>
                 <p>Campanha</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('checkout')" ng-class="getButtonClass('checkout')">
+            <md-list-item ng-click="$location.path('checkout')" ng-class="getButtonClass('checkout')" ng-if="auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-briefcase-check"></md-icon>
                 <p>Meus Pontos</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('feed')" ng-class="getButtonClass('feed')">
+            <md-list-item ng-click="$location.path('feed')" ng-class="getButtonClass('feed')" ng-if="auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
                 <p>Feed</p>
             </md-list-item>

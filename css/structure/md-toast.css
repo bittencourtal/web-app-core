@@ -1,12 +1,13 @@
 md-toast{
+    position: fixed;
     padding: 12px;
 }
 
-@media (max-width: 480px) {
+md-toast.md-top{
+    top: 80px;
+}
 
-    md-toast{
-        position: fixed;
-    }
+@media (max-width: 480px) {
 
     .md-toast-open-bottom md-toast{
         bottom: 0;

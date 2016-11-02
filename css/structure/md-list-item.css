@@ -2,6 +2,11 @@ md-list-item{
     position: relative;
 }
 
+md-list-item a.md-no-style.md-button{
+    margin:0;
+    padding:0;
+}
+
 md-list-item.md-1-line > md-icon{
     margin-left:0;
     vertical-align: middle;

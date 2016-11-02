@@ -1,78 +1,74 @@
 <div ng-controller="MyProfileController" layout="row" layout-align="center center">
 
-    <div class="card profile">
-        <div class="card-header">
-            <div class="profile-info-wrapper">
-                <img ng-src="{{auth.profile.picture}}"
-                     alt="{{auth.profile.name}}"
-                     ng-if="auth.isAuthenticated"
-                     class="md-avatar" />
+	<div class="card profile">
+		<div class="card-header">
+			<div class="profile-info-wrapper">
+				<img ng-src="{{auth.profile.picture}}" alt="{{auth.profile.name}}" ng-if="auth.isAuthenticated" class="md-avatar" />
 
-                <img ng-src="{{APP_CONFIG.APP_DIR}}/images/no-img.jpg"
-                     ng-if="!auth.isAuthenticated"
-                     class="md-avatar" />
-                <h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
-                <h2 ng-if="!auth.isAuthenticated">Visitante</h2>
-            </div>
-            <div class="profile-statistics">
-                <ul class="profile-statistics-list">
-                    <li>
-                        <span class="number" ng-bind="userStatistics.participations || 0"></span>
-                        <span class="label">Fotos enviadas</span>
-                    </li>
-                    <li>
-                        <span class="number" ng-bind="userStatistics.missionsCompleted || 0"></span>
-                        <span class="label">Participação em campanhas</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <md-tabs md-dynamic-height
-                     md-border-bottom
-                     md-swipe-content="true"
-                     md-center-tabs="true"
-                     flex="100">
-                <md-tab>
-                    <md-tab-label>
-                        <span class="mdi mdi-apps"></span>
-                        Fotos
-                    </md-tab-label>
-                    <md-tab-body>
-                        <md-content class="md-padding">
-                            <div
-                                    tagged-infinite-scroll="loadMoreParticipations()"
-                                    tagged-infinite-scroll-disabled="isLoadingParticipations"
-                                    tagged-infinite-scroll-distance="100">
-                                <md-grid-list
-                                        md-cols-sm="2" md-cols-md="2" md-cols-gt-md="6"
-                                        md-row-height="1:1"
-                                        md-gutter="12px">
-                                    <md-grid-tile
-                                            md-rowspan="2" md-rowspan-sm="1"
-                                            md-colspan="2" md-colspan-sm="1"
-                                            ng-repeat="participation in participations.data"
-                                            class="bg-clear border-clear">
-                                        <img ng-src="{{participation.image}}" />
-                                    </md-grid-tile>
-                                </md-grid-list>
-                            </div>
-                            <div layout="column"
-                                 layout-align="center center"
-                                 ng-if="participations.data.length == 0 && !isLoadingParticipations"
-                                 class="text-center color-light margin-top-double sm-padding-2">
-                                <md-icon class="margin-bottom">
-                                    <span class="mdi mdi-pound md-display-2"></span>
-                                </md-icon>
-                                <h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a participar! :)</h4>
-                            </div>
-                            <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoadingParticipations">
-                                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
-                            </div>
-                        </md-content>
-                    </md-tab-body>
-                </md-tab>
-            </md-tabs>
-        </div>
-    </div>
+				<img ng-src="{{APP_CONFIG.APP_DIR}}/images/no-img.jpg" ng-if="!auth.isAuthenticated" class="md-avatar" />
+				<h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
+				<h2 ng-if="!auth.isAuthenticated">Visitante</h2>
+			</div>
+			<div class="profile-statistics">
+				<ul class="profile-statistics-list">
+					<li>
+						<span class="number" ng-bind="userStatistics.participations || 0"></span>
+						<span class="label">Fotos enviadas</span>
+					</li>
+					<li>
+						<span class="number" ng-bind="userStatistics.missionsCompleted || 0"></span>
+						<span class="label">Participação em campanhas</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="card-body">
+			<md-tabs md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">
+				<md-tab>
+					<md-tab-label>
+						<span class="mdi mdi-apps"></span> Fotos
+					</md-tab-label>
+					<md-tab-body>
+						<md-content class="md-padding">
+							<div tagged-infinite-scroll="loadMoreParticipations()" tagged-infinite-scroll-disabled="isLoadingParticipations" tagged-infinite-scroll-distance="100">
+								<md-grid-list md-cols-sm="2" md-cols-md="2" md-cols-gt-md="6" md-row-height="1:1" md-gutter="12px">
+									<md-grid-tile md-rowspan="2" md-rowspan-sm="1" md-colspan="2" md-colspan-sm="1" ng-repeat="participation in participations.data"
+										class="bg-clear border-clear">
+										<img ng-src="{{participation.image}}" />
+									</md-grid-tile>
+								</md-grid-list>
+							</div>
+							<div layout="column" layout-align="center center" ng-if="participations.data.length == 0 && !isLoadingParticipations" class="text-center color-light margin-top-double sm-padding-2">
+								<md-icon class="margin-bottom">
+									<span class="mdi mdi-pound md-display-2"></span>
+								</md-icon>
+								<h4 class="line-height-1-8">Nenhuma participação, seja o primeiro a participar! :)</h4>
+							</div>
+							<div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoadingParticipations">
+								<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+							</div>
+						</md-content>
+					</md-tab-body>
+				</md-tab>
+				<md-tab>
+					<md-tab-label>
+						<span class="mdi mdi-account"></span> Dados
+					</md-tab-label>
+					<md-tab-body>
+						<md-content class="md-padding">
+							<user-metadata-form
+								ng-model="userMetadata"
+								data-save="saveUserMetadata"
+								data-is-saving="isSaving">
+							</user-metadata-form>
+							<md-button 
+								class="md-raised md-primary"
+								ng-click="saveUserMetadata()"
+								ng-bind="getSaveButtonLabel()"></md-button>
+						</md-content>
+					</md-tab-body>
+				</md-tab>
+			</md-tabs>
+		</div>
+	</div>
 </div>

@@ -147,6 +147,9 @@ md-dialog .push {
     margin: -24px;
     margin-bottom: 0;
 }
+md-input-container{
+    font-size: 16px;
+}
 md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]).md-active{
     color: ||primary.default||;
 }
@@ -158,11 +161,11 @@ md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item
     color: ||primary.50||;
 }
 .card.profile .card-header{
-    background: ||accent.500||;
+    background: ||primary.default||;
 }
 
 .card.profile .profile-info-wrapper h2{
-    color: ||accent.500||;
+    color: ||primary.default||;
 }
 
 .card.profile .profile-statistics-list li{

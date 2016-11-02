@@ -1,15 +1,15 @@
-.card.profile{
-    width:100%;
+.card.profile {
+    width: 100%;
     box-sizing: border-box;
 }
 
-.card.profile .card-header{
+.card.profile .card-header {
     position: relative;
     min-height: 120px;
     margin-bottom: 60px;
 }
 
-.card.profile .profile-info-wrapper{
+.card.profile .profile-info-wrapper {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -17,7 +17,7 @@
     padding: 0 24px;
 }
 
-.card.profile .profile-info-wrapper .md-avatar{
+.card.profile .profile-info-wrapper .md-avatar {
     width: 140px;
     height: auto;
     border-radius: 50%;
@@ -25,10 +25,10 @@
     vertical-align: baseline;
     position: relative;
     bottom: -120px;
-    border:4px solid #FFF;
+    border: 4px solid #FFF;
 }
 
-.card.profile .profile-info-wrapper h2{
+.card.profile .profile-info-wrapper h2 {
     display: block;
     position: relative;
     margin-bottom: 0;
@@ -37,38 +37,71 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    bottom:-50px;
+    bottom: -50px;
 }
 
-.card.profile .profile-statistics{
+.card.profile .profile-statistics {
     position: absolute;
-    bottom:0;
-    left:0;
-    right:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
-.card.profile .profile-statistics-list{
+.card.profile .profile-statistics-list {
     list-style: none;
     margin: 0;
     padding: 0;
     text-align: right;
-    padding-right:12px;
+    padding-right: 12px;
 }
 
-.card.profile .profile-statistics-list li{
+.card.profile .profile-statistics-list li {
     display: inline-block;
     padding: 12px;
     text-align: center;
 }
 
-.card.profile .profile-statistics-list .number{
+.card.profile .profile-statistics-list .number {
     display: block;
     font-family: 'open_sansbold';
     font-size: 1.7em;
 }
 
-.card.profile .profile-statistics-list .label{
+.card.profile .profile-statistics-list .label {
     display: block;
     font-family: 'open_sansregular';
     font-size: 1.2em;
+}
+
+@media (max-width: 767px) {
+    .card.profile {
+        margin: 12px;
+    }
+    .card.profile .card-header {
+        margin-bottom: 210px;
+    }
+    .card.profile .profile-info-wrapper {
+        text-align: center;
+    }
+    .card.profile .profile-statistics-list li {
+        float:left;
+        width:50%;
+        box-sizing: border-box;
+    }
+
+    .card.profile .profile-statistics-list li,
+    .card.profile .profile-statistics-list li span{
+        color: #757575;
+    }
+    
+    .card.profile .profile-statistics {
+        bottom: -215px
+    }
+    .card.profile .profile-statistics-list .label {
+        font-size: 1em;
+    }
+    .card.profile .profile-info-wrapper h2 {
+        bottom: -110px;
+        padding-left: 0;
+    }
 }
