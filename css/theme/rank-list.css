@@ -1,0 +1,38 @@
+.rank-list .rank-position {
+    color: #FFF;
+    background: #7b7876;
+    font-size: 0.8em;
+    font-weight: bold;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-right: 8px;
+}
+
+.rank-list .badge {
+    background: #514c49;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    display: inline-block;
+    margin-top: 6px;
+}
+
+@media (max-width: 767px) {
+    .rank-list h3 {
+        width: 200px;
+    }
+    .rank-list md-list-item {
+        padding: 0;
+    }
+    .rank-list .md-list-item-text {
+        display: block;
+    }
+    .rank-list .md-list-item>.md-avatar {
+        margin-right: 8px;
+    }
+    .rank-list .rank-position {
+        font-size: 0.7em;
+    }
+}

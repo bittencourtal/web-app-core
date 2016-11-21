@@ -79,6 +79,13 @@
                             uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                         };
 
+                        $scope.goToUniqueCampaignRank = function(){
+                            if (!$scope.uniqueCampaign)
+                                return uniqueCampaignService.notifyNotHaveCampaign();
+
+                            uniqueCampaignService.redirectToUniqueCampaignRank($scope.uniqueCampaign);
+                        };
+
                         $scope.openAboutCampaign = function () {
                             AboutCampaignModalService.openDialog(auth.profile)
                                 .then(function () { }, _logout);

@@ -10,30 +10,32 @@
             <md-button class="md-icon-button hide-gt-sm" aria-label="Menu" ng-click="goBack()" ng-if="secondaryNav">
                 <md-icon class="mdi md-headline mdi-arrow-left"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" aria-label="Campanhas" ng-class="getButtonClass('mission')" ng-click="$location.path('mission/actives')">
+            <md-button class="md-icon-button hide-sm" ng-if="!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" aria-label="Campanhas" ng-class="getButtonClass('mission')" ng-click="$location.path('mission/actives')">
                 <md-tooltip>Campanhas</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rocket"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE" aria-label="Campanha" ng-class="getButtonClass('mission')" ng-click="goToUniqueCampaign()">
+            <md-button class="md-icon-button hide-sm" ng-if="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" aria-label="Campanha" ng-class="getButtonClass('mission')" ng-click="goToUniqueCampaign()">
                 <md-tooltip>Campanha</md-tooltip>
                 <md-icon class="mdi md-headline mdi-pound"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm" aria-label="Resgatar prêmios" ng-class="getButtonClass('checkout')" ng-click="$location.path('checkout')">
+            <md-button ng-if="auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Resgatar prêmios" ng-class="getButtonClass('checkout')" ng-click="$location.path('checkout')">
                 <md-tooltip>Meus Pontos</md-tooltip>
                 <md-icon class="mdi md-headline mdi-briefcase-check"></md-icon>
             </md-button>
-            <md-button class="md-icon-button hide-sm" aria-label="Feed" ng-class="getButtonClass('feed')" ng-click="$location.path('feed')">
+            <md-button ng-if="auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Feed" ng-class="getButtonClass('feed')" ng-click="$location.path('feed')">
                 <md-tooltip>Feed</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
             </md-button>
+            <md-button ng-if="APP_CONFIG.RANK.SHOW && APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Rank" ng-class="getButtonClass('campaign')" ng-click="goToUniqueCampaignRank()">
+                <md-tooltip>Rank</md-tooltip>
+                <md-icon class="mdi md-headline mdi-trophy"></md-icon>
+            </md-button>
             <span flex class="hide-sm"></span>
             <h2 class="hide-gt-sm" flex ng-bind="pageTitle"></h2>
-
             <md-button aria-label="Login" ng-class="getButtonClass('login')" ng-click="$location.path('login')" ng-if="!auth.isAuthenticated" class="hide-sm">
                 <md-icon md-menu-origin class="mdi md-headline mdi-signin"></md-icon>
                 <span>Entrar</span>
             </md-button>
-
             <md-menu ng-if="auth.isAuthenticated" class="hide-sm">
                 <md-button aria-label="Open menu" ng-click="$mdOpenMenu($event)" class="md-primry" ng-class="getButtonClass('my-profile')">
                     <md-icon md-menu-origin class="mdi md-headline mdi-account-circle"></md-icon>

@@ -26,7 +26,7 @@
     "normalize-css": "normalize.css#~3.0.3",
     "toastr": "~2.1.0",
     "angular-material": "~0.11.4",
-    "dss": "~0.0.14",
+    "dss": "^0.1.2",
     "tagged-infinite-scroll": "~1.1.1",
     "mdi": "^1.7.22",
     "angular-messages": "^1.5.8"
@@ -35,6 +35,7 @@
     "angular": "1.5.8",
     "auth0-angular": "^4.2.3",
     "auth0.js": ">= 5.2.2",
-    "mdi": "^1.7.22"
+    "mdi": "^1.7.22",
+    "dss": "^0.1.2"
   }
 }

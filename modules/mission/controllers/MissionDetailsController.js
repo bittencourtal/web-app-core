@@ -2,11 +2,30 @@
     "use strict";
 
     global.squid.mission.controller('MissionDetailsController', [
-        '$scope', '$rootScope', '$routeParams','missionService', 'participationService', '$mdDialog', '$timeout',
-        function ($scope, $rootScope, $routeParams, missionService, participationService, $mdDialog, $timeout) {
+        '$scope',
+        '$rootScope',
+        '$routeParams',
+        'missionService',
+        'participationService',
+        '$mdDialog',
+        '$timeout',
+        'campaignService',
+        '$q',
+        function (
+            $scope,
+            $rootScope,
+            $routeParams,
+            missionService,
+            participationService,
+            $mdDialog,
+            $timeout,
+            campaignService,
+            $q
+        ) {
 
             var firstLoad = true;
             $scope.mission = {};
+            $scope.campaignPrizes = [];
             $scope.participations = {
                 data: [],
                 minId: ''
@@ -17,93 +36,75 @@
             $scope.timeLeft = "--";
             $scope.tooltipIsOpen = false;
 
-            function _getMission(){
-                var deferred = new $.Deferred();
+            function _getCampaign(campaignId) {
+                var defer = $q.defer();
 
-                $scope.isLoading = true;
+                campaignService.getCampaign({
+                    idCampaign: campaignId
+                }, defer.resolve, defer.reject);
 
-                missionService.getMissionById({
-                    id: $routeParams.missionId
-                }, function (result) {
-                    $scope.mission = result;
-                    $scope.isLoading = false;
-                    deferred.resolve();
-                }, function (err) {
-                    $scope.isLoading = false;
-                    deferred.reject();
-                });
-
-                return deferred.promise();
+                return defer.promise;
             }
 
-            function _getTimeLeft(endDate){
-                var now  = moment();
+            function _getTimeLeft(endDate) {
+                var now = moment();
                 var then = moment(endDate);
 
-                var ms = moment(then,"DD/MM/YYYY HH:mm:ss").diff(moment(now,"DD/MM/YYYY HH:mm:ss"));
+                var ms = moment(then, "DD/MM/YYYY HH:mm:ss").diff(moment(now, "DD/MM/YYYY HH:mm:ss"));
                 var d = moment.duration(ms);
                 var days = Math.floor(d.asDays());
                 var hours = moment.utc(ms).format("HH");
                 var minutes = moment.utc(ms).format("mm");
                 var seconds = moment.utc(ms).format("ss");
 
-                if(days <= 0)
+                if (days <= 0)
                     return 'Encerrada';
 
                 return days + " dias " + hours + " horas " + minutes + " minutos e " + seconds + " segundos.";
             }
 
-            function _getMissionParticipations(){
-                if($scope.isLoadingParticipations
-                    || $scope.participations.data.length > 0 && !$scope.participations.minId
-                    || $scope.participations.data.length == 0 && !firstLoad
-                )
+            function _notHasNextParticipationPage(){
+                return $scope.participations.data.length > 0 
+                        && !$scope.participations.minId 
+                        || $scope.participations.data.length == 0 
+                        && !firstLoad;
+            }
+
+            function _getMissionParticipations(campaignId) {
+                if ($scope.isLoadingParticipations || _notHasNextParticipationPage())
                     return;
 
                 firstLoad = false;
                 $scope.isLoadingParticipations = true;
 
                 participationService.getMissionParticipations({
-                    id: $scope.mission._id,
+                    id: campaignId,
                     minId: $scope.participations.minId,
                     take: 12,
                     status: 'approved'
-                }, function(response){
+                }, function (response) {
                     $scope.participations.data = $scope.participations.data
                         .concat(response.data)
-                        .distinct(function(c, n){
+                        .distinct(function (c, n) {
                             return c._id == n._id;
                         });
                     $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
                     $scope.isLoadingParticipations = false;
-                }, function(){
+                }, function () {
                     $scope.isLoadingParticipations = false;
                 });
             }
 
-            function _counter(){
-                setInterval(function(){
-                    if(!$scope.mission || !$scope.mission.time)
+            function _initCounter() {
+                setInterval(function () {
+                    if (!$scope.mission || !$scope.mission.time)
                         return;
                     $scope.timeLeft = _getTimeLeft($scope.mission.time.fixedEndDate);
                     $scope.$apply();
                 }, 1000);
             }
 
-            function _init(){
-                _getMission().then(function(){
-                    _getMissionParticipations();
-                    $rootScope.pageTitle = '#' + $scope.mission.hashtag;
-                });
-                _counter();
-            }
-
-            $scope.loadMoreParticipations = function(){
-                _getMissionParticipations();
-            };
-
-            $scope.participate = function(ev){
-                $scope.menuIsOpen = false;
+            function _openParticipateDialog(ev) {
                 $mdDialog.show({
                     controller: 'ParticipateController',
                     templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/participate.html',
@@ -113,15 +114,10 @@
                     locals: {
                         mission: $scope.mission
                     }
-                }).then(function() {
-
-                }, function() {
-
                 });
-            };
+            }
 
-            $scope.challenge = function(ev){
-                $scope.menuIsOpen = false;
+            function _openChallengeDialog(ev) {
                 $mdDialog.show({
                     controller: 'ChallengeController',
                     templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/challenge.html',
@@ -131,30 +127,97 @@
                     locals: {
                         mission: $scope.mission
                     }
-                }).then(function() {
-
-                }, function() {
-
                 });
+            }
+
+            function _showLoader(){
+                $scope.isLoading = true;
+            }
+
+            function _hideLoader(){
+                $scope.isLoading = false;
+            }
+
+            function _hideMenu() {
+                $scope.menuIsOpen = false;
+            }
+
+            function _toggleTooltip(menuIsOpen) {
+                if (menuIsOpen) {
+                    $timeout(function () {
+                        $scope.tooltipIsOpen = true;
+                    }, 250);
+                    return;
+                }
+
+                $scope.tooltipIsOpen = false;
+            }
+
+            function _populateCampaign(campaign){
+                $scope.mission = campaign;
+            }
+
+            function _getCampaignPrizes(campaignId){
+                var defer = $q.defer();
+
+                campaignService.getCampaignPrizes({
+                    idCampaign: campaignId
+                }, defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _populateCampaignPrizes(response){
+                $scope.campaignPrizes = response.prizes;
+            }
+
+            function _getCampaignAndPopulate(){
+                _showLoader();
+                return _getCampaign($routeParams.missionId)
+                        .then(_populateCampaign)
+                        .then(_hideLoader);
+            }
+
+            function _getCampaignPrizesAndPopulate(){
+                _getCampaignPrizes($routeParams.missionId)
+                    .then(_populateCampaignPrizes);
+            }
+
+            function _definePageTitle(){
+                $rootScope.pageTitle = '#' + $scope.mission.hashtag;
+            }
+
+            function _init() {
+                _getCampaignAndPopulate().then(_definePageTitle);
+                _getCampaignPrizesAndPopulate();
+                _getMissionParticipations($routeParams.missionId);
+                _initCounter();
+            }
+
+            $scope.loadMoreParticipations = function () {
+                _getMissionParticipations($routeParams.missionId);
             };
 
-            $scope.toggleMenu = function(){
-                if(global.isAndroid())
+            $scope.participate = function (ev) {
+                _hideMenu();
+                _openParticipateDialog(ev);
+            };
+
+            $scope.challenge = function (ev) {
+                _hideMenu();
+                _openChallengeDialog(ev);
+            };
+
+            $scope.toggleMenu = function () {
+                if (global.isAndroid())
                     $scope.menuIsOpen = !$scope.menuIsOpen;
             };
 
-            $scope.$watch('menuIsOpen', function(newValue){
-                if(!newValue){
-                    $scope.tooltipIsOpen = false
-                }else{
-                    $timeout(function(){
-                        $scope.tooltipIsOpen = true;
-                    }, 250);
-                }
-            });
+            $scope.$watch('menuIsOpen', _toggleTooltip);
 
             _init();
-        }]);
+        }
+    ]);
 
 
 })(window);

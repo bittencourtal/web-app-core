@@ -6,19 +6,44 @@
         close: 'OK'
     };
 
+    var _checkoutControllers = global.squid.checkout.controllers;
+
     global.squid.checkout.controller('CheckoutPrizeController', [
-        '$scope', '$rootScope', 'checkoutService', 'userService', 'prizeService', '$mdToast', '$mdDialog', '$routeParams', 'auth', '$location', '$q',
-        function ($scope, $rootScope, checkoutService, userService, prizeService, $mdToast, $mdDialog, $routeParams, auth, $location, $q) {
+        '$scope',
+        '$rootScope',
+        'checkoutService',
+        'userService',
+        'prizeService',
+        '$mdToast',
+        '$mdDialog',
+        '$routeParams',
+        'auth',
+        '$location',
+        'campaignService',
+        '$q',
+        function (
+            $scope,
+            $rootScope,
+            checkoutService,
+            userService,
+            prizeService,
+            $mdToast,
+            $mdDialog,
+            $routeParams,
+            auth,
+            $location,
+            campaignService,
+            $q) {
 
             $scope.auth = auth;
             $scope.userMetadata = {};
             $scope.isLoading = false;
             $scope.prize = {};
 
-            function _getToastPosition(){
-                if($rootScope.isSmallDevice){
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
                     return 'bottom left';
-                }else{
+                } else {
                     return 'top right';
                 }
             }
@@ -36,67 +61,60 @@
                 return defer.promise;
             }
 
-            function _checkoutPrize(){
+            function _checkoutPrize() {
                 var defer = $q.defer();
 
-                checkoutService.checkoutPrizeWithoutEmailValidation({
-                    id: $routeParams.prizeId
+                var campaignId = $scope.prize.mission;
+
+                campaignService.checkoutPrize({
+                    idCampaign: campaignId,
+                    resourceId: $routeParams.prizeId
                 }, defer.resolve, defer.reject);
 
                 return defer.promise;
             }
 
-            function _successCheckout(result){
-                var toast = $mdToast.simple()
-                    .content(result.message)
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
+            function _openConfirmCheckoutModal() {
+                var defer = $q.defer();
 
-                $mdToast.show(toast).then(function(response) {});
+                $mdDialog.show({
+                    controller: _checkoutControllers.CheckoutDialogController,
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout-dialog.html',
+                    parent: angular.element(document.body),
+                    clickOutsideToClose: false,
+                    escapeToClose: false,
+                    locals: {
+                        campaignId: $scope.prize.mission,
+                        saveUserMetadataFn: $scope.saveUserMetadata,
+                        checkoutPrizeFn: _checkoutPrize,
+                        prize: $scope.prize
+                    }
+                }).then(defer.resolve, defer.reject);
 
-                $scope.isLoading = false;
+                return defer.promise;
+            }
+
+            function _checkoutDone(success){
+                if(!success)
+                    return;
+
                 $location.path('checkout');
             }
 
-            function _failCheckout(err){
-                $scope.isLoading = false;
-
-                if(!err)
-                    return;
-
-                var data = err.data;
-                var toast = $mdToast.simple()
-                    .content(data.message)
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
-
-                $mdToast.show(toast).then(function(response) {});
-            }
-
-            function _init(){
+            function _init() {
                 $scope.isLoading = true;
 
                 _getPrize()
-                    .then(function(){
+                    .then(function () {
                         $scope.isLoading = false;
                     });
             }
 
-            $scope.saveUserMetadata = function(){ }; // user-metadata-directive will override this method!
+            $scope.saveUserMetadata = function () {}; // user-metadata-directive will override this method!
 
-            $scope.rescue = function(){
-                $scope.isLoading = true;
-
-                $scope.saveUserMetadata()
-                    .then(_checkoutPrize)
-                    .then(_successCheckout)
-                    .catch(_failCheckout);
+            $scope.rescue = function () {
+                _openConfirmCheckoutModal()
+                    .then(_checkoutDone);
             };
 
             _init();

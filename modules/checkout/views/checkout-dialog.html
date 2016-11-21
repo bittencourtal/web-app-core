@@ -1,7 +1,7 @@
-<md-dialog aria-label="Mango (Fruit)">
+<md-dialog aria-label="Resgatar" class="small-dialog">
     <md-toolbar>
         <div class="md-toolbar-tools">
-            <h2>Resgatar</h2>
+            <h2>Resgatar prêmio</h2>
             <span flex></span>
             <md-button class="md-icon-button" ng-click="cancel()">
                 <md-icon aria-label="Close dialog">
@@ -10,49 +10,33 @@
             </md-button>
         </div>
     </md-toolbar>
-    <md-dialog-content style="max-width:600px;max-height:610px;">
-        <md-content>
-            <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTabIndex">
-                <md-tab label="E-mail">
-                    <md-input-container>
-                        <label>E-mail</label>
-                        <input ng-model="form.email">
-                    </md-input-container>
-                </md-tab>
-                <md-tab label="Idade">
-                    <div layout="row" layout-align="space-around center" class="md-headline md-padding" ng-if="!isLoading">
-                        <md-input-container flex="20">
-                            <label>Dia</label>
-                            <input required type="number" name="birthDate" ng-model="birthDate.day" min="1" max="31">
-                        </md-input-container>
-                        <md-input-container flex="20">
-                            <label>Mês</label>
-                            <input required type="number" name="birthDate" ng-model="birthDate.month" min="1" max="12">
-                        </md-input-container>
-                        <md-input-container flex="30">
-                            <label>Ano</label>
-                            <input required type="number" name="birthDate" ng-model="birthDate.year" min="1910" max="{{maxYear}}">
-                        </md-input-container>
-                    </div>
-                </md-tab>
-                <md-tab label="Sexo">
-                    <div layout="row" layout-align="center center" class="md-headline md-padding" ng-if="!isLoading">
-                        <md-radio-group required name="gender" ng-model="userMetadata.gender">
-                            <md-radio-button value="male">Masculino</md-radio-button>
-                            <md-radio-button value="female">Feminino</md-radio-button>
-                        </md-radio-group>
-                    </div>
-                </md-tab>
-                <div layout="row" layout-align="center center" ng-if="isLoading">
-                    <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    <md-dialog-content>
+        <md-content class="md-dialog-content">
+            <div ng-if="!checkoutResultMessage && !isLoading">
+                <h3 class="text-center">
+                    Você realmente deseja usar {{prize.points}} pontos dos seus {{userPointsAvailable}} pontos para resgatar o prêmio?
+                </h3>
+            </div>
+            <div ng-if="checkoutResultMessage && !isLoading">
+                <h2 ng-bind="checkoutResultMessage" class="text-center"></h2>
+            </div>
+            <div ng-show="isLoading">
+                <h2 class="md-title text-center">Aguarde...</h2>
+                <div class="md-progress-wrapper" ng-show="isLoading">
+                    <md-progress-circular md-mode="indeterminate" style="margin:0 auto;"></md-progress-circular>
                 </div>
-                <div layout="row" layout-align="end end">
-                    <md-button class="md-fab md-primary" ng-click="save()">
-                        <md-icon class="mdi mdi-check"></md-icon>
-                    </md-button>
-                </div>
-            </md-tabs>
+            </div>
         </md-content>
-
     </md-dialog-content>
+    <div class="md-actions" layout="row" ng-show="!isLoading">
+        <md-button ng-click="doCheckout()" ng-if="!checkoutResultMessage">
+            Sim
+        </md-button>
+        <md-button ng-click="cancel()" ng-if="!checkoutResultMessage">
+            Não
+        </md-button>
+        <md-button ng-click="ok()" ng-if="checkoutResultMessage">
+            OK
+        </md-button>
+    </div>
 </md-dialog>

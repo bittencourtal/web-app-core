@@ -1,0 +1,33 @@
+<div ng-controller="CampaignRankController">
+    <md-card>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h3>Ranking influenciadores</h3>
+            </div>
+        </md-toolbar>
+        <md-card-content>
+            <md-list flex class="rank-list">
+                <md-list-item ng-class="{'md-2-line': isSmallDevice, 'secondary-button-padding': !isSmallDevice}" ng-repeat-start="rank in campaignRank | orderBy:'pontos.total':true">
+                    <img ng-src="{{rank.usuario.picture}}" onerror="this.onerror=null;this.src='/img/no-usr-img.png';" class="md-avatar" />
+                    <div class="md-list-item-text" layout="column">
+                        <h3>
+                            <span class="rank-position" ng-bind="'#' + ($index + 1)"></span>
+                            {{rank.usuario.name}}
+                        </h3>
+                        <span class="badge" ng-class="{'md-secondary': !isSmallDevice }" ng-bind="(rank.pontos.total || 0) + ' pontos'"></span>
+                    </div>
+                </md-list-item>
+                <md-divider ng-repeat-end ng-if="!$last"></md-divider>
+                <md-list-item class="text-center" ng-if="campaignRank.length == 0 && !isLoading">
+                    <div class="stack">
+                        <md-icon class="mdi mdi-emoticon-sad"></md-icon>
+                        <h3>Não houve participações na campanha até o momento.</h3>
+                    </div>
+                </md-list-item>
+            </md-list>
+            <div class="loader-wrapper" layout="row" layout-align="center center" ng-show="isLoading">
+                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+            </div>
+        </md-card-content>
+    </md-card>
+</div>

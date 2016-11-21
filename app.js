@@ -1,9 +1,11 @@
 (function (global) {
 
     var _modulesDependencies = [
+        'squid-channel',
+        'squid-campaign',
         'squid-login',
         'squid-feed',
-        'squid-mission',
+        'squid-mission', // deprecated
         'squid-checkout',
         'squid-user',
         'squid-workflow'

@@ -63,9 +63,11 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
 
     var _modulesDependencies = [
+        'squid-channel',
+        'squid-campaign',
         'squid-login',
         'squid-feed',
-        'squid-mission',
+        'squid-mission', // deprecated
         'squid-checkout',
         'squid-user',
         'squid-workflow'
@@ -413,6 +415,13 @@ String.prototype.replaceAll = function (from, to) {
                             uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                         };
 
+                        $scope.goToUniqueCampaignRank = function(){
+                            if (!$scope.uniqueCampaign)
+                                return uniqueCampaignService.notifyNotHaveCampaign();
+
+                            uniqueCampaignService.redirectToUniqueCampaignRank($scope.uniqueCampaign);
+                        };
+
                         $scope.openAboutCampaign = function () {
                             AboutCampaignModalService.openDialog(auth.profile)
                                 .then(function () { }, _logout);
@@ -500,9 +509,22 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
+(function (global) {
+
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
+
+})(window);
+(function (global) {
+
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
+
+})(window);
 (function(global) {
 
 	global.squid.checkout = angular.module("squid-checkout", []);
+	global.squid.checkout.controllers = {};
 
 })(window);
 (function(global) {
@@ -514,12 +536,6 @@ String.prototype.replaceAll = function (from, to) {
 
 	global.squid.login = angular.module("squid-login", []);
 	global.squid.login.controllers = {};
-
-})(window);
-(function (global) {
-
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
 
 })(window);
 (function(global) {
@@ -538,6 +554,447 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
+
+})(window);
+(function (global) {
+    "use strict"
+
+    function AboutCampaignDialogController($scope, $mdDialog, store) {
+
+        $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
+        $scope.currentText = ($scope.TEXTS.length > 0) ?
+            $scope.TEXTS.first() : {};
+
+        $scope.isFirstText = function (text) {
+            return $scope.TEXTS.first().ORDER == text.ORDER;
+        };
+
+        $scope.isLastText = function (text) {
+            return $scope.TEXTS.last().ORDER == text.ORDER;
+        };
+
+        $scope.isCurrentText = function (text) {
+            return $scope.currentText.ORDER == text.ORDER;
+        };
+
+        $scope.back = function () {
+            var _previousText = $scope.TEXTS.first(function (text) {
+                return text.ORDER < $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_previousText ? _previousText : $scope.currentText;
+        };
+
+        $scope.next = function () {
+            var _nextText = $scope.TEXTS.first(function (text) {
+                return text.ORDER > $scope.currentText.ORDER;
+            });
+            $scope.currentText = !!_nextText ? _nextText : $scope.currentText;
+        };
+
+        $scope.ok = function () {
+            store.set('about-campaign-read', true);
+            $mdDialog.hide();
+        };
+    }
+
+    global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
+    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
+
+})(window);
+(function(global){
+    "use strict";
+
+    global.squid.campaign.controller('CampaignRankController', [
+        '$scope', 'campaignServicePtBr', '$routeParams', '$q', '$mdMedia',
+        function($scope, campaignService, $routeParams, $q, $mdMedia){
+
+        $scope.isLoading = false;
+        $scope.campaignRank = [];
+        $scope.isSmallDevice = $mdMedia('sm');
+
+        function _getCampaignRank(){
+            var defer = $q.defer();
+
+            campaignService.getRank({
+                idCampaign: $routeParams.campaignId
+            }, defer.resolve, defer.reject);
+
+            return defer.promise;
+        }
+
+        function _populateCampaign(rank){
+            $scope.campaignRank = rank;
+        }
+
+        function _showLoader(){
+            $scope.isLoading = true;
+        }
+
+        function _hideLoader(){
+            $scope.isLoading = false;
+        }
+
+        function _init(){
+            _showLoader();
+            _getCampaignRank()
+                .then(_populateCampaign)
+                .then(_hideLoader);
+        }
+
+        _init();
+    }]);
+
+})(window);
+(function (global) {
+  "use strict"
+
+  var toastConfig = {
+    delay: 10000,
+    close: 'OK'
+  };
+
+  function TermsOfUseDialogController($scope, $rootScope, $timeout, $location, store, $mdDialog, userService, $q, $mdToast, auth, squidSpidermanService) {
+    $scope.isLoading = false;
+    $scope.TERMS_OF_USE = global.APP_CONFIG.TERMS_OF_USE;
+
+    function _getToastPosition() {
+      if ($rootScope.isSmallDevice) {
+        return 'bottom left';
+      } else {
+        return 'top right';
+      }
+    }
+
+    function _getProfile() {
+      return store.get('profile');
+    }
+
+    function _getUserMetadata() {
+      var userProfile = _getProfile();
+
+      if (!userProfile.user_metadata || !userProfile.user_metadata.infos)
+        return null;
+
+      return userProfile.user_metadata.infos.first(function (userMetadata) {
+        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
+      });
+    }
+
+    function _updateUserMetadata(userMetadata) {
+      var defer = $q.defer();
+
+      squidSpidermanService.updateUserMetadata(userMetadata, defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _answerTerms(answer) {
+      var userMetadata = _getUserMetadata();
+
+      if (!userMetadata)
+        userMetadata = {};
+
+      userMetadata.acceptedTerms = answer;
+      return _updateUserMetadata(userMetadata);
+    }
+
+    function _logout() {
+      auth.signout();
+      store.remove('profile');
+      store.remove('token');
+      $.jStorage.flush();
+      $rootScope.$broadcast('refreshLogin');
+      _redirectToLogin();
+    }
+
+    function _redirectToLogin() {
+      $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+    }
+
+    function _termsDisagreed() {
+      var defer = $q.defer();
+
+      _answerTerms(false)
+        .then(defer.resolve, defer.reject);
+
+      var toast = $mdToast.simple()
+        .content('Para participar da(s) campanha(s) você deve concordar com o regulamento.')
+        .action(toastConfig.close)
+        .parent($('main').get(0))
+        .hideDelay(toastConfig.delay)
+        .highlightAction(false)
+        .position(_getToastPosition());
+
+      _logout();
+      $timeout(function () {
+        $mdToast.show(toast).then(function (result) {});
+      }, 800);
+
+      return defer.promise;
+    }
+
+    function _termsAgreed() {
+      var defer = $q.defer();
+
+      _answerTerms(true)
+        .then(defer.resolve, defer.reject);
+
+      return defer.promise;
+    }
+
+    function _closeModal() {
+      $mdDialog.hide();
+    }
+
+    function _cancelModal() {
+      $mdDialog.cancel();
+    }
+
+    function _stopLoadingAndCloseModal() {
+      _closeModal();
+      $scope.isLoading = false;
+    }
+
+    function _stopLoadingAndCancelModal() {
+      _cancelModal();
+      $scope.isLoading = false;
+    }
+
+    $scope.agree = function () {
+      $scope.isLoading = true;
+      _termsAgreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+
+    $scope.disagree = function () {
+      $scope.isLoading = true;
+      _termsDisagreed()
+        .then(_stopLoadingAndCloseModal)
+        .catch(_stopLoadingAndCancelModal);
+    };
+  }
+
+  global.squid.campaign.controllers.TermsOfUseDialogController = TermsOfUseDialogController;
+  global.squid.campaign.controller('TermsOfUseDialogController', [
+    '$scope',
+    '$rootScope',
+    '$timeout',
+    '$location',
+    'store',
+    '$mdDialog',
+    'userService',
+    '$q',
+    '$mdToast',
+    'auth',
+    'squidSpidermanService',
+    TermsOfUseDialogController
+  ]);
+
+})(window);
+(function (global) {
+
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/campaign/rank/:campaignId', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Rank influenciadores'
+            });
+    }]);
+
+})(window);
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
+
+        $scope.currentStep = 'step-1';
+        $scope.TEXTS = {
+            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
+            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
+        };
+
+        $scope.next = function () {
+            $scope.currentStep = 'step-2';
+        };
+
+        $scope.back = function () {
+            $scope.currentStep = 'step-1';
+        };
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.ok = function () {
+            $mdDialog.hide(true);
+        }
+    }
+
+    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
+
+    global.squid.login.factory('AboutCampaignModalService',
+        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
+            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
+
+                function _getToastPosition() {
+                    if ($rootScope.isSmallDevice) {
+                        return 'bottom left';
+                    } else {
+                        return 'top right';
+                    }
+                }
+
+                function _updateUserMetadata(profile) {
+                    var defer = $q.defer();
+
+                    userService.update(profile.app_metadata, function (response) {
+                        defer.resolve(profile);
+                    }, function (err) {
+                        defer.reject(profile);
+                    });
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignNotRead(profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = false;
+                    store.set('profile', profile);
+
+                    var toast = $mdToast.simple()
+                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
+                        .action(toastConfig.close)
+                        .parent($('main').get(0))
+                        .hideDelay(toastConfig.delay)
+                        .highlightAction(false)
+                        .position(_getToastPosition());
+
+                    $mdToast.show(toast).then(function (response) { });
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _aboutCampaignRead(acceptTerms, profile) {
+                    var defer = $q.defer();
+
+                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
+                    profile.app_metadata.acceptedTerms = acceptTerms;
+                    store.set('profile', profile);
+
+                    _updateUserMetadata(profile)
+                        .then(defer.resolve, defer.reject);
+
+                    return defer.promise;
+                }
+
+                function _openDialog(profile) {
+                    var defer = $q.defer();
+
+                    $mdDialog.show({
+                        controller: AboutCampaignController,
+                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose: true
+                    }).then(function (aboutCampaignRead) {
+                        _aboutCampaignRead(aboutCampaignRead, profile)
+                            .then(defer.resolve, defer.reject);
+                    }, function () {
+                        _aboutCampaignNotRead(profile)
+                            .then(defer.reject, defer.reject);
+                    });
+
+                    return defer.promise;
+                }
+
+                return {
+                    openDialog: _openDialog
+                }
+            }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.campaign.factory('campaignService', ['$resource', function ($resource) {
+        return $resource(global.APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/campaigns/:idCampaign/:resource/:resourceId/:action', {
+            idCampaign: '@idCampaign',
+            resource: '@resource',
+            resourceId: '@resourceId',
+            action: '@action'
+        }, {
+            checkoutPrize: {
+                method: 'POST',
+                params: {
+                    resource: 'prizes',
+                    action: 'checkout'
+                }
+            },
+            getRank: {
+                params: {
+                    resource: 'pontuacao'
+                },
+                isArray: true
+            },
+            getCampaignPrizes: {
+                method: 'GET',
+                params: {
+                    resource: 'prizes'
+                }
+            },
+            getCampaign: {
+                method: 'GET'
+            }
+        });
+    }]);
+
+    global.squid.campaign.factory('campaignServicePtBr', ['$resource', function ($resource) {
+        return $resource(global.APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/campanha/:idCampaign/:resource/:resourceId/:action', {
+            idCampaign: '@idCampaign',
+            resource: '@resource',
+            resourceId: '@resourceId',
+            action: '@action'
+        }, {
+            getRank: {
+                params: {
+                    resource: 'pontuacao'
+                },
+                isArray: true
+            }
+        });
+    }]);
+
+})(window);
+(function(global){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        return $resource(global.APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/channels/:channelId/:resource/:resourceId/:action', {
+                channelId: '@channelId',
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                }
+            });
+    }]);
 
 })(window);
 (function (global) {
@@ -587,24 +1044,151 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
+    function CheckoutDialogController(
+        $scope,
+        $q,
+        $mdDialog,
+        $mdToast,
+        checkoutService,
+        campaignId,
+        prize,
+        saveUserMetadataFn,
+        checkoutPrizeFn
+    ) {
+
+        $scope.isLoading = false;
+        $scope.checkoutDone = false;
+        $scope.userPointsAvailable = 0;
+        $scope.checkoutSuccess = false;
+        $scope.prize = prize;
+        $scope.checkoutResultMessage = '';
+
+        function _getPointsAvailable() {
+            var defer = $q.defer();
+
+            checkoutService.getPointsAvailable({
+                id: campaignId
+            }, defer.resolve, defer.reject);
+
+            return defer.promise;
+        }
+
+        function _successCheckout(result) {
+            $scope.checkoutResultMessage = result.message;
+            $scope.checkoutDone = true;
+        }
+
+        function _failCheckout(err) {
+            var data = err.data;
+            $scope.checkoutResultMessage = data.message;
+            $scope.checkoutDone = false;
+            _hideLoader();
+        }
+
+        function _showLoader(){
+            $scope.isLoading = true;
+        }
+
+        function _hideLoader(){
+            $scope.isLoading = false;
+        }
+
+        function _populatePointsAvailable(result) {
+            $scope.userPointsAvailable = result.total;
+        }
+
+        function _resetResultMessage(){
+            $scope.checkoutResultMessage = '';
+        }
+
+        function _init() {
+            _getPointsAvailable()
+                .then(_populatePointsAvailable);
+        }
+
+        $scope.doCheckout = function () {
+            _showLoader();
+            saveUserMetadataFn()
+                .then(checkoutPrizeFn)
+                .then(_successCheckout)
+                .then(_hideLoader)
+                .catch(_failCheckout);
+        };
+
+        $scope.cancel = function () {
+            _resetResultMessage();
+            $mdDialog.cancel();
+        };
+
+        $scope.ok = function() {
+            _resetResultMessage();
+            $mdDialog.hide($scope.checkoutDone);
+        };
+
+        _init();
+    }
+
+    global.squid.checkout.controller('CheckoutDialogController', [
+        '$scope',
+        '$q',
+        '$mdDialog',
+        '$mdToast',
+        'checkoutService',
+        'campaignId',
+        'prize',
+        'saveUserMetadataFn',
+        'checkoutPrizeFn',
+        CheckoutDialogController
+    ]);
+    global.squid.checkout.controllers.CheckoutDialogController = CheckoutDialogController;
+
+})(window);
+(function (global) {
+    "use strict";
+
     var toastConfig = {
         delay: 30000,
         close: 'OK'
     };
 
+    var _checkoutControllers = global.squid.checkout.controllers;
+
     global.squid.checkout.controller('CheckoutPrizeController', [
-        '$scope', '$rootScope', 'checkoutService', 'userService', 'prizeService', '$mdToast', '$mdDialog', '$routeParams', 'auth', '$location', '$q',
-        function ($scope, $rootScope, checkoutService, userService, prizeService, $mdToast, $mdDialog, $routeParams, auth, $location, $q) {
+        '$scope',
+        '$rootScope',
+        'checkoutService',
+        'userService',
+        'prizeService',
+        '$mdToast',
+        '$mdDialog',
+        '$routeParams',
+        'auth',
+        '$location',
+        'campaignService',
+        '$q',
+        function (
+            $scope,
+            $rootScope,
+            checkoutService,
+            userService,
+            prizeService,
+            $mdToast,
+            $mdDialog,
+            $routeParams,
+            auth,
+            $location,
+            campaignService,
+            $q) {
 
             $scope.auth = auth;
             $scope.userMetadata = {};
             $scope.isLoading = false;
             $scope.prize = {};
 
-            function _getToastPosition(){
-                if($rootScope.isSmallDevice){
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
                     return 'bottom left';
-                }else{
+                } else {
                     return 'top right';
                 }
             }
@@ -622,67 +1206,60 @@ String.prototype.replaceAll = function (from, to) {
                 return defer.promise;
             }
 
-            function _checkoutPrize(){
+            function _checkoutPrize() {
                 var defer = $q.defer();
 
-                checkoutService.checkoutPrizeWithoutEmailValidation({
-                    id: $routeParams.prizeId
+                var campaignId = $scope.prize.mission;
+
+                campaignService.checkoutPrize({
+                    idCampaign: campaignId,
+                    resourceId: $routeParams.prizeId
                 }, defer.resolve, defer.reject);
 
                 return defer.promise;
             }
 
-            function _successCheckout(result){
-                var toast = $mdToast.simple()
-                    .content(result.message)
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
+            function _openConfirmCheckoutModal() {
+                var defer = $q.defer();
 
-                $mdToast.show(toast).then(function(response) {});
+                $mdDialog.show({
+                    controller: _checkoutControllers.CheckoutDialogController,
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout-dialog.html',
+                    parent: angular.element(document.body),
+                    clickOutsideToClose: false,
+                    escapeToClose: false,
+                    locals: {
+                        campaignId: $scope.prize.mission,
+                        saveUserMetadataFn: $scope.saveUserMetadata,
+                        checkoutPrizeFn: _checkoutPrize,
+                        prize: $scope.prize
+                    }
+                }).then(defer.resolve, defer.reject);
 
-                $scope.isLoading = false;
+                return defer.promise;
+            }
+
+            function _checkoutDone(success){
+                if(!success)
+                    return;
+
                 $location.path('checkout');
             }
 
-            function _failCheckout(err){
-                $scope.isLoading = false;
-
-                if(!err)
-                    return;
-
-                var data = err.data;
-                var toast = $mdToast.simple()
-                    .content(data.message)
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
-
-                $mdToast.show(toast).then(function(response) {});
-            }
-
-            function _init(){
+            function _init() {
                 $scope.isLoading = true;
 
                 _getPrize()
-                    .then(function(){
+                    .then(function () {
                         $scope.isLoading = false;
                     });
             }
 
-            $scope.saveUserMetadata = function(){ }; // user-metadata-directive will override this method!
+            $scope.saveUserMetadata = function () {}; // user-metadata-directive will override this method!
 
-            $scope.rescue = function(){
-                $scope.isLoading = true;
-
-                $scope.saveUserMetadata()
-                    .then(_checkoutPrize)
-                    .then(_successCheckout)
-                    .catch(_failCheckout);
+            $scope.rescue = function () {
+                _openConfirmCheckoutModal()
+                    .then(_checkoutDone);
             };
 
             _init();
@@ -724,6 +1301,12 @@ String.prototype.replaceAll = function (from, to) {
                     method: 'GET',
                     params:{
                         action: 'missions'
+                    }
+                },
+                getPointsAvailable: {
+                    method: 'GET',
+                    params: {
+                        action: 'points-available'
                     }
                 },
                 getVouchersByUser: {
@@ -1126,317 +1709,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    function AboutCampaignController($scope, $mdDialog, AboutCampaignModalService) {
-
-        $scope.currentStep = 'step-1';
-        $scope.TEXTS = {
-            STEP1: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_1,
-            STEP2: APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2
-        };
-
-        $scope.next = function () {
-            $scope.currentStep = 'step-2';
-        };
-
-        $scope.back = function () {
-            $scope.currentStep = 'step-1';
-        };
-
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
-
-        $scope.ok = function () {
-            $mdDialog.hide(true);
-        }
-    }
-
-    global.squid.login.controller('AboutCampaignController', ['$scope', '$mdDialog', AboutCampaignController]);
-
-    global.squid.login.factory('AboutCampaignModalService',
-        ['$rootScope', '$q', '$mdDialog', '$mdToast', 'userService', 'store',
-            function ($rootScope, $q, $mdDialog, $mdToast, userService, store) {
-
-                function _getToastPosition() {
-                    if ($rootScope.isSmallDevice) {
-                        return 'bottom left';
-                    } else {
-                        return 'top right';
-                    }
-                }
-
-                function _updateUserMetadata(profile) {
-                    var defer = $q.defer();
-
-                    userService.update(profile.app_metadata, function (response) {
-                        defer.resolve(profile);
-                    }, function (err) {
-                        defer.reject(profile);
-                    });
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignNotRead(profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = false;
-                    store.set('profile', profile);
-
-                    var toast = $mdToast.simple()
-                        .content('Confirme a leitura sobre a campanha para poder navegar e participar.')
-                        .action(toastConfig.close)
-                        .parent($('main').get(0))
-                        .hideDelay(toastConfig.delay)
-                        .highlightAction(false)
-                        .position(_getToastPosition());
-
-                    $mdToast.show(toast).then(function (response) { });
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _aboutCampaignRead(acceptTerms, profile) {
-                    var defer = $q.defer();
-
-                    profile.app_metadata = (!!profile.app_metadata) ? profile.app_metadata : {};
-                    profile.app_metadata.acceptedTerms = acceptTerms;
-                    store.set('profile', profile);
-
-                    _updateUserMetadata(profile)
-                        .then(defer.resolve, defer.reject);
-
-                    return defer.promise;
-                }
-
-                function _openDialog(profile) {
-                    var defer = $q.defer();
-
-                    $mdDialog.show({
-                        controller: AboutCampaignController,
-                        templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
-                        parent: angular.element(document.body),
-                        clickOutsideToClose: true
-                    }).then(function (aboutCampaignRead) {
-                        _aboutCampaignRead(aboutCampaignRead, profile)
-                            .then(defer.resolve, defer.reject);
-                    }, function () {
-                        _aboutCampaignNotRead(profile)
-                            .then(defer.reject, defer.reject);
-                    });
-
-                    return defer.promise;
-                }
-
-                return {
-                    openDialog: _openDialog
-                }
-            }]);
-
-})(window);
-(function (global) {
-    "use strict"
-
-    function AboutCampaignDialogController($scope, $mdDialog, store) {
-
-        $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
-        $scope.currentText = ($scope.TEXTS.length > 0) ?
-            $scope.TEXTS.first() : {};
-
-        $scope.isFirstText = function (text) {
-            return $scope.TEXTS.first().ORDER == text.ORDER;
-        };
-
-        $scope.isLastText = function (text) {
-            return $scope.TEXTS.last().ORDER == text.ORDER;
-        };
-
-        $scope.isCurrentText = function (text) {
-            return $scope.currentText.ORDER == text.ORDER;
-        };
-
-        $scope.back = function () {
-            var _previousText = $scope.TEXTS.first(function (text) {
-                return text.ORDER < $scope.currentText.ORDER;
-            });
-            $scope.currentText = !!_previousText ? _previousText : $scope.currentText;
-        };
-
-        $scope.next = function () {
-            var _nextText = $scope.TEXTS.first(function (text) {
-                return text.ORDER > $scope.currentText.ORDER;
-            });
-            $scope.currentText = !!_nextText ? _nextText : $scope.currentText;
-        };
-
-        $scope.ok = function () {
-            store.set('about-campaign-read', true);
-            $mdDialog.hide();
-        };
-    }
-
-    global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
-    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
-
-})(window);
-(function (global) {
-  "use strict"
-
-  var toastConfig = {
-    delay: 10000,
-    close: 'OK'
-  };
-
-  function TermsOfUseDialogController($scope, $rootScope, $timeout, $location, store, $mdDialog, userService, $q, $mdToast, auth, squidSpidermanService) {
-    $scope.isLoading = false;
-    $scope.TERMS_OF_USE = global.APP_CONFIG.TERMS_OF_USE;
-
-    function _getToastPosition() {
-      if ($rootScope.isSmallDevice) {
-        return 'bottom left';
-      } else {
-        return 'top right';
-      }
-    }
-
-    function _getProfile() {
-      return store.get('profile');
-    }
-
-    function _getUserMetadata() {
-      var userProfile = _getProfile();
-
-      if (!userProfile.user_metadata || !userProfile.user_metadata.infos)
-        return null;
-
-      return userProfile.user_metadata.infos.first(function (userMetadata) {
-        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
-      });
-    }
-
-    function _updateUserMetadata(userMetadata) {
-      var defer = $q.defer();
-
-      squidSpidermanService.updateUserMetadata(userMetadata, defer.resolve, defer.reject);
-
-      return defer.promise;
-    }
-
-    function _answerTerms(answer) {
-      var userMetadata = _getUserMetadata();
-
-      if (!userMetadata)
-        userMetadata = {};
-
-      userMetadata.acceptedTerms = answer;
-      return _updateUserMetadata(userMetadata);
-    }
-
-    function _logout() {
-      auth.signout();
-      store.remove('profile');
-      store.remove('token');
-      $.jStorage.flush();
-      $rootScope.$broadcast('refreshLogin');
-      _redirectToLogin();
-    }
-
-    function _redirectToLogin() {
-      $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-    }
-
-    function _termsDisagreed() {
-      var defer = $q.defer();
-
-      _answerTerms(false)
-        .then(defer.resolve, defer.reject);
-
-      var toast = $mdToast.simple()
-        .content('Para participar da(s) campanha(s) você deve concordar com o regulamento.')
-        .action(toastConfig.close)
-        .parent($('main').get(0))
-        .hideDelay(toastConfig.delay)
-        .highlightAction(false)
-        .position(_getToastPosition());
-
-      _logout();
-      $timeout(function () {
-        $mdToast.show(toast).then(function (result) {});
-      }, 800);
-
-      return defer.promise;
-    }
-
-    function _termsAgreed() {
-      var defer = $q.defer();
-
-      _answerTerms(true)
-        .then(defer.resolve, defer.reject);
-
-      return defer.promise;
-    }
-
-    function _closeModal() {
-      $mdDialog.hide();
-    }
-
-    function _cancelModal() {
-      $mdDialog.cancel();
-    }
-
-    function _stopLoadingAndCloseModal() {
-      _closeModal();
-      $scope.isLoading = false;
-    }
-
-    function _stopLoadingAndCancelModal() {
-      _cancelModal();
-      $scope.isLoading = false;
-    }
-
-    $scope.agree = function () {
-      $scope.isLoading = true;
-      _termsAgreed()
-        .then(_stopLoadingAndCloseModal)
-        .catch(_stopLoadingAndCancelModal);
-    };
-
-    $scope.disagree = function () {
-      $scope.isLoading = true;
-      _termsDisagreed()
-        .then(_stopLoadingAndCloseModal)
-        .catch(_stopLoadingAndCancelModal);
-    };
-  }
-
-  global.squid.campaign.controllers.TermsOfUseDialogController = TermsOfUseDialogController;
-  global.squid.campaign.controller('TermsOfUseDialogController', [
-    '$scope',
-    '$rootScope',
-    '$timeout',
-    '$location',
-    'store',
-    '$mdDialog',
-    'userService',
-    '$q',
-    '$mdToast',
-    'auth',
-    'squidSpidermanService',
-    TermsOfUseDialogController
-  ]);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.mission.controller('ActiveMissionController', [
@@ -1539,11 +1811,30 @@ String.prototype.replaceAll = function (from, to) {
     "use strict";
 
     global.squid.mission.controller('MissionDetailsController', [
-        '$scope', '$rootScope', '$routeParams','missionService', 'participationService', '$mdDialog', '$timeout',
-        function ($scope, $rootScope, $routeParams, missionService, participationService, $mdDialog, $timeout) {
+        '$scope',
+        '$rootScope',
+        '$routeParams',
+        'missionService',
+        'participationService',
+        '$mdDialog',
+        '$timeout',
+        'campaignService',
+        '$q',
+        function (
+            $scope,
+            $rootScope,
+            $routeParams,
+            missionService,
+            participationService,
+            $mdDialog,
+            $timeout,
+            campaignService,
+            $q
+        ) {
 
             var firstLoad = true;
             $scope.mission = {};
+            $scope.campaignPrizes = [];
             $scope.participations = {
                 data: [],
                 minId: ''
@@ -1554,93 +1845,75 @@ String.prototype.replaceAll = function (from, to) {
             $scope.timeLeft = "--";
             $scope.tooltipIsOpen = false;
 
-            function _getMission(){
-                var deferred = new $.Deferred();
+            function _getCampaign(campaignId) {
+                var defer = $q.defer();
 
-                $scope.isLoading = true;
+                campaignService.getCampaign({
+                    idCampaign: campaignId
+                }, defer.resolve, defer.reject);
 
-                missionService.getMissionById({
-                    id: $routeParams.missionId
-                }, function (result) {
-                    $scope.mission = result;
-                    $scope.isLoading = false;
-                    deferred.resolve();
-                }, function (err) {
-                    $scope.isLoading = false;
-                    deferred.reject();
-                });
-
-                return deferred.promise();
+                return defer.promise;
             }
 
-            function _getTimeLeft(endDate){
-                var now  = moment();
+            function _getTimeLeft(endDate) {
+                var now = moment();
                 var then = moment(endDate);
 
-                var ms = moment(then,"DD/MM/YYYY HH:mm:ss").diff(moment(now,"DD/MM/YYYY HH:mm:ss"));
+                var ms = moment(then, "DD/MM/YYYY HH:mm:ss").diff(moment(now, "DD/MM/YYYY HH:mm:ss"));
                 var d = moment.duration(ms);
                 var days = Math.floor(d.asDays());
                 var hours = moment.utc(ms).format("HH");
                 var minutes = moment.utc(ms).format("mm");
                 var seconds = moment.utc(ms).format("ss");
 
-                if(days <= 0)
+                if (days <= 0)
                     return 'Encerrada';
 
                 return days + " dias " + hours + " horas " + minutes + " minutos e " + seconds + " segundos.";
             }
 
-            function _getMissionParticipations(){
-                if($scope.isLoadingParticipations
-                    || $scope.participations.data.length > 0 && !$scope.participations.minId
-                    || $scope.participations.data.length == 0 && !firstLoad
-                )
+            function _notHasNextParticipationPage(){
+                return $scope.participations.data.length > 0 
+                        && !$scope.participations.minId 
+                        || $scope.participations.data.length == 0 
+                        && !firstLoad;
+            }
+
+            function _getMissionParticipations(campaignId) {
+                if ($scope.isLoadingParticipations || _notHasNextParticipationPage())
                     return;
 
                 firstLoad = false;
                 $scope.isLoadingParticipations = true;
 
                 participationService.getMissionParticipations({
-                    id: $scope.mission._id,
+                    id: campaignId,
                     minId: $scope.participations.minId,
                     take: 12,
                     status: 'approved'
-                }, function(response){
+                }, function (response) {
                     $scope.participations.data = $scope.participations.data
                         .concat(response.data)
-                        .distinct(function(c, n){
+                        .distinct(function (c, n) {
                             return c._id == n._id;
                         });
                     $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
                     $scope.isLoadingParticipations = false;
-                }, function(){
+                }, function () {
                     $scope.isLoadingParticipations = false;
                 });
             }
 
-            function _counter(){
-                setInterval(function(){
-                    if(!$scope.mission || !$scope.mission.time)
+            function _initCounter() {
+                setInterval(function () {
+                    if (!$scope.mission || !$scope.mission.time)
                         return;
                     $scope.timeLeft = _getTimeLeft($scope.mission.time.fixedEndDate);
                     $scope.$apply();
                 }, 1000);
             }
 
-            function _init(){
-                _getMission().then(function(){
-                    _getMissionParticipations();
-                    $rootScope.pageTitle = '#' + $scope.mission.hashtag;
-                });
-                _counter();
-            }
-
-            $scope.loadMoreParticipations = function(){
-                _getMissionParticipations();
-            };
-
-            $scope.participate = function(ev){
-                $scope.menuIsOpen = false;
+            function _openParticipateDialog(ev) {
                 $mdDialog.show({
                     controller: 'ParticipateController',
                     templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/participate.html',
@@ -1650,15 +1923,10 @@ String.prototype.replaceAll = function (from, to) {
                     locals: {
                         mission: $scope.mission
                     }
-                }).then(function() {
-
-                }, function() {
-
                 });
-            };
+            }
 
-            $scope.challenge = function(ev){
-                $scope.menuIsOpen = false;
+            function _openChallengeDialog(ev) {
                 $mdDialog.show({
                     controller: 'ChallengeController',
                     templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/challenge.html',
@@ -1668,30 +1936,97 @@ String.prototype.replaceAll = function (from, to) {
                     locals: {
                         mission: $scope.mission
                     }
-                }).then(function() {
-
-                }, function() {
-
                 });
+            }
+
+            function _showLoader(){
+                $scope.isLoading = true;
+            }
+
+            function _hideLoader(){
+                $scope.isLoading = false;
+            }
+
+            function _hideMenu() {
+                $scope.menuIsOpen = false;
+            }
+
+            function _toggleTooltip(menuIsOpen) {
+                if (menuIsOpen) {
+                    $timeout(function () {
+                        $scope.tooltipIsOpen = true;
+                    }, 250);
+                    return;
+                }
+
+                $scope.tooltipIsOpen = false;
+            }
+
+            function _populateCampaign(campaign){
+                $scope.mission = campaign;
+            }
+
+            function _getCampaignPrizes(campaignId){
+                var defer = $q.defer();
+
+                campaignService.getCampaignPrizes({
+                    idCampaign: campaignId
+                }, defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _populateCampaignPrizes(response){
+                $scope.campaignPrizes = response.prizes;
+            }
+
+            function _getCampaignAndPopulate(){
+                _showLoader();
+                return _getCampaign($routeParams.missionId)
+                        .then(_populateCampaign)
+                        .then(_hideLoader);
+            }
+
+            function _getCampaignPrizesAndPopulate(){
+                _getCampaignPrizes($routeParams.missionId)
+                    .then(_populateCampaignPrizes);
+            }
+
+            function _definePageTitle(){
+                $rootScope.pageTitle = '#' + $scope.mission.hashtag;
+            }
+
+            function _init() {
+                _getCampaignAndPopulate().then(_definePageTitle);
+                _getCampaignPrizesAndPopulate();
+                _getMissionParticipations($routeParams.missionId);
+                _initCounter();
+            }
+
+            $scope.loadMoreParticipations = function () {
+                _getMissionParticipations($routeParams.missionId);
             };
 
-            $scope.toggleMenu = function(){
-                if(global.isAndroid())
+            $scope.participate = function (ev) {
+                _hideMenu();
+                _openParticipateDialog(ev);
+            };
+
+            $scope.challenge = function (ev) {
+                _hideMenu();
+                _openChallengeDialog(ev);
+            };
+
+            $scope.toggleMenu = function () {
+                if (global.isAndroid())
                     $scope.menuIsOpen = !$scope.menuIsOpen;
             };
 
-            $scope.$watch('menuIsOpen', function(newValue){
-                if(!newValue){
-                    $scope.tooltipIsOpen = false
-                }else{
-                    $timeout(function(){
-                        $scope.tooltipIsOpen = true;
-                    }, 250);
-                }
-            });
+            $scope.$watch('menuIsOpen', _toggleTooltip);
 
             _init();
-        }]);
+        }
+    ]);
 
 
 })(window);
@@ -1812,56 +2147,66 @@ String.prototype.replaceAll = function (from, to) {
         close: 'OK'
     };
 
-    global.squid.mission.factory('uniqueCampaignService', ['$rootScope', '$mdToast', '$q', '$location', 'feedService', function ($rootScope, $mdToast, $q, $location, feedService) {
+    global.squid.mission.factory('uniqueCampaignService', [
+        '$rootScope', '$mdToast', '$q', '$location', 'channelService',
+        function ($rootScope, $mdToast, $q, $location, channelService) {
 
-        function _getToastPosition() {
-            if ($rootScope.isSmallDevice) {
-                return 'bottom left';
-            } else {
-                return 'top right';
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
+                    return 'bottom left';
+                } else {
+                    return 'top right';
+                }
             }
+
+            function _notifyNotHaveCampaign() {
+                var toast = $mdToast.simple()
+                    .content('Não há campanha cadastrada no momento.')
+                    .action(toastConfig.close)
+                    .parent($('main').get(0))
+                    .hideDelay(toastConfig.delay)
+                    .highlightAction(false)
+                    .position(_getToastPosition());
+
+                $mdToast.show(toast).then(function (response) {});
+            }
+
+            function _getUniqueCampaign() {
+                var defer = $q.defer();
+
+                channelService.getActiveCampaigns({
+                    channelId: global.APP_CONFIG.APP_ID()
+                }, function (campaigns) {
+                    if (!campaigns)
+                        return defer.reject();
+                        
+                    var campaign = campaigns.first();
+
+                    if (!campaign)
+                        return defer.reject();
+
+                    defer.resolve(campaign);
+                }, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _redirectToUniqueCampaign(campaign) {
+                $location.path('mission/mission-details/' + campaign._id);
+            }
+
+            function _redirectToUniqueCampaignRank(campaign){
+                $location.path('campaign/rank/' + campaign._id);
+            }
+
+            return {
+                getUniqueCampaign: _getUniqueCampaign,
+                notifyNotHaveCampaign: _notifyNotHaveCampaign,
+                redirectToUniqueCampaign: _redirectToUniqueCampaign,
+                redirectToUniqueCampaignRank: _redirectToUniqueCampaignRank
+            };
         }
-
-        function _notifyNotHaveCampaign() {
-            var toast = $mdToast.simple()
-                .content('Não há campanha cadastrada no momento.')
-                .action(toastConfig.close)
-                .parent($('main').get(0))
-                .hideDelay(toastConfig.delay)
-                .highlightAction(false)
-                .position(_getToastPosition());
-
-            $mdToast.show(toast).then(function (response) { });
-        }
-
-        function _getUniqueCampaign() {
-            var defer = $q.defer();
-
-            feedService.getMissionsActive(function (result) {
-                if (!result)
-                    return defer.reject();
-
-                var campaign = result.data.first();
-
-                if (!campaign)
-                    return defer.reject();
-
-                defer.resolve(campaign);
-            }, defer.reject);
-
-            return defer.promise;
-        }
-
-        function _redirectToUniqueCampaign(campaign) {
-            $location.path('mission/mission-details/' + campaign._id);
-        }
-
-        return {
-            getUniqueCampaign: _getUniqueCampaign,
-            notifyNotHaveCampaign: _notifyNotHaveCampaign,
-            redirectToUniqueCampaign: _redirectToUniqueCampaign
-        };
-    }]);
+    ]);
 
 })(window);
 (function (global) {
@@ -2086,6 +2431,39 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+    "use strict";
+
+    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
+
+        function _getProfile() {
+            return store.get('profile');
+        }
+
+        function _termsIsAccepted() {
+            var userMetadata = _getUserMetadata();
+            return !userMetadata ? false : userMetadata.acceptedTerms;
+        }
+
+        function _getUserMetadata() {
+            var userProfile = _getProfile();
+
+            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
+                return null;
+
+            return userProfile.user_metadata.infos.first(function (userMetadata) {
+                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
+            });
+        }
+
+        return {
+            getProfile: _getProfile,
+            getUserMetadata: _getUserMetadata,
+            termsIsAccepted: _termsIsAccepted
+        };
+    }]);
+
+})(window);
+(function (global) {
 
     global.squid.user.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
@@ -2164,60 +2542,6 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
-
-        function _getProfile() {
-            return store.get('profile');
-        }
-
-        function _termsIsAccepted() {
-            var userMetadata = _getUserMetadata();
-            return !userMetadata ? false : userMetadata.acceptedTerms;
-        }
-
-        function _getUserMetadata() {
-            var userProfile = _getProfile();
-
-            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
-                return null;
-
-            return userProfile.user_metadata.infos.first(function (userMetadata) {
-                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
-            });
-        }
-
-        return {
-            getProfile: _getProfile,
-            getUserMetadata: _getUserMetadata,
-            termsIsAccepted: _termsIsAccepted
-        };
-    }]);
-
-})(window);
-(function (global) {
-
-    function TermsOfUseValidator($q, store, userMetadataHelper) {
-
-        return {
-            init: function () {
-                var defer = $q.defer();
-
-                userMetadataHelper.termsIsAccepted() 
-                    ? defer.resolve()
-                    : defer.reject();
-
-                return defer.promise;
-            }
-        };
-    }
-    TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
-    var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
-    global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
 
 })(window);
 (function (global) {
@@ -2355,6 +2679,27 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
         return new WorkflowInitializer($q, $injector);
     }]);
+
+})(window);
+(function (global) {
+
+    function TermsOfUseValidator($q, store, userMetadataHelper) {
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                userMetadataHelper.termsIsAccepted() 
+                    ? defer.resolve()
+                    : defer.reject();
+
+                return defer.promise;
+            }
+        };
+    }
+    TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
+    var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
+    global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
 
 })(window);
 (function (global) {

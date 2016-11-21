@@ -13,6 +13,12 @@
                         action: 'missions'
                     }
                 },
+                getPointsAvailable: {
+                    method: 'GET',
+                    params: {
+                        action: 'points-available'
+                    }
+                },
                 getVouchersByUser: {
                     method: 'GET',
                     params:{

@@ -50,8 +50,8 @@
                         <md-content class="md-padding">
                             <h4>Prêmios</h4>
                             <md-list>
-                                <md-list-item class="md-2-line" ng-repeat="prize in mission.prizes">
-                                    <a data-ng-href="{{prize.image.standard_resolution}}" rel="lightbox" class="md-avatar" data-lightbox="prizes" style="width: 100px; height:auto;">
+                                <md-list-item class="md-2-line" ng-repeat="prize in campaignPrizes">
+                                    <a data-ng-href="{{prize.image.standard_resolution}}" rel="lightbox" class="md-avatar no-border no-radius" data-lightbox="prizes" style="width: 100px; height:auto;">
                                         <img ng-if="prize.image.standard_resolution" data-ng-src="{{prize.image.standard_resolution}}" style="width:100%;" />
                                     </a>
                                     <md-icon class="margin-right-2" ng-if="!prize.image.standard_resolution">

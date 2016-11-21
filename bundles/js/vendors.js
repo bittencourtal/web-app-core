@@ -2286,7 +2286,10 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
     return {
       core : {
         myRules : {},
-        refreshValues : {}
+        refreshValues : {},
+        nonDynamicRules : {},
+        events : {},
+        dynamics : {}
       }
     };
 
@@ -2379,6 +2382,7 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 						if (qStylesheets === loadedStylesheets){
 							dss.core.IS_INITIALIZED = true;
 							dss.core.refreshDss();
+							dss.trigger('init');
 						}
 					}
 				);
@@ -2396,9 +2400,24 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 
 	dss.core.findDynamics = function(rules){
 
+		if (rules.type !== 'rule' && rules.type !== 'page')
+			return;
+
+		var pseudo = false;
+		var selectors = rules.selectors.join(',');
+		var explicitDssProperty = false;
+		var isDynamic = false;
 
 		var declarations = rules.declarations.filter(function(rule){
-			return rule.value.indexOf('||') !== -1;
+			if (rule.type !== 'declaration')
+				return false;
+			isDynamic = rule.value.indexOf('||') !== -1 || rule.parent.selectors.join('').indexOf(':dss') !== -1 || rule.property.indexOf('dss-') !== -1;
+			if (!isDynamic){
+				if (!dss.core.nonDynamicRules[selectors])
+					dss.core.nonDynamicRules[selectors] = {};
+				dss.core.nonDynamicRules[selectors][rule.property] = rule.value;
+			}
+			return isDynamic;
 		}).map(function(prop){
 			var obj = {};
 			obj[prop.property] = prop.value;
@@ -2406,19 +2425,28 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 		});
 
 
+
 		if (declarations.length > 0){
-			dss.core.refreshValues[rules.selectors.join(',')] = declarations;	
+			pseudo = selectors.indexOf(':dss') !== -1;
+			if (pseudo)
+				selectors = selectors.replace(/:dss/gmi,'');
 
-			var newObj = {};
-			dss.core.refreshValues[rules.selectors.join(',')].map(function(property){
+			if (!dss.core.refreshValues[selectors]){
+				dss.core.refreshValues[selectors] = {};
+			}
 
+			declarations.map(function(property){
 				Object.keys(property).map(function(prop){
-					newObj[prop] = property[prop];
+					var propName = prop.replace('dss-','');
+					explicitDssProperty = false;
+					explicitDssProperty = prop.indexOf('dss-') !== -1;
+					if (pseudo || explicitDssProperty){
+						dss.core.refreshValues[selectors][propName] = '||'+property[prop]+'||';
+					}else{
+						dss.core.refreshValues[selectors][propName] = property[prop];
+					}
 				});
-
 			});
-
-			dss.core.refreshValues[rules.selectors.join(',')] = newObj;
 		}
 	};
 
@@ -2485,7 +2513,6 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 	'use strict';
 	dss.core.generateCss = function (rules){
 
-
 		return Object.keys(rules).map(function(rule){
 
 			if (Object.keys(rules[rule]).length === 1){
@@ -2493,9 +2520,8 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 				return rule+'{'+key+':'+rules[rule][key].value+'}';
 			}
 
-			return rule+'{'+Object.keys(rules[rule]).reduce(function(acc,a,i,fullArr){
+			return '\n'+rule+'\n{'+Object.keys(rules[rule]).reduce(function(acc,a,i,fullArr){
 
-				
 				if (i === 1){
 					if(typeof rules[rule][acc] === 'string'){
 						acc = acc+':'+rules[rule][acc]+';';
@@ -2605,6 +2631,7 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 			style.appendChild(document.createTextNode(dss.lastDSSSheet));
 			document.head.appendChild(style);			
 		}
+		dss.trigger('render');
 	};
 })(this.dss);
 
@@ -2659,23 +2686,66 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 	document.addEventListener('DOMContentLoaded', dss.init, false);
 
 })(this.dss);
+//File : src/interface/dss.on.js
+
+(function(dss){
+'use strict';
+	
+	dss.core.defineMethod('on',function(label,event){
+		if (!dss.core.events[label])
+			dss.core.events[label] = [];
+		dss.core.events[label].push(event);
+	});
+
+})(this.dss);
 //File : src/interface/dss.setProperty.js
+
 
 (function(dss){
 'use strict';
 
-	dss.core.defineMethod('setProperty',function(property,value){
+	dss.core.defineMethod('setProperty',function(propertyOrObject,value){
 		var shouldRender = false;
-		if (!dss.core.dynamics)
-			dss.core.dynamics = {};
-		if (dss.core.dynamics[property] !== value){
-			dss.core.dynamics[property] = value;
-			shouldRender = true;
+
+		if (typeof propertyOrObject === 'object'){
+			var properties = Object.keys(propertyOrObject);
+			var refreshedProperties = [];
+			properties.map(function(property){
+				if (dss.core.dynamics[property] !== propertyOrObject[property]){
+					dss.core.dynamics[property] = propertyOrObject[property];
+					refreshedProperties.push(property);
+					shouldRender = true;
+				}
+			});
+
+			if (dss.core.IS_INITIALIZED && shouldRender){
+				dss.core.refreshDss(refreshedProperties);
+			}
+
 		}
 
-		if (dss.core.IS_INITIALIZED && shouldRender){
-			dss.core.refreshDss(property);
-		}
+		if (typeof propertyOrObject === 'string')
+			if (dss.core.dynamics[propertyOrObject] !== value){
+				dss.core.dynamics[propertyOrObject] = value;
+				shouldRender = true;
+
+				if (dss.core.IS_INITIALIZED && shouldRender){
+					dss.core.refreshDss(propertyOrObject);
+				}
+			}
+	});
+
+})(this.dss);
+//File : src/interface/dss.trigger.js
+
+(function(dss){
+'use strict';
+	
+	dss.core.defineMethod('trigger',function(label){
+		if (dss.core.events[label])
+			dss.core.events[label].map(function(event){
+				event();
+			});
 	});
 
 })(this.dss);
@@ -2691,6 +2761,36 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 			}
 			if (value > limitUp){
 				return limitUp;
+			}
+			return value;
+		};
+	});
+
+})(this.dss);
+//File : src/helpers/dss.ceil.js
+
+(function(dss){
+'use strict';
+
+	dss.core.defineMethod('ceil',function(limitUp){
+		return function(value){
+			if (value > limitUp){
+				return limitUp;
+			}
+			return value;
+		};
+	});
+
+})(this.dss);
+//File : src/helpers/dss.floor.js
+
+(function(dss){
+'use strict';
+
+	dss.core.defineMethod('floor',function(limitDown){
+		return function(value){
+			if (value < limitDown){
+				return limitDown;
 			}
 			return value;
 		};
@@ -2713,36 +2813,6 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 	});
 
 })(this.dss);
-//File : src/helpers/dss.limitDown.js
-
-(function(dss){
-'use strict';
-
-	dss.core.defineMethod('limitDown',function(limitDown){
-		return function(value){
-			if (value < limitDown){
-				return limitDown;
-			}
-			return value;
-		};
-	});
-
-})(this.dss);
-//File : src/helpers/dss.limitUp.js
-
-(function(dss){
-'use strict';
-
-	dss.core.defineMethod('limitUp',function(limitUp){
-		return function(value){
-			if (value > limitUp){
-				return limitUp;
-			}
-			return value;
-		};
-	});
-
-})(this.dss);
 //File : src/helpers/dss.pon.js
 
 (function(dss){
@@ -2750,6 +2820,20 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 
 	dss.core.defineMethod('pon',function(num){
 		return Math.max(0,num);
+	});
+
+})(this.dss);
+//File : src/helpers/dss.reference.js
+
+(function(dss){
+'use strict';
+
+	dss.core.defineMethod('reference',function(selector,property,relation){
+
+			if (dss.core.refreshValues[selector])
+				if(dss.core.refreshValues[selector][property])
+					return dss.core.refreshValues[selector][property].value;
+			return dss.core.nonDynamicRules[selector][property];
 	});
 
 })(this.dss);
@@ -2768,6 +2852,8 @@ u):"userDataBehavior"==f&&setInterval(u,1E3);E();"addEventListener"in window&&wi
 				return {
 					x : e.pageX,
 					y : e.pageY,
+					clientX: e.clientX,
+					clientY: e.clientY,
 				};
 			}
 		};

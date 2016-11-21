@@ -84,6 +84,9 @@
 				}
 			}
 		},
+		RANK: {
+			SHOW: false,
+		},
 		WORKFLOWS: {
 			LOGIN: {
 				AFTER: [
