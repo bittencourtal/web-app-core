@@ -557,6 +557,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/campaign/rank/:campaignId', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Rank influenciadores'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict"
 
     function AboutCampaignDialogController($scope, $mdDialog, store) {
@@ -790,18 +802,6 @@ String.prototype.replaceAll = function (from, to) {
     'squidSpidermanService',
     TermsOfUseDialogController
   ]);
-
-})(window);
-(function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/campaign/rank/:campaignId', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Rank influenciadores'
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -2544,6 +2544,39 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+(function(global){
+
+    function WorkflowInitializer($q, $injector){
+
+        this.initWorkflows = function(workflows){
+            var defer = $q.defer();
+
+            function _processWorkflowsInitializers(){
+                var workflowInitializers = arguments;
+                
+                async.eachSeries(workflowInitializers, function(workflowInitializer, callback){
+                    workflowInitializer.init().then(function(result){
+                        callback(null);
+                    }).catch(callback)
+                }, function(err){
+                    if(err)
+                        return defer.reject(err);
+
+                    defer.resolve();
+                })
+            }
+            _processWorkflowsInitializers.$inject = workflows;
+            $injector.invoke(_processWorkflowsInitializers); 
+
+            return defer.promise;
+        };
+    }
+
+    global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
+        return new WorkflowInitializer($q, $injector);
+    }]);
+
+})(window);
 (function (global) {
 
     var _campaignControllers = global.squid.campaign.controllers;
@@ -2646,39 +2679,6 @@ String.prototype.replaceAll = function (from, to) {
     UserMetadataWorkflowInitializer.$inject = ['$q', 'store', '$mdDialog', 'userMetadataHelper'];
     var _factoryInjector = UserMetadataWorkflowInitializer.$inject.concat(UserMetadataWorkflowInitializer);
     global.squid.workflow.factory('UserMetadataWorkflowInitializer', _factoryInjector);
-
-})(window);
-(function(global){
-
-    function WorkflowInitializer($q, $injector){
-
-        this.initWorkflows = function(workflows){
-            var defer = $q.defer();
-
-            function _processWorkflowsInitializers(){
-                var workflowInitializers = arguments;
-                
-                async.eachSeries(workflowInitializers, function(workflowInitializer, callback){
-                    workflowInitializer.init().then(function(result){
-                        callback(null);
-                    }).catch(callback)
-                }, function(err){
-                    if(err)
-                        return defer.reject(err);
-
-                    defer.resolve();
-                })
-            }
-            _processWorkflowsInitializers.$inject = workflows;
-            $injector.invoke(_processWorkflowsInitializers); 
-
-            return defer.promise;
-        };
-    }
-
-    global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
-        return new WorkflowInitializer($q, $injector);
-    }]);
 
 })(window);
 (function (global) {
