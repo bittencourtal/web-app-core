@@ -33,9 +33,7 @@
             function _getUniqueCampaign() {
                 var defer = $q.defer();
 
-                channelService.getActiveCampaigns({
-                    channelId: global.APP_CONFIG.APP_ID()
-                }, function (campaigns) {
+                channelService.getActiveCampaigns({}, function (campaigns) {
                     if (!campaigns)
                         return defer.reject();
                         

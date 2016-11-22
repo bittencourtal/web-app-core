@@ -10,14 +10,15 @@
                 <md-list class="checkout-list">
                     <md-list-item class="md-2-line">
                         <h3 class="color-primary md-list-item-text">
-                            <a href="#/mission/mission-details/{{checkout.mission._id}}" ng-bind="'#' + checkout.mission.hashtag"></a>
+                            <a href="#/mission/mission-details/{{checkout.campaign.id}}" ng-bind="'#' + checkout.campaign.tag"></a>
                         </h3>
-                        <h3 class="color-primary md-secondary" ng-bind="checkout.pointsAvailable + ' pontos'"></h3>
+                        <h3 class="color-primary md-secondary" ng-bind="checkout.totalAvaible + ' pontos'"></h3>
                     </md-list-item>
                     <md-divider></md-divider>
-                    <md-subheader class="md-no-sticky">Prêmios</md-subheader>
-                    <md-list-item class="md-2-line md-no-proxy checkout-list-item"
-                                  ng-repeat="prize in checkout.mission.prizes">
+                    <md-subheader ng-if="!checkout.allPrizesSoldOut" class="md-no-sticky">Prêmios</md-subheader>
+                    <md-subheader ng-if="checkout.allPrizesSoldOut" class="md-no-sticky">Todos os prêmios estão esgotados no momento.</md-subheader>
+                    <md-list-item ng-if="!checkout.allPrizesSoldOut" class="md-2-line md-no-proxy checkout-list-item"
+                                  ng-repeat="prize in checkout.prizes" ng-show="prize.hasAvailableStock">
                         <md-icon class="hide-sm">
                             <span class="mdi mdi-gift md-display-1"></span>
                         </md-icon>
@@ -27,12 +28,12 @@
                         </div>
                         <md-button class="md-raised md-fab hide-gt-sm md-mini md-secondary md-primary"
                                    ng-disabled="!hasPointsAvailable(checkout, prize)"
-                                   ng-click="$location.path('/checkout/' + prize._id)">
+                                   ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)">
                             <span class="mdi mdi-briefcase-check"></span>
                         </md-button>
                         <md-button class="md-raised hide-sm md-secondary md-primary"
                                     ng-disabled="!hasPointsAvailable(checkout, prize)"
-                                    ng-click="$location.path('/checkout/' + prize._id)">
+                                    ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)">
                             <span class="mdi mdi-briefcase-check"></span>
                             <span>Resgatar</span>
                         </md-button>

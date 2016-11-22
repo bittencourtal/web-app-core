@@ -1,12 +1,13 @@
-(function(global){
+(function(global, appConfig){
     "use strict";
 
     global.squid.channel.factory('channelService', ['$resource', function($resource){
-        return $resource(global.APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/channels/:channelId/:resource/:resourceId/:action', {
-                channelId: '@channelId',
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
                 resource: '@resource',
                 resourceId: '@resourceId',
-                action: '@action'
+                action: '@action',
+                actionId: '@actionId'
             }, {
                 getActiveCampaigns: {
                     method: 'GET',
@@ -15,8 +16,41 @@
                         action: 'active'
                     },
                     isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
                 }
             });
     }]);
 
-})(window);
+})(window, window.APP_CONFIG);

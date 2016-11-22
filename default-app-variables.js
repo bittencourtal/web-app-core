@@ -5,7 +5,7 @@
 	var hostName = window.location.hostname;
 
 	function isLocalhost() {
-		return window.location.hostname === 'localhost' || window.location.hostname.contains('.local');
+		return window.location.hostname === 'localhost';
 	}
 
 	function _getEndPointUrl() {
@@ -54,7 +54,7 @@
 		SERVICES_END_POINT_URL: _getEndPointUrl,
 		CAMPAIGN_END_POINT_URL: _getCampaignEndPointUrl,
 		SPIDERMAN_END_POINT_URL: _getSpidermanUrl,
-		SQUID_APP_ID: 'e2a61aa025a94de7908ee1a13abe7c54',
+		SQUID_APP_ID: '8818ac1766c14575acc04918a433c085',
 		START_VIEW: '/checkout',
 		LOGIN_ROUTE: '/login',
 		REQUIRE_AUTHENTICATION: true,
@@ -71,7 +71,7 @@
 		},
 		CAMPAIGNS: {
 			UNIQUE_CAMPAIGN: {
-				IS_UNIQUE: true,
+				IS_UNIQUE: false,
 				ABOUT: {
 					SHOW: true,
 					TEXTS: [{
@@ -82,7 +82,8 @@
 						CONTENT: '<p>APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS.STEP_2<p>'
 					}]
 				}
-			}
+			},
+			ONLY_APPROVED: false
 		},
 		RANK: {
 			SHOW: false,

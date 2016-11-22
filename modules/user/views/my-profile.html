@@ -4,22 +4,9 @@
 		<div class="card-header">
 			<div class="profile-info-wrapper">
 				<img ng-src="{{auth.profile.picture}}" alt="{{auth.profile.name}}" ng-if="auth.isAuthenticated" class="md-avatar" />
-
 				<img ng-src="{{APP_CONFIG.APP_DIR}}/images/no-img.jpg" ng-if="!auth.isAuthenticated" class="md-avatar" />
 				<h2 ng-bind="auth.profile.name" ng-if="auth.isAuthenticated"></h2>
 				<h2 ng-if="!auth.isAuthenticated">Visitante</h2>
-			</div>
-			<div class="profile-statistics">
-				<ul class="profile-statistics-list">
-					<li>
-						<span class="number" ng-bind="userStatistics.participations || 0"></span>
-						<span class="label">Fotos enviadas</span>
-					</li>
-					<li>
-						<span class="number" ng-bind="userStatistics.missionsCompleted || 0"></span>
-						<span class="label">Participação em campanhas</span>
-					</li>
-				</ul>
 			</div>
 		</div>
 		<div class="card-body">
@@ -52,7 +39,7 @@
 				</md-tab>
 				<md-tab>
 					<md-tab-label>
-						<span class="mdi mdi-account"></span> Dados
+						<span class="mdi mdi-account"></span> Meus dados
 					</md-tab-label>
 					<md-tab-body>
 						<md-content class="md-padding">

@@ -2,11 +2,9 @@
     "use strict";
 
     global.squid.mission.controller('ActiveMissionController', [
-        '$scope', 'feedService', '$mdToast', 'uniqueCampaignService',
-        function ($scope, feedService, $mdToast, uniqueCampaignService) {
-
-            $scope.feedList = [];
-            $scope.paginationMetadata = {};
+        '$scope', 'channelService', '$mdToast', 'uniqueCampaignService',
+        function ($scope, channelService, $mdToast, uniqueCampaignService) {
+            $scope.campaigns = [];
             $scope.isLoading = false;
 
             function _redirectToUniqueMission() {
@@ -23,36 +21,26 @@
                     });
             }
 
-            function _loadFeed(minId) {
-                var query = {};
-
-                if (minId)
-                    query.minId = minId;
-
+            function _loadCampaigns() {
                 $scope.isLoading = true;
 
-                feedService.getMissionsActive(query, function (result) {
-                    $scope.feedList = $scope.feedList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
+                channelService.getActiveCampaigns({})
+                    .$promise
+                    .then(function (result) {
+                        $scope.campaigns = result;
+                        $scope.isLoading = false;
+                    })
+                    .catch(function (err) {
+                        $scope.isLoading = false;
+                    });
             }
 
             function _init() {
                 if (APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
-                    _redirectToUniqueMission()
+                    _redirectToUniqueMission();
                 else
-                    _loadFeed();
+                    _loadCampaigns();
             }
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _loadFeed($scope.paginationMetadata.next.minId);
-            };
 
             _init();
         }]);

@@ -1,44 +1,49 @@
 (function (global) {
-    "use strict";
+	"use strict";
 
-    global.squid.checkout.controller('CheckoutController', [
-        '$scope', 'checkoutService',
-        function ($scope, checkoutService) {
+	global.squid.checkout.controller('CheckoutController', [
+		'$scope', 'channelService',
+		function ($scope, channelService) {
 
-            $scope.checkoutList = [];
-            $scope.paginationMetadata = {};
-            $scope.isLoading = false;
+			$scope.checkoutList = [];
+			$scope.isLoading = false;
 
-            function _getCheckouts(minId) {
-                var query = {};
+			function _getCheckouts(minId) {
+				$scope.isLoading = true;
+				channelService.getSelfPoints({}).$promise
+					.then(function (points) {
+						return Promise.all(points.map(function (point) {
+							return channelService.getCampaignPrizes({
+									resourceId: point.campaign.id
+								})
+								.$promise
+								.then(function (prizes) {
+                                    var allPrizesSoldOut = prizes.every(function(prize) {
+                                        return !prize.hasAvailableStock;
+                                    });
+									return Object.assign({}, point, {
+										prizes: prizes,
+                                        allPrizesSoldOut: allPrizesSoldOut,
+									});
+								});
+						}));
+					})
+					.then(function (result) {
+						$scope.checkoutList = result;
+						$scope.isLoading = false;
+					})
+					.catch(function (err) {
+						$scope.isLoading = false;
+					});;
+			}
 
-                if(minId)
-                    query.minId = minId;
+			$scope.hasPointsAvailable = function (checkout, prize) {
+				return checkout.totalAvaible >= prize.points;
+			};
 
-                $scope.isLoading = true;
+			_getCheckouts();
 
-                checkoutService.getCheckouts(query, function (result) {
-                    $scope.checkoutList = $scope.checkoutList.concat(result.data);
-                    $scope.paginationMetadata = result.paginationMetadata;
-                    $scope.isLoading = false;
-                }, function (err) {
-                    $scope.isLoading = false;
-                });
-            }
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _getCheckouts($scope.paginationMetadata.next.minId);
-            };
-
-            $scope.hasPointsAvailable = function (checkout, prize) {
-                return checkout.pointsAvailable >= prize.points;
-            };
-
-            _getCheckouts();
-
-        }]);
+		}
+	]);
 
 })(window);

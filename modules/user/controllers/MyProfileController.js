@@ -13,8 +13,6 @@
         'userService',
         '$location',
         'participationService',
-        'checkoutService',
-        'userStatisticsService',
         '$mdToast',
         function (
             $scope,
@@ -23,8 +21,6 @@
             userService,
             $location,
             participationService,
-            checkoutService,
-            userStatisticsService,
             $mdToast
         ) {
 
@@ -35,8 +31,6 @@
             $scope.userMetadata = {};
             $scope.selectedTabIndex = 0;
             $scope.isLoading = false;
-            $scope.userStatistics = {};
-            $scope.vouchers = [];
             $scope.participations = {
                 data: [],
                 minId: ''
@@ -53,12 +47,6 @@
             function _getUserStatistics() {
                 userStatisticsService.getUserProfileStatistics(function (userStatistics) {
                     $scope.userStatistics = userStatistics;
-                });
-            }
-
-            function _getUserVouchers() {
-                checkoutService.getVouchersByUser(function (vouchers) {
-                    $scope.vouchers = vouchers;
                 });
             }
 
@@ -109,13 +97,7 @@
                     return;
 
                 _getUserParticipation();
-                _getUserVouchers();
-                _getUserStatistics();
             }
-
-            $scope.getVoucherUsedLabel = function (isUsed) {
-                return isUsed ? 'Usado' : 'Não usado';
-            };
 
             $scope.loadMoreParticipations = function () {
                 if (!auth.isAuthenticated)

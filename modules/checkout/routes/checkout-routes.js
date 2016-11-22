@@ -8,7 +8,7 @@
                 pageTitle: 'Meus Pontos',
                 requireLogin: true
             })
-            .when('/checkout/:prizeId', {
+            .when('/checkout/campaigns/:campaignId/prize/:prizeId', {
                 viewUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout-prize.html',
                 templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
                 pageTitle: 'Resgatar prêmio',

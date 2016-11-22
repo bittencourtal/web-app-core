@@ -18,7 +18,7 @@
                 </h3>
             </div>
             <div ng-if="checkoutResultMessage && !isLoading">
-                <h2 ng-bind="checkoutResultMessage" class="text-center"></h2>
+                <h3 ng-bind-html="checkoutResultMessage" class="text-center"></h3>
             </div>
             <div ng-show="isLoading">
                 <h2 class="md-title text-center">Aguarde...</h2>
@@ -29,11 +29,11 @@
         </md-content>
     </md-dialog-content>
     <div class="md-actions" layout="row" ng-show="!isLoading">
-        <md-button ng-click="doCheckout()" ng-if="!checkoutResultMessage">
-            Sim
-        </md-button>
         <md-button ng-click="cancel()" ng-if="!checkoutResultMessage">
             Não
+        </md-button>
+        <md-button ng-click="doCheckout()" ng-if="!checkoutResultMessage">
+            Sim
         </md-button>
         <md-button ng-click="ok()" ng-if="checkoutResultMessage">
             OK

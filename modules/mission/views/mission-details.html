@@ -23,17 +23,17 @@
          ng-if="!isLoading">
         <div class="card-header hide-sm">
             <div class="card-header-text">
-                <h3 class="color-primary" ng-bind="'#' + mission.hashtag"></h3>
+                <h3 class="color-primary" ng-bind="'#' + campaign.hashtag"></h3>
             </div>
         </div>
         <div class="card-body">
-            <img ng-src="{{mission.images.banner.standard_resolution}}" alt="">
+            <img ng-src="{{campaign.images.banner.standard_resolution}}" alt="">
         </div>
         <div class="card-footer">
             <md-list>
                 <md-list-item>
                     <div class="md-list-item-text">
-                        <p class="md-subhead" ng-bind="mission.shortDescription"></p>
+                        <p class="md-subhead" ng-bind-html="campaign.shortDescription"></p>
                     </div>
                 </md-list-item>
             </md-list>
@@ -49,9 +49,10 @@
                     <md-tab-body>
                         <md-content class="md-padding">
                             <h4>Prêmios</h4>
+                            <md-subheader ng-if="allPrizesSoldOut" class="md-no-sticky">Todos os prêmios estão esgotados no momento.</md-subheader>
                             <md-list>
-                                <md-list-item class="md-2-line" ng-repeat="prize in campaignPrizes">
-                                    <a data-ng-href="{{prize.image.standard_resolution}}" rel="lightbox" class="md-avatar no-border no-radius" data-lightbox="prizes" style="width: 100px; height:auto;">
+                                <md-list-item class="md-2-line" ng-repeat="prize in campaignPrizes" ng-show="prize.hasAvailableStock">
+                                    <a data-ng-if="prize.image.standard_resolution" data-ng-href="{{prize.image.standard_resolution}}" rel="lightbox" class="md-avatar no-border no-radius" data-lightbox="prizes" style="width: 100px; height:auto;">
                                         <img ng-if="prize.image.standard_resolution" data-ng-src="{{prize.image.standard_resolution}}" style="width:100%;" />
                                     </a>
                                     <md-icon class="margin-right-2" ng-if="!prize.image.standard_resolution">
@@ -114,22 +115,13 @@
                         <md-content class="md-padding">
                             <h4>Formas de pontuação</h4>
                             <md-list>
-                                <!--<md-list-item class="md-2-line">-->
-                                    <!--<md-icon class="margin-right-2">-->
-                                        <!--<span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>-->
-                                    <!--</md-icon>-->
-                                    <!--<div class="md-list-item-text">-->
-                                        <!--<h3>Desafiar</h3>-->
-                                        <!--<p ng-bind="mission.score.challenge + ' pontos'"></p>-->
-                                    <!--</div>-->
-                                <!--</md-list-item>-->
                                 <md-list-item class="md-2-line">
                                     <md-icon class="margin-right-2">
                                         <span class="mdi mdi-checkbox-blank-circle-outline color-primary"></span>
                                     </md-icon>
                                     <div class="md-list-item-text">
                                         <h3>Post</h3>
-                                        <p ng-bind="mission.score.participate + ' pontos'"></p>
+                                        <p ng-bind="campaign.score.participate + ' pontos'"></p>
                                     </div>
                                 </md-list-item>
                                 <md-list-item class="md-2-line">
@@ -174,7 +166,7 @@
                     <md-tab-body>
                         <md-content class="md-padding">
                             <h4>Descrição</h4>
-                            <p ng-bind="mission.description"></p>
+                            <p ng-bind-html="campaign.description"></p>
                         </md-content>
                     </md-tab-body>
                 </md-tab>
@@ -185,7 +177,7 @@
                     <md-tab-body>
                         <md-content class="md-padding">
                             <h4>Regras</h4>
-                            <p ng-bind="mission.rules"></p>
+                            <p ng-bind-html="campaign.rules"></p>
                         </md-content>
                     </md-tab-body>
                 </md-tab>

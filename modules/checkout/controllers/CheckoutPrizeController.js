@@ -11,34 +11,30 @@
     global.squid.checkout.controller('CheckoutPrizeController', [
         '$scope',
         '$rootScope',
-        'checkoutService',
         'userService',
-        'prizeService',
+        'channelService',
         '$mdToast',
         '$mdDialog',
         '$routeParams',
         'auth',
         '$location',
-        'campaignService',
-        '$q',
         function (
             $scope,
             $rootScope,
-            checkoutService,
             userService,
-            prizeService,
+            channelService,
             $mdToast,
             $mdDialog,
             $routeParams,
             auth,
-            $location,
-            campaignService,
-            $q) {
-
+            $location) {
             $scope.auth = auth;
             $scope.userMetadata = {};
             $scope.isLoading = false;
             $scope.prize = {};
+
+            var campaignId = $routeParams.campaignId;
+            var prizeId = $routeParams.prizeId;
 
             function _getToastPosition() {
                 if ($rootScope.isSmallDevice) {
@@ -49,49 +45,34 @@
             }
 
             function _getPrize() {
-                var defer = $q.defer();
-
-                prizeService.get({
-                    id: $routeParams.prizeId
-                }, function (prize) {
-                    $scope.prize = prize;
-                    defer.resolve(prize);
-                }, defer.reject);
-
-                return defer.promise;
+                return channelService.getPrize({
+                    resourceId: campaignId,
+                    actionId: prizeId
+                }).$promise;
             }
 
             function _checkoutPrize() {
-                var defer = $q.defer();
-
                 var campaignId = $scope.prize.mission;
-
-                campaignService.checkoutPrize({
-                    idCampaign: campaignId,
-                    resourceId: $routeParams.prizeId
-                }, defer.resolve, defer.reject);
-
-                return defer.promise;
+                return channelService.createCheckout({
+                    resourceId: campaignId,
+                    action: prizeId
+                }).$promise;
             }
 
             function _openConfirmCheckoutModal() {
-                var defer = $q.defer();
-
-                $mdDialog.show({
+                return $mdDialog.show({
                     controller: _checkoutControllers.CheckoutDialogController,
                     templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/views/checkout-dialog.html',
                     parent: angular.element(document.body),
                     clickOutsideToClose: false,
                     escapeToClose: false,
                     locals: {
-                        campaignId: $scope.prize.mission,
+                        campaignId: campaignId,
                         saveUserMetadataFn: $scope.saveUserMetadata,
                         checkoutPrizeFn: _checkoutPrize,
                         prize: $scope.prize
                     }
-                }).then(defer.resolve, defer.reject);
-
-                return defer.promise;
+                });
             }
 
             function _checkoutDone(success){
@@ -103,9 +84,9 @@
 
             function _init() {
                 $scope.isLoading = true;
-
                 _getPrize()
-                    .then(function () {
+                    .then(function (prize) {
+                        $scope.prize = prize;
                         $scope.isLoading = false;
                     });
             }

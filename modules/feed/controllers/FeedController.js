@@ -1,4 +1,4 @@
-(function (global) {
+(function (global, config) {
     "use strict";
 
     var _manualPausedVideos = [];
@@ -106,10 +106,11 @@
 
             function _getFeed(minId) {
                 var defer = $q.defer();
-                var query = {
-                    status: 'approved'
-                };
+                var query = { };
 
+                if (config.ONLY_APPROVED) {
+                    query.status = 'approved';
+                }
                 if (minId)
                     query.minId = minId;
 
@@ -150,4 +151,4 @@
             _loadFeed();
         }]);
 
-})(window);
+})(window, window.APP_CONFIG.CAMPAIGNS);
