@@ -42,7 +42,6 @@
     }
 
     function _answerTerms(answer) {
-      debugger;
       var userMetadata = _getUserMetadata();
 
       if (!userMetadata)
