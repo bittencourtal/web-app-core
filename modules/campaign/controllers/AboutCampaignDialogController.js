@@ -1,7 +1,7 @@
 (function (global) {
     "use strict"
 
-    function AboutCampaignDialogController($scope, $mdDialog, store) {
+    function AboutCampaignDialogController($scope, $mdDialog, store, AboutCampaignModalService) {
 
         $scope.TEXTS = global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.TEXTS;
         $scope.currentText = ($scope.TEXTS.length > 0) ?
@@ -34,12 +34,12 @@
         };
 
         $scope.ok = function () {
-            store.set('about-campaign-read', true);
+            AboutCampaignModalService.storeAboutCampaignAnswer(true);
             $mdDialog.hide();
         };
     }
 
     global.squid.campaign.controllers.AboutCampaignDialogController = AboutCampaignDialogController;
-    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', AboutCampaignDialogController]);
+    global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', 'AboutCampaignModalService', AboutCampaignDialogController]);
 
 })(window);

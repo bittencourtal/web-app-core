@@ -29,7 +29,7 @@
         return null;
 
       return userProfile.user_metadata.infos.first(function (userMetadata) {
-        return userMetadata.channelId == global.APP_CONFIG.APP_ID;
+        return userMetadata.channelId == global.APP_CONFIG.APP_ID();
       });
     }
 
@@ -42,6 +42,7 @@
     }
 
     function _answerTerms(answer) {
+      debugger;
       var userMetadata = _getUserMetadata();
 
       if (!userMetadata)

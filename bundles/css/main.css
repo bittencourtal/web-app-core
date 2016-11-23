@@ -911,9 +911,7 @@ md-toast.md-top{
         height: auto;
     }
 }
-header md-toolbar {
-    z-index: 78;
-}
+
 md-tooltip{
     font-size: 1.2em;
 }
