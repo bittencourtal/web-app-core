@@ -337,116 +337,115 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
-    global.squid.app.directive('toolbar',
-        ['$rootScope', '$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService', 'feedService', 'uniqueCampaignService',
-            function ($rootScope, $mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService, feedService, uniqueCampaignService) {
-                return {
-                    templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
-                    restrict: 'EA',
-                    replace: true,
-                    scope: {},
-                    link: function ($scope, $element, $attrs, $controllers) {
+    global.squid.app.directive('toolbar', ['$rootScope', '$mdSidenav', '$location', 'auth', 'store', '$mdMedia', 'AboutCampaignModalService', 'feedService', 'uniqueCampaignService',
+        function ($rootScope, $mdSidenav, $location, auth, store, $mdMedia, AboutCampaignModalService, feedService, uniqueCampaignService) {
+            return {
+                templateUrl: global.APP_CONFIG.APP_DIR + '/directives/toolbar/toolbar.html',
+                restrict: 'EA',
+                replace: true,
+                scope: {},
+                link: function ($scope, $element, $attrs, $controllers) {
 
-                        $scope.APP_CONFIG = global.APP_CONFIG;
-                        $scope.$mdSidenav = $mdSidenav;
-                        $scope.path = $location.$$path.split("/")[1];
-                        $scope.auth = auth;
-                        $scope.$location = $location;
-                        $scope.uniqueCampaign = null;
-                        $scope.isSmallDevice = $mdMedia('sm');
-                        $scope.mobileSideMenuUrl = global.APP_CONFIG.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
+                    $scope.APP_CONFIG = global.APP_CONFIG;
+                    $scope.$mdSidenav = $mdSidenav;
+                    $scope.path = $location.$$path.split("/")[1];
+                    $scope.auth = auth;
+                    $scope.$location = $location;
+                    $scope.uniqueCampaign = null;
+                    $scope.isSmallDevice = $mdMedia('sm');
+                    $scope.mobileSideMenuUrl = global.APP_CONFIG.APP_DIR + '/directives/toolbar/mobile-side-menu.html';
 
-                        function _logout() {
-                            auth.signout();
-                            store.remove('profile');
-                            store.remove('token');
-                            $.jStorage.flush();
-                            _redirectToLogin();
-                        }
-
-                        function _redirectToLogin() {
-                            $location.path(global.LOGIN_ROUTE);
-                        }
-
-                        function _redirectToStartView() {
-                            $location.path(global.START_VIEW);
-                        }
-
-                        function _loadUniqueCampaign() {
-                            if (!APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
-                                return;
-
-                            uniqueCampaignService.getUniqueCampaign()
-                                .then(function(campaign){
-                                    $scope.uniqueCampaign = campaign; 
-                                });
-                        }
-
-                        $scope.getButtonClass = function (menu) {
-                            return {
-                                'active': $scope.path == menu
-                            };
-                        };
-
-                        $scope.goBack = function () {
-                            window.history.go(-1);
-                        };
-
-                        $scope.vincularConta = function () {
-                            try {
-                                var data = {
-                                    userId: auth.profile.user_id,
-                                    redirectUrl: window.location.href,
-                                    email: auth.profile.email
-                                };
-
-                                var dataStr = JSON.stringify(data);
-                                var dataEncode = btoa(dataStr);
-                                window.open('https://campanhas.squidit.com.br/v1/vincular-instagram?data=' + dataEncode, '_blank');
-                            } catch (e) {
-                                console.log(e);
-                            }
-                        };
-
-                        $scope.goToUniqueCampaign = function () {
-                            if (!$scope.uniqueCampaign)
-                                return uniqueCampaignService.notifyNotHaveCampaign();
-
-                            uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
-                        };
-
-                        $scope.goToUniqueCampaignRank = function(){
-                            if (!$scope.uniqueCampaign)
-                                return uniqueCampaignService.notifyNotHaveCampaign();
-
-                            uniqueCampaignService.redirectToUniqueCampaignRank($scope.uniqueCampaign);
-                        };
-
-                        $scope.openAboutCampaign = function () {
-                            AboutCampaignModalService.openDialog(auth.profile)
-                                .then(function () { }, _logout);
-                        };
-
-                        $scope.logout = function () {
-                            auth.signout();
-                            store.remove('profile');
-                            store.remove('token');
-                            $.jStorage.flush();
-
-                            if (global.APP_CONFIG.REQUIRE_AUTHENTICATION) {
-                                _redirectToLogin();
-                            } else {
-                                _redirectToStartView();
-                            }
-                        };
-
-                        _loadUniqueCampaign();
+                    function _logout() {
+                        auth.signout();
+                        store.remove('profile');
+                        store.remove('token');
+                        $.jStorage.flush();
+                        _redirectToLogin();
                     }
+
+                    function _redirectToLogin() {
+                        $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+                    }
+
+                    function _redirectToStartView() {
+                        $location.path(global.APP_CONFIG.START_VIEW);
+                    }
+
+                    function _loadUniqueCampaign() {
+                        if (!global.APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
+                            return;
+
+                        uniqueCampaignService.getUniqueCampaign()
+                            .then(function (campaign) {
+                                $scope.uniqueCampaign = campaign;
+                            });
+                    }
+
+                    $scope.getButtonClass = function (menu) {
+                        return {
+                            'active': $scope.path == menu
+                        };
+                    };
+
+                    $scope.goBack = function () {
+                        window.history.go(-1);
+                    };
+
+                    $scope.vincularConta = function () {
+                        try {
+                            var data = {
+                                userId: auth.profile.user_id,
+                                redirectUrl: window.location.href,
+                                email: auth.profile.email
+                            };
+
+                            var dataStr = JSON.stringify(data);
+                            var dataEncode = btoa(dataStr);
+                            window.open('https://campanhas.squidit.com.br/v1/vincular-instagram?data=' + dataEncode, '_blank');
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    };
+
+                    $scope.goToUniqueCampaign = function () {
+                        if (!$scope.uniqueCampaign)
+                            return uniqueCampaignService.notifyNotHaveCampaign();
+
+                        uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
+                    };
+
+                    $scope.goToUniqueCampaignRank = function () {
+                        if (!$scope.uniqueCampaign)
+                            return uniqueCampaignService.notifyNotHaveCampaign();
+
+                        uniqueCampaignService.redirectToUniqueCampaignRank($scope.uniqueCampaign);
+                    };
+
+                    $scope.openAboutCampaign = function () {
+                        AboutCampaignModalService.openDialog(auth.profile)
+                            .then(function () {}, _logout);
+                    };
+
+                    $scope.logout = function () {
+                        auth.signout();
+                        store.remove('profile');
+                        store.remove('token');
+                        $.jStorage.flush();
+
+                        if (global.APP_CONFIG.REQUIRE_AUTHENTICATION) {
+                            _redirectToLogin();
+                        } else {
+                            _redirectToStartView();
+                        }
+                    };
+
+                    _loadUniqueCampaign();
                 }
-            }]);
+            }
+        }
+    ]);
 
 })(window);
-
 (function (global) {
 
     global.squid.app.factory('appIdInjector', [function () {
@@ -515,16 +514,16 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.campaign.controllers = {};
 
 })(window);
-(function(global) {
-
-	global.squid.checkout = angular.module("squid-checkout", []);
-	global.squid.checkout.controllers = {};
-
-})(window);
 (function (global) {
 
     global.squid.channel = angular.module("squid-channel", []);
     global.squid.channel.controllers = {};
+
+})(window);
+(function(global) {
+
+	global.squid.checkout = angular.module("squid-checkout", []);
+	global.squid.checkout.controllers = {};
 
 })(window);
 (function(global) {
@@ -554,18 +553,6 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
-
-})(window);
-(function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/campaign/rank/:campaignId', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Rank influenciadores'
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -806,6 +793,18 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/campaign/rank/:campaignId', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Rank influenciadores'
+            });
+    }]);
+
+})(window);
+(function (global) {
+
     var toastConfig = {
         delay: 10000,
         close: 'OK'
@@ -833,7 +832,7 @@ String.prototype.replaceAll = function (from, to) {
             function _aboutCampaignIsRead() {
                 var _aboutCampaignRead = store.get('about-campaign-read');
 
-                if (_aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
+                if (!_aboutCampaignRead || !_aboutCampaignRead.read || _aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
                     return false;
 
                 return _aboutCampaignRead.read;
@@ -855,6 +854,62 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+(function(global, appConfig){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
+            });
+    }]);
+
+})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -1134,62 +1189,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global, config) {
     "use strict";
 
@@ -1397,8 +1396,8 @@ String.prototype.replaceAll = function (from, to) {
     var _loginControllers = global.squid.login.controllers;
 
     global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
+        '$scope', '$rootScope', 'auth', '$location', '$timeout', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
+        function ($scope, $rootScope, auth, $location, $timeout, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
             $scope.isLoading = false;
 
             var dict = {
@@ -1438,18 +1437,9 @@ String.prototype.replaceAll = function (from, to) {
             }
 
             function _redirectToLogin() {
-                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-            }
-
-            function _redirectToStartView() {
-                $location.path(global.APP_CONFIG.START_VIEW);
-            }
-
-            function _redirectOnSuccessLogin(profile) {
-                if (_containsAllData(profile))
-                    _redirectToStartView();
-                else
-                    $location.path('/register');
+                $timeout(function(){
+                    $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+                }, 500);
             }
 
             function _redirectIfIsLoggedIn() {
@@ -1461,19 +1451,9 @@ String.prototype.replaceAll = function (from, to) {
                 }
 
                 _loggedIn()
-                    .then(function () {
-                        _redirectToStartView();
-                        defer.resolve();
-                    }, defer.reject);
+                    .then(defer.resolve, defer.reject);
 
                 return defer.promise;
-            }
-
-            function _containsAllData(profile) {
-                if (!profile)
-                    return;
-
-                return profile.birthDate && profile.gender;
             }
 
             function _hideLoader() {
@@ -1496,7 +1476,7 @@ String.prototype.replaceAll = function (from, to) {
 
             function _initWorkflow(){
                 return WorkflowInitializer
-                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+                        .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
             }
 
             function _loggedIn() {
@@ -1516,8 +1496,7 @@ String.prototype.replaceAll = function (from, to) {
                 }, function (profile, token) {
                     store.set('profile', profile);
                     store.set('token', token);
-                    _loggedIn()
-                        .then(_redirectToStartView);
+                    _loggedIn();
                 }, function (error) {
 
                 });
@@ -1952,6 +1931,8 @@ String.prototype.replaceAll = function (from, to) {
         '$rootScope', '$mdToast', '$q', '$location', 'channelService',
         function ($rootScope, $mdToast, $q, $location, channelService) {
 
+            var _uniqueCampaign = null;
+
             function _getToastPosition() {
                 if ($rootScope.isSmallDevice) {
                     return 'bottom left';
@@ -1975,6 +1956,11 @@ String.prototype.replaceAll = function (from, to) {
             function _getUniqueCampaign() {
                 var defer = $q.defer();
 
+                if(_uniqueCampaign){
+                    defer.resolve(_uniqueCampaign);
+                    return defer.promise;
+                }
+
                 channelService.getActiveCampaigns({}, function (campaigns) {
                     if (!campaigns)
                         return defer.reject();
@@ -1983,6 +1969,8 @@ String.prototype.replaceAll = function (from, to) {
 
                     if (!campaign)
                         return defer.reject();
+
+                    _uniqueCampaign = campaign;
 
                     defer.resolve(campaign);
                 }, defer.reject);
@@ -2343,6 +2331,43 @@ String.prototype.replaceAll = function (from, to) {
     AboutCampaignWorkflowInitializer.$inject = ['$q', 'store', '$mdDialog', 'AboutCampaignModalService'];
     var _factoryInjector = AboutCampaignWorkflowInitializer.$inject.concat(AboutCampaignWorkflowInitializer);
     global.squid.workflow.factory('AboutCampaignWorkflowInitializer', _factoryInjector);
+
+})(window);
+(function (global) {
+
+    function RedirectToStartViewWorkflowInitializer($q, $location) {
+
+        return {
+            init: function () {
+                var defer = $q.defer();
+
+                $location.path(global.APP_CONFIG.START_VIEW);
+                
+                defer.resolve();
+                return defer.promise;
+            }
+        };
+    }
+    RedirectToStartViewWorkflowInitializer.$inject = ['$q', '$location'];
+    var _factoryInjector = RedirectToStartViewWorkflowInitializer.$inject.concat(RedirectToStartViewWorkflowInitializer);
+    global.squid.workflow.factory('RedirectToStartViewWorkflowInitializer', _factoryInjector);
+
+})(window);
+(function (global) {
+
+    function RedirectToUniqueCampaignWorkflowInitializer($q, $location, uniqueCampaignService) {
+
+        return {
+            init: function () {
+                return uniqueCampaignService.getUniqueCampaign()
+                    .then(uniqueCampaignService.redirectToUniqueCampaign)
+                    .catch(uniqueCampaignService.notifyNotHaveCampaign);
+            }
+        };
+    }
+    RedirectToUniqueCampaignWorkflowInitializer.$inject = ['$q', '$location', 'uniqueCampaignService'];
+    var _factoryInjector = RedirectToUniqueCampaignWorkflowInitializer.$inject.concat(RedirectToUniqueCampaignWorkflowInitializer);
+    global.squid.workflow.factory('RedirectToUniqueCampaignWorkflowInitializer', _factoryInjector);
 
 })(window);
 (function (global) {

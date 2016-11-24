@@ -12,8 +12,8 @@
     var _loginControllers = global.squid.login.controllers;
 
     global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
-        function ($scope, $rootScope, auth, $location, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
+        '$scope', '$rootScope', 'auth', '$location', '$timeout', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
+        function ($scope, $rootScope, auth, $location, $timeout, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
             $scope.isLoading = false;
 
             var dict = {
@@ -53,18 +53,9 @@
             }
 
             function _redirectToLogin() {
-                $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-            }
-
-            function _redirectToStartView() {
-                $location.path(global.APP_CONFIG.START_VIEW);
-            }
-
-            function _redirectOnSuccessLogin(profile) {
-                if (_containsAllData(profile))
-                    _redirectToStartView();
-                else
-                    $location.path('/register');
+                $timeout(function(){
+                    $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+                }, 500);
             }
 
             function _redirectIfIsLoggedIn() {
@@ -76,19 +67,9 @@
                 }
 
                 _loggedIn()
-                    .then(function () {
-                        _redirectToStartView();
-                        defer.resolve();
-                    }, defer.reject);
+                    .then(defer.resolve, defer.reject);
 
                 return defer.promise;
-            }
-
-            function _containsAllData(profile) {
-                if (!profile)
-                    return;
-
-                return profile.birthDate && profile.gender;
             }
 
             function _hideLoader() {
@@ -111,7 +92,7 @@
 
             function _initWorkflow(){
                 return WorkflowInitializer
-                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+                        .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
             }
 
             function _loggedIn() {
@@ -131,8 +112,7 @@
                 }, function (profile, token) {
                     store.set('profile', profile);
                     store.set('token', token);
-                    _loggedIn()
-                        .then(_redirectToStartView);
+                    _loggedIn();
                 }, function (error) {
 
                 });

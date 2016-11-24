@@ -27,7 +27,7 @@
             function _aboutCampaignIsRead() {
                 var _aboutCampaignRead = store.get('about-campaign-read');
 
-                if (_aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
+                if (!_aboutCampaignRead || !_aboutCampaignRead.read || _aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
                     return false;
 
                 return _aboutCampaignRead.read;

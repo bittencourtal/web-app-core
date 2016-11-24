@@ -10,6 +10,8 @@
         '$rootScope', '$mdToast', '$q', '$location', 'channelService',
         function ($rootScope, $mdToast, $q, $location, channelService) {
 
+            var _uniqueCampaign = null;
+
             function _getToastPosition() {
                 if ($rootScope.isSmallDevice) {
                     return 'bottom left';
@@ -33,6 +35,11 @@
             function _getUniqueCampaign() {
                 var defer = $q.defer();
 
+                if(_uniqueCampaign){
+                    defer.resolve(_uniqueCampaign);
+                    return defer.promise;
+                }
+
                 channelService.getActiveCampaigns({}, function (campaigns) {
                     if (!campaigns)
                         return defer.reject();
@@ -41,6 +48,8 @@
 
                     if (!campaign)
                         return defer.reject();
+
+                    _uniqueCampaign = campaign;
 
                     defer.resolve(campaign);
                 }, defer.reject);

@@ -56,7 +56,7 @@
                     </div>
                 </a>
             </md-list-item>
-            <md-list-item ng-show="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.SHOW">
+            <md-list-item ng-show="APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.ABOUT.SHOW && auth.isAuthenticated">
                 <a ng-click="openAboutCampaign()" class="md-no-style md-button md-ink-ripple">
                     <div class="md-list-item-inner ng-scope">
                         <md-icon aria-hidden="true" class="mdi md-headline mdi-flag ng-isolate-scope material-icons"></md-icon>

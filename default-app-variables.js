@@ -93,7 +93,8 @@
 				AFTER: [
 					'TermsOfUseWorkflowInitializer',
 					'AboutCampaignWorkflowInitializer',
-					'UserMetadataWorkflowInitializer'
+					'UserMetadataWorkflowInitializer',
+					'RedirectToStartViewWorkflowInitializer'
 				]
 			},
 			ROUTES: {
