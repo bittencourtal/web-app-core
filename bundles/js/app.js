@@ -510,14 +510,14 @@ String.prototype.replaceAll = function (from, to) {
 
 (function (global) {
 
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
 
 })(window);
 (function (global) {
 
-    global.squid.channel = angular.module("squid-channel", []);
-    global.squid.channel.controllers = {};
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function(global) {
@@ -555,69 +555,62 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow.models = {};
 
 })(window);
-(function (global) {
+(function(global, appConfig){
+    "use strict";
 
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/campaign/rank/:campaignId', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Rank influenciadores'
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
             });
     }]);
 
-})(window);
-(function (global) {
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    var _campaignControllers = global.squid.campaign.controllers;
-
-    global.squid.login.factory('AboutCampaignModalService', ['$q', 'store', '$mdDialog',
-        function ($q, store, $mdDialog) {
-
-            function _openDialog() {
-                var defer = $q.defer();
-
-                $mdDialog.show({
-                    controller: _campaignControllers.AboutCampaignDialogController,
-                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
-                    parent: angular.element(document.body),
-                    clickOutsideToClose: false,
-                    escapeToClose: false
-                }).then(defer.resolve, defer.reject);
-
-                return defer.promise;
-            }
-
-            function _aboutCampaignIsRead() {
-                var _aboutCampaignRead = store.get('about-campaign-read');
-
-                if (!_aboutCampaignRead || !_aboutCampaignRead.read || _aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
-                    return false;
-
-                return _aboutCampaignRead.read;
-            }
-
-            function _storeAboutCampaignAnswer(answer) {
-                store.set('about-campaign-read', {
-                    channelId: global.APP_CONFIG.APP_ID(),
-                    read: answer
-                });
-            }
-
-            return {
-                openDialog: _openDialog,
-                aboutCampaignIsRead: _aboutCampaignIsRead,
-                storeAboutCampaignAnswer: _storeAboutCampaignAnswer
-            }
-        }
-    ]);
-
-})(window);
+})(window, window.APP_CONFIG);
 (function (global) {
     "use strict"
 
@@ -854,62 +847,69 @@ String.prototype.replaceAll = function (from, to) {
   ]);
 
 })(window);
-(function(global, appConfig){
-    "use strict";
+(function (global) {
 
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/campaign/rank/:campaignId', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Rank influenciadores'
             });
     }]);
 
-})(window, window.APP_CONFIG);
+})(window);
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    var _campaignControllers = global.squid.campaign.controllers;
+
+    global.squid.login.factory('AboutCampaignModalService', ['$q', 'store', '$mdDialog',
+        function ($q, store, $mdDialog) {
+
+            function _openDialog() {
+                var defer = $q.defer();
+
+                $mdDialog.show({
+                    controller: _campaignControllers.AboutCampaignDialogController,
+                    templateUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/about-campaign-dialog.html',
+                    parent: angular.element(document.body),
+                    clickOutsideToClose: false,
+                    escapeToClose: false
+                }).then(defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _aboutCampaignIsRead() {
+                var _aboutCampaignRead = store.get('about-campaign-read');
+
+                if (!_aboutCampaignRead || !_aboutCampaignRead.read || _aboutCampaignRead.channelId != global.APP_CONFIG.APP_ID())
+                    return false;
+
+                return _aboutCampaignRead.read;
+            }
+
+            function _storeAboutCampaignAnswer(answer) {
+                store.set('about-campaign-read', {
+                    channelId: global.APP_CONFIG.APP_ID(),
+                    read: answer
+                });
+            }
+
+            return {
+                openDialog: _openDialog,
+                aboutCampaignIsRead: _aboutCampaignIsRead,
+                storeAboutCampaignAnswer: _storeAboutCampaignAnswer
+            }
+        }
+    ]);
+
+})(window);
 (function (global) {
 	"use strict";
 
@@ -2355,17 +2355,22 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
-    function RedirectToUniqueCampaignWorkflowInitializer($q, $location, uniqueCampaignService) {
+    function RedirectToUniqueCampaignWorkflowInitializer($q, $location, uniqueCampaignService, RedirectToStartViewWorkflowInitializer) {
+
+        function _notHaveUniqueCampaign(){
+            RedirectToStartViewWorkflowInitializer.init();
+            uniqueCampaignService.notifyNotHaveCampaign();
+        }
 
         return {
             init: function () {
                 return uniqueCampaignService.getUniqueCampaign()
                     .then(uniqueCampaignService.redirectToUniqueCampaign)
-                    .catch(uniqueCampaignService.notifyNotHaveCampaign);
+                    .catch(_notHaveUniqueCampaign);
             }
         };
     }
-    RedirectToUniqueCampaignWorkflowInitializer.$inject = ['$q', '$location', 'uniqueCampaignService'];
+    RedirectToUniqueCampaignWorkflowInitializer.$inject = ['$q', '$location', 'uniqueCampaignService', 'RedirectToStartViewWorkflowInitializer'];
     var _factoryInjector = RedirectToUniqueCampaignWorkflowInitializer.$inject.concat(RedirectToUniqueCampaignWorkflowInitializer);
     global.squid.workflow.factory('RedirectToUniqueCampaignWorkflowInitializer', _factoryInjector);
 
