@@ -38,21 +38,30 @@
 				<input required type="date" name="birthday" ng-model="ngModel.birthday" />
 			</md-input-container>
 		</div>
-		<md-input-container class="md-block" flex="20" flex-xs="80">
-			<label>CEP *</label>
-			<input required type="text" name="name" ng-model="ngModel.cep" ng-change="tryGetCep(ngModel.cep)" />
-		</md-input-container>
+		<div layout="row">
+			<md-input-container class="md-block" flex="55">
+				<label>Celular *</label>
+				<input required type="tel" name="phone" ng-model="ngModel.phone" ng-pattern="^\d{2}-\d{5}-\d{4}$" />
+			</md-input-container>
+			<div flex="5" hide-xs hide-sm>
+				<!-- Spacer //-->
+			</div>
+			<md-input-container class="md-block" flex="20">
+				<label>CEP</label>
+				<input type="text" name="name" ng-model="ngModel.cep" ng-change="tryGetCep(ngModel.cep)" />
+			</md-input-container>
+		</div>
 		<div layout="row">
 			<md-input-container>
-				<label>Estado *</label>
-				<input required type="text" name="state" ng-model="ngModel.state" ng-disabled="true" />
+				<label>Estado</label>
+				<input type="text" name="state" ng-model="ngModel.state" ng-disabled="true" />
 			</md-input-container>
 			<div flex="5" hide-xs hide-sm>
 				<!-- Spacer //-->
 			</div>
 			<md-input-container>
-				<label>Cidade *</label>
-				<input required type="text" name="city" ng-model="ngModel.city" ng-disabled="true" />
+				<label>Cidade</label>
+				<input type="text" name="city" ng-model="ngModel.city" ng-disabled="true" />
 			</md-input-container>
 		</div>
 		<md-input-container>
