@@ -1,0 +1,32 @@
+<div>
+    <div ng-if="auth.isAuthenticated">
+        <div class="card margin-bottom-2" ng-repeat="checkout in checkoutHistoryList">
+            <div class="card-body md-padding sm-padding" layout="row" layout-sm="column" layout-align="space-between center">
+                <div class="text-center" flex-sm="100" flex="15">
+                    <time ng-bind="checkout.createdAt"></time>
+                </div>
+                <div class="md-padding sm-text-center sm-padding" flex-sm="100" flex="65">
+                    <h3 ng-bind="checkout.prize.value"></h3>
+                </div>
+                <div class="text-center" flex-sm="100" flex="20">
+                    <span class="badge block margin-bottom" ng-bind="checkout.prize.points + ' pontos'"></span>
+                    <span class="block" ng-bind="checkout.status"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-if="auth.isAuthenticated && checkoutHistoryList.length == 0 && !isLoading" layout="column" layout-align="center center"
+        class="text-center color-light sm-margin-top-double sm-padding-2">
+        <md-icon>
+            <span class="mdi mdi-emoticon-neutral md-display-4"></span>
+        </md-icon>
+        <h2>Você ainda não realizou nenhum checkout :(</h2>
+        <h4 class="line-height-1-8">
+            Mas fique tranquilo! Acesse agora mesmo nossa <a href="#mission/actives">campanha</a>, participe, faça o checkout
+            de algum prêmio e volte aqui para acompanhar o andamento! Boa sorte ;)
+        </h4>
+    </div>
+    <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoading">
+        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    </div>
+</div>

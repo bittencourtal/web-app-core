@@ -1,71 +1,37 @@
 <div ng-controller="CheckoutController">
-    
-    <div tagged-infinite-scroll="loadMore()"
-         tagged-infinite-scroll-disabled="isLoading"
-         tagged-infinite-scroll-distance="100"
-         ng-if="auth.isAuthenticated">
-
-        <div class="card" ng-repeat="checkout in checkoutList">
-            <div class="card-footer">
-                <md-list class="checkout-list">
-                    <md-list-item class="md-2-line">
-                        <h3 class="color-primary md-list-item-text">
-                            <a href="#/mission/mission-details/{{checkout.campaign.id}}" ng-bind="'#' + checkout.campaign.tag"></a>
-                        </h3>
-                        <h3 class="color-primary md-secondary" ng-bind="checkout.totalAvaible + ' pontos'"></h3>
-                    </md-list-item>
-                    <md-divider></md-divider>
-                    <md-subheader ng-if="!checkout.allPrizesSoldOut" class="md-no-sticky">Prêmios</md-subheader>
-                    <md-subheader ng-if="checkout.allPrizesSoldOut" class="md-no-sticky">Todos os prêmios estão esgotados no momento.</md-subheader>
-                    <md-list-item ng-if="!checkout.allPrizesSoldOut" class="md-2-line md-no-proxy checkout-list-item"
-                                  ng-repeat="prize in checkout.prizes" ng-show="prize.hasAvailableStock">
-                        <md-icon class="hide-sm">
-                            <span class="mdi mdi-gift md-display-1"></span>
-                        </md-icon>
-                        <div class="md-list-item-text margin-checkout">
-                            <h3 ng-bind="prize.points + ' pontos'"></h3>
-                            <p ng-bind="prize.value"></p>
-                        </div>
-                        <md-button class="md-raised md-fab hide-gt-sm md-mini md-secondary md-primary"
-                                   ng-disabled="!hasPointsAvailable(checkout, prize)"
-                                   ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)">
-                            <span class="mdi mdi-briefcase-check"></span>
-                        </md-button>
-                        <md-button class="md-raised hide-sm md-secondary md-primary"
-                                    ng-disabled="!hasPointsAvailable(checkout, prize)"
-                                    ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)">
-                            <span class="mdi mdi-briefcase-check"></span>
-                            <span>Resgatar</span>
-                        </md-button>
-                    </md-list-item>
-                </md-list>
-            </div>
-        </div>
-    </div>
-    <div ng-if="auth.isAuthenticated && checkoutList.length == 0 && !isLoading"
-         layout="column"
-         layout-align="center center"
-         class="text-center color-light sm-margin-top-double sm-padding-2">
-        <md-icon>
-            <span class="mdi mdi-rocket md-display-4"></span>
-        </md-icon>
-        <h2>Você ainda não está participando :(</h2>
-        <h4 class="line-height-1-8">
-            Mas fique tranquilo! Acesse agora mesmo nossa <a href="#mission/actives">campanha</a>,
-            participe e volte aqui na aba <a href="#checkout">Meus Pontos</a> para acompanhar sua pontuação e trocar por nossos prêmios! Boa sorte ;)
-        </h4>
-    </div>
-    <div ng-if="!auth.isAuthenticated"
-         layout="column"
-         layout-align="center center"
-         class="text-center color-light sm-margin-top-double sm-padding-2">
+    <!--<md-tabs ng-if="auth.isAuthenticated && checkoutList.length > 0 && !isLoading" md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">-->
+    <md-tabs md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">
+        <md-tab>
+            <md-tab-label>
+                <span class="mdi mdi-wallet-giftcard"></span> Resgatar
+            </md-tab-label>
+            <md-tab-body>
+                <md-content class="md-padding bg-transparent">
+                    <checkout-rescue></checkout-rescue>
+                </md-content>
+            </md-tab-body>
+        </md-tab>
+        <md-tab>
+            <md-tab-label>
+                <span class="mdi mdi-history"></span> Meu Histórico
+            </md-tab-label>
+            <md-tab-body>
+                <md-content class="md-padding bg-transparent">
+                    <checkout-history></checkout-history>
+                </md-content>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
+    <div ng-if="!auth.isAuthenticated" layout="column" layout-align="center center" class="text-center color-light sm-margin-top-double sm-padding-2">
         <md-icon>
             <span class="mdi mdi-account-circle md-display-4"></span>
         </md-icon>
         <h2>Faça o login :)</h2>
-        <h4 class="line-height-1-8">Faça o <a href="#login">login</a> com sua conta da rede social que você participou para poder acompanhar seu desempenho e resgatar os prêmios.</h4>
+        <h4 class="line-height-1-8">
+            Faça o <a href="#login">login</a> com sua conta da rede social que você participou para poder acompanhar seu
+            desempenho e resgatar os prêmios.
+        </h4>
     </div>
-
     <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoading">
         <md-progress-circular md-mode="indeterminate"></md-progress-circular>
     </div>

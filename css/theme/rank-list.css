@@ -9,16 +9,6 @@
     margin-right: 8px;
 }
 
-.rank-list .badge {
-    background: #514c49;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    display: inline-block;
-    margin-top: 6px;
-}
-
 @media (max-width: 767px) {
     .rank-list h3 {
         width: 200px;

@@ -510,14 +510,14 @@ String.prototype.replaceAll = function (from, to) {
 
 (function (global) {
 
-    global.squid.channel = angular.module("squid-channel", []);
-    global.squid.channel.controllers = {};
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function (global) {
 
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
 
 })(window);
 (function(global) {
@@ -555,62 +555,6 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow.models = {};
 
 })(window);
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global) {
     "use strict"
 
@@ -910,6 +854,62 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+(function(global, appConfig){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
+            });
+    }]);
+
+})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -917,43 +917,7 @@ String.prototype.replaceAll = function (from, to) {
 		'$scope', 'channelService',
 		function ($scope, channelService) {
 
-			$scope.checkoutList = [];
-			$scope.isLoading = false;
-
-			function _getCheckouts(minId) {
-				$scope.isLoading = true;
-				channelService.getSelfPoints({}).$promise
-					.then(function (points) {
-						return Promise.all(points.map(function (point) {
-							return channelService.getCampaignPrizes({
-									resourceId: point.campaign.id
-								})
-								.$promise
-								.then(function (prizes) {
-                                    var allPrizesSoldOut = prizes.every(function(prize) {
-                                        return !prize.hasAvailableStock;
-                                    });
-									return Object.assign({}, point, {
-										prizes: prizes,
-                                        allPrizesSoldOut: allPrizesSoldOut,
-									});
-								});
-						}));
-					})
-					.then(function (result) {
-						$scope.checkoutList = result;
-						$scope.isLoading = false;
-					})
-					.catch(function (err) {
-						$scope.isLoading = false;
-					});;
-			}
-
-			$scope.hasPointsAvailable = function (checkout, prize) {
-				return checkout.totalAvaible >= prize.points;
-			};
-
-			_getCheckouts();
+			$scope.APP_CONFIG = global.APP_CONFIG;
 
 		}
 	]);
@@ -1189,6 +1153,26 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 
+(function (global) {
+    "use strict";
+
+    global.squid.checkout.factory('checkoutService', ['$resource', function ($resource) {
+        return $resource(global.APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/checkouts/:resource/:resourceId', {
+            resource: '@resource',
+            resourceId: '@resourceId'
+        }, {
+            getUserCheckouts: {
+                method: 'GET',
+                params: {
+                    resource: 'user',
+                    resourceId: 'self'
+                },
+                isArray: true
+            }
+        });
+    }]);
+
+})(window);
 (function (global, config) {
     "use strict";
 
@@ -2233,18 +2217,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.user.factory('squidSpidermanService', ['$resource',
@@ -2310,6 +2282,18 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
+
+})(window);
+(function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
 
 })(window);
 (function (global) {
@@ -2504,6 +2488,36 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
+    global.squid.checkout.directive('checkoutHistory', ['checkoutService', function (checkoutService) {
+        return {
+            templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-history/checkout-history.html',
+            link: function ($scope, $element, $attrs, $ctrl) {
+
+                $scope.isLoading = false;
+                $scope.checkoutHistoryList = [];
+
+                function _populateCheckoutHistory(history) {
+                    $scope.checkoutHistoryList = history;
+                }
+
+                function _getUserCheckoutHistory() {
+                    return checkoutService.getUserCheckouts().$promise;
+                }
+
+                function _init() {
+                    _getUserCheckoutHistory()
+                        .then(_populateCheckoutHistory)
+                }
+
+                _init();
+            }
+        }
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
     global.squid.checkout.controller('CheckoutRescueModalController',
         ['$scope', '$modalInstance', 'prize', 'auth', 'checkoutService', 'userService',
             function ($scope, $modalInstance, prize, auth, checkoutService, userService) {
@@ -2576,6 +2590,71 @@ String.prototype.replaceAll = function (from, to) {
         ]);
 
 }(window));
+(function (global) {
+    "use strict";
+
+    global.squid.checkout.directive('checkoutRescue', ['channelService', function (channelService) {
+        return {
+            templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-rescue/checkout-rescue.html',
+            link: function ($scope, $element, $attrs, $ctrl) {
+
+                $scope.checkoutList = [];
+                $scope.isLoading = false;
+
+                function _prizeWithoutAvailableStockExpression(prize){
+                    return !prize.hasAvailableStock;
+                }
+
+                function _formatCampaignPrizes(point) {
+                    return function (prizes) {
+                        return Object.assign({}, point, {
+                            prizes: prizes,
+                            allPrizesSoldOut: prizes.every(_prizeWithoutAvailableStockExpression),
+                        });
+                    }
+                }
+
+                function _parseCheckoutList(points) {
+                    return Promise.all(points.map(function (point) {
+                        return channelService.getCampaignPrizes({
+                                resourceId: point.campaign.id
+                            })
+                            .$promise
+                            .then(_formatCampaignPrizes(point));
+                    }));
+                }
+
+                function _populateCheckoutList(checkoutList) {
+                    $scope.checkoutList = checkoutList;
+                }
+
+                function _getCheckouts(minId) {
+                    $scope.isLoading = true;
+                    channelService.getSelfPoints().$promise
+                        .then(_parseCheckoutList)
+                        .then(_populateCheckoutList)
+                        .then(_hideLoader)
+                        .catch(_hideLoader);;
+                }
+
+                function _showLoader() {
+                    $scope.isLoading = true;
+                }
+
+                function _hideLoader() {
+                    $scope.isLoading = false;
+                }
+
+                $scope.hasPointsAvailable = function (checkout, prize) {
+                    return checkout.totalAvaible >= prize.points;
+                };
+
+                _getCheckouts();
+            }
+        }
+    }]);
+
+})(window);
 (function (global) {
     "use strict";
 

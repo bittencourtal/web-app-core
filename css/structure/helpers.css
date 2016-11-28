@@ -162,6 +162,10 @@
     text-align: center;
 }
 
+.block {
+    display: block;
+}
+
 .stack {
     width: 100%;
     box-sizing: border-box;
@@ -171,11 +175,18 @@
     border: 0 !important;
 }
 
-.no-radius{
+.bg-transparent {
+    background: transparent !important;
+}
+
+.no-radius {
     border-radius: 0 !important;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
+    .sm-text-center {
+        text-align: center !important;
+    }
     .sm-margin-top-double {
         margin-top: 24px !important;
     }
@@ -187,7 +198,9 @@
     }
     .sm-margin-top {
         margin-top: 12px !important;
-        ;
+    }
+    .sm-padding {
+        padding: 12px !important;
     }
     .sm-padding-2 {
         padding: 24px !important;
