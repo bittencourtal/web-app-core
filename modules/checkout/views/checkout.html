@@ -1,38 +1,41 @@
 <div ng-controller="CheckoutController">
-    <!--<md-tabs ng-if="auth.isAuthenticated && checkoutList.length > 0 && !isLoading" md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">-->
-    <md-tabs md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">
-        <md-tab>
-            <md-tab-label>
-                <span class="mdi mdi-wallet-giftcard"></span> Resgatar
-            </md-tab-label>
-            <md-tab-body>
-                <md-content class="md-padding bg-transparent">
-                    <checkout-rescue></checkout-rescue>
-                </md-content>
-            </md-tab-body>
-        </md-tab>
-        <md-tab>
-            <md-tab-label>
-                <span class="mdi mdi-history"></span> Meu Histórico
-            </md-tab-label>
-            <md-tab-body>
-                <md-content class="md-padding bg-transparent">
-                    <checkout-history></checkout-history>
-                </md-content>
-            </md-tab-body>
-        </md-tab>
-    </md-tabs>
-    <div ng-if="!auth.isAuthenticated" layout="column" layout-align="center center" class="text-center color-light sm-margin-top-double sm-padding-2">
-        <md-icon>
-            <span class="mdi mdi-account-circle md-display-4"></span>
-        </md-icon>
-        <h2>Faça o login :)</h2>
-        <h4 class="line-height-1-8">
-            Faça o <a href="#login">login</a> com sua conta da rede social que você participou para poder acompanhar seu
-            desempenho e resgatar os prêmios.
-        </h4>
-    </div>
-    <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoading">
-        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    <div class="card">
+        <div class="card-body">
+            <md-tabs ng-if="auth.isAuthenticated" md-dynamic-height md-border-bottom md-swipe-content="true" md-center-tabs="true" flex="100">
+                <md-tab>
+                    <md-tab-label>
+                        <span class="mdi mdi-wallet-giftcard"></span> Resgatar
+                    </md-tab-label>
+                    <md-tab-body>
+                        <md-content class="md-padding bg-transparent">
+                            <checkout-rescue></checkout-rescue>
+                        </md-content>
+                    </md-tab-body>
+                </md-tab>
+                <md-tab>
+                    <md-tab-label>
+                        <span class="mdi mdi-history"></span> Meu Histórico
+                    </md-tab-label>
+                    <md-tab-body>
+                        <md-content class="md-padding bg-transparent">
+                            <checkout-history></checkout-history>
+                        </md-content>
+                    </md-tab-body>
+                </md-tab>
+            </md-tabs>
+            <div ng-if="!auth.isAuthenticated" layout="column" layout-align="center center" class="text-center color-light sm-margin-top-double sm-padding-2">
+                <md-icon>
+                    <span class="mdi mdi-account-circle md-display-4"></span>
+                </md-icon>
+                <h2>Faça o login :)</h2>
+                <h4 class="line-height-1-8">
+                    Faça o <a href="#login">login</a> com sua conta da rede social que você participou para poder acompanhar
+                    seu desempenho e resgatar os prêmios.
+                </h4>
+            </div>
+            <div layout="row" layout-align="center center" class="md-progress-wrapper" ng-if="isLoading">
+                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+            </div>
+        </div>
     </div>
 </div>

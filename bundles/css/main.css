@@ -41,7 +41,7 @@
 
 .card .card-header {
     padding: 12px;
-    border: 1px solid #EDEEEE;
+    border-bottom: 1px solid #EDEEEE;
     border-top-left-radius: 6px;
     -webkit-border-top-left-radius: 6px;
     -moz-border-top-left-radius: 6px;
@@ -446,11 +446,20 @@
     font-size: 14px;
     font-family: 'Varela Round', sans-serif;
 }
-.checkout-list .checkout-list-item .md-list-item-text{
+.checkout-list .md-secondary {
+    right: 0;
+}
+
+.checkout-list md-list-item.md-2-line.checkout-list-item {
+    height: auto;
+    margin-bottom: 12px;
+}
+
+.checkout-list .checkout-list-item .md-list-item-text {
     padding-right: 134px;
 }
 
-.checkout-list .checkout-list-item .md-list-item-text h3{
+.checkout-list .checkout-list-item .md-list-item-text h3 {
     font-size: 16px;
     font-weight: 400;
     letter-spacing: .01em;
@@ -459,29 +468,23 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    color: rgba(0,0,0,0.87);
+    color: rgba(0, 0, 0, 0.87);
 }
 
-.checkout-list .checkout-list-item .md-list-item-text p{
+.checkout-list .checkout-list-item .md-list-item-text p {
     font-size: 14px;
     font-weight: 500;
     letter-spacing: .01em;
     margin: 0;
     line-height: 1.6em;
-    color: rgba(0,0,0,0.54);
+    color: rgba(0, 0, 0, 0.54);
 }
 
 @media (max-width: 480px) {
-    .checkout-list md-list-item.md-2-line.checkout-list-item{
-        height: auto;
-        margin-bottom: 24px;
-    }
-
-    .checkout-list md-list-item.md-2-line.checkout-list-item:last-child{
+    .checkout-list md-list-item.md-2-line.checkout-list-item:last-child {
         margin-bottom: 0;
     }
-
-    .checkout-list .checkout-list-item .md-list-item-text{
+    .checkout-list .checkout-list-item .md-list-item-text {
         padding-right: 64px;
     }
 }
@@ -801,6 +804,10 @@ header .md-toolbar-tools > .md-button:last-child{
     text-align: center;
 }
 
+.text-right{
+    text-align: right;
+}
+
 .block {
     display: block;
 }
@@ -837,6 +844,9 @@ header .md-toolbar-tools > .md-button:last-child{
     }
     .sm-margin-top {
         margin-top: 12px !important;
+    }
+    .sm-no-padding{
+        padding: 0 !important;
     }
     .sm-padding {
         padding: 12px !important;

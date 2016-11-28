@@ -1840,24 +1840,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.mission.factory('participationService', ['$resource',
@@ -1978,6 +1960,24 @@ String.prototype.replaceAll = function (from, to) {
             };
         }
     ]);
+
+})(window);
+(function (global) {
+
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/mission/actives', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: '',
+                secondaryNav: true
+            });
+    }]);
 
 })(window);
 (function (global) {
@@ -2217,6 +2217,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.user.factory('squidSpidermanService', ['$resource',
@@ -2282,18 +2294,6 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
-
-})(window);
-(function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
 
 })(window);
 (function (global) {

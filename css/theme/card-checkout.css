@@ -1,0 +1,13 @@
+.card-checkout .card-header{
+    background: ||primary.default||;
+    color: white;
+    margin: -1px;
+}
+
+.card-checkout .card-header h2,
+.card-checkout .card-header h3,
+.card-checkout .card-header a{
+    margin: 0;
+    padding: 0;
+    color: inherit;
+}
