@@ -10,6 +10,7 @@
 
     var _campaignControllers = global.squid.campaign.controllers;
     var _loginControllers = global.squid.login.controllers;
+    var _isFirstTimeLogin = true;
     var $document = angular.element(document);
 
     global.squid.login.controller('LoginController', [
@@ -155,7 +156,11 @@
             });
 
             authProvider.on('authenticated', function ($location) {
-                $document.trigger('loggedIn');
+                if(!_isFirstTimeLogin)
+                    return;
+
+                $document.trigger('loggedIn');    
+                _isFirstTimeLogin = false;
             });
 
             authProvider.on('loginFailure', function ($location, error) {

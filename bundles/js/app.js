@@ -1366,6 +1366,19 @@ String.prototype.replaceAll = function (from, to) {
     ]);
 
 })(window);
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
 /* jshint undef: true, unused: false */
 /* global app, window */
 
@@ -1378,6 +1391,7 @@ String.prototype.replaceAll = function (from, to) {
 
     var _campaignControllers = global.squid.campaign.controllers;
     var _loginControllers = global.squid.login.controllers;
+    var _isFirstTimeLogin = true;
     var $document = angular.element(document);
 
     global.squid.login.controller('LoginController', [
@@ -1523,7 +1537,11 @@ String.prototype.replaceAll = function (from, to) {
             });
 
             authProvider.on('authenticated', function ($location) {
-                $document.trigger('loggedIn');
+                if(!_isFirstTimeLogin)
+                    return;
+
+                $document.trigger('loggedIn');    
+                _isFirstTimeLogin = false;
             });
 
             authProvider.on('loginFailure', function ($location, error) {
@@ -1544,19 +1562,6 @@ String.prototype.replaceAll = function (from, to) {
 
     if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
         _configureEventsHandlersToRedirectMode();
-
-})(window);
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
-            });
-    }]);
 
 })(window);
 (function (global) {
