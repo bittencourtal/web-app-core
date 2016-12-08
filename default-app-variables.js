@@ -57,6 +57,7 @@
 		SQUID_APP_ID: '8818ac1766c14575acc04918a433c085',
 		START_VIEW: '/checkout',
 		LOGIN_ROUTE: '/login',
+		USE_LOGIN_REDIRECT_MODE: true,
 		REQUIRE_AUTHENTICATION: true,
 		APP_ID: _getAppId,
 		VIEWS: {
