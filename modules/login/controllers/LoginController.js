@@ -159,8 +159,7 @@
                 if(!_isFirstTimeLogin)
                     return;
 
-                $document.trigger('loggedIn');    
-                _isFirstTimeLogin = false;
+                $document.trigger('loggedIn');
             });
 
             authProvider.on('loginFailure', function ($location, error) {
@@ -175,7 +174,10 @@
                     .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
             }
 
-            $document.on('loggedIn', _initWorkflow);
+            $document.on('loggedIn', function(){
+                _isFirstTimeLogin = false;
+                _initWorkflow();
+            });
         }])
     }
 
