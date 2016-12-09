@@ -2,25 +2,23 @@
     "use strict";
 
     global.squid.campaign.controller('CampaignRankController', [
-        '$scope', 'campaignServicePtBr', '$routeParams', '$q', '$mdMedia',
-        function($scope, campaignService, $routeParams, $q, $mdMedia){
+        '$scope', 'campaignService', '$routeParams', '$mdMedia',
+        function($scope, campaignService, $routeParams, $mdMedia){
 
         $scope.isLoading = false;
-        $scope.campaignRank = [];
+        $scope.campaignRanking = [];
         $scope.isSmallDevice = $mdMedia('sm');
 
-        function _getCampaignRank(){
-            var defer = $q.defer();
-
-            campaignService.getRank({
-                idCampaign: $routeParams.campaignId
-            }, defer.resolve, defer.reject);
-
-            return defer.promise;
-        }
-
-        function _populateCampaign(rank){
-            $scope.campaignRank = rank;
+        function _getCampaignRank() {
+            return campaignService.getRank()
+                .$promise
+                .then(function(ranking) {
+                    $scope.campaignRanking = ranking;
+                    _hideLoader();
+                })
+                .catch(function(err){
+                    console.log(err);
+                });
         }
 
         function _showLoader(){
@@ -33,9 +31,7 @@
 
         function _init(){
             _showLoader();
-            _getCampaignRank()
-                .then(_populateCampaign)
-                .then(_hideLoader);
+            _getCampaignRank();
         }
 
         _init();

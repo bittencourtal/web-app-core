@@ -2,19 +2,20 @@
     <md-card>
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h3>Ranking influenciadores</h3>
+                <h3>Ranking</h3>
             </div>
         </md-toolbar>
-        <md-card-content>
+        <md-card-content ng-repeat="campaignRank in campaignRanking">
+            <h3>{{campaignRank.campaign.tag}}</h3>
             <md-list flex class="rank-list">
-                <md-list-item ng-class="{'md-2-line': isSmallDevice, 'secondary-button-padding': !isSmallDevice}" ng-repeat-start="rank in campaignRank | orderBy:'pontos.total':true">
-                    <img ng-src="{{rank.usuario.picture}}" onerror="this.onerror=null;this.src='/img/no-usr-img.png';" class="md-avatar" />
+                <md-list-item ng-class="{'md-2-line': isSmallDevice, 'secondary-button-padding': !isSmallDevice}" ng-repeat-start="ranking in campaignRank.ranking">
+                    <span class="rank-position" ng-bind="'#' + ($index + 1)"></span>
+                    <img ng-src="{{ranking.user.picture}}" onerror="this.onerror=null;this.src='/img/no-usr-img.png';" class="md-avatar" />
                     <div class="md-list-item-text" layout="column">
                         <h3>
-                            <span class="rank-position" ng-bind="'#' + ($index + 1)"></span>
-                            {{rank.usuario.name}}
+                            {{ranking.user.name}}
                         </h3>
-                        <span class="badge" ng-class="{'md-secondary': !isSmallDevice }" ng-bind="(rank.pontos.total || 0) + ' pontos'"></span>
+                        <span class="rank-points" ng-class="{'md-secondary': !isSmallDevice }" ng-bind="(ranking.total || 0) + ' pontos'"></span>
                     </div>
                 </md-list-item>
                 <md-divider ng-repeat-end ng-if="!$last"></md-divider>

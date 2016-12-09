@@ -36,7 +36,7 @@
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
                 <p>Feed</p>
             </md-list-item>
-            <md-list-item ng-click="goToUniqueCampaignRank()" ng-class="getButtonClass('campaign')" ng-if="APP_CONFIG.RANK.SHOW && APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated">
+            <md-list-item ng-click="$location.path('rank')" ng-class="getButtonClass('campaign')" ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-trophy"></md-icon>
                 <p>Rank</p>
             </md-list-item>

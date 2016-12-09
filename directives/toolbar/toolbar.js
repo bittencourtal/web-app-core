@@ -74,7 +74,7 @@
                     $scope.goToUniqueCampaign = function () {
                         if (!$scope.uniqueCampaign)
                             return uniqueCampaignService.notifyNotHaveCampaign();
-
+                            
                         uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                     };
 

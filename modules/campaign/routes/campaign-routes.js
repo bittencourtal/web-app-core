@@ -2,10 +2,10 @@
 
     global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/campaign/rank/:campaignId', {
+            .when('/rank', {
                 viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
                 templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Rank influenciadores'
+                pageTitle: 'Ranking'
             });
     }]);
 

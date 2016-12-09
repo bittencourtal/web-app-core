@@ -410,7 +410,7 @@ String.prototype.replaceAll = function (from, to) {
                     $scope.goToUniqueCampaign = function () {
                         if (!$scope.uniqueCampaign)
                             return uniqueCampaignService.notifyNotHaveCampaign();
-
+                            
                         uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                     };
 
@@ -604,25 +604,23 @@ String.prototype.replaceAll = function (from, to) {
     "use strict";
 
     global.squid.campaign.controller('CampaignRankController', [
-        '$scope', 'campaignServicePtBr', '$routeParams', '$q', '$mdMedia',
-        function($scope, campaignService, $routeParams, $q, $mdMedia){
+        '$scope', 'campaignService', '$routeParams', '$mdMedia',
+        function($scope, campaignService, $routeParams, $mdMedia){
 
         $scope.isLoading = false;
-        $scope.campaignRank = [];
+        $scope.campaignRanking = [];
         $scope.isSmallDevice = $mdMedia('sm');
 
-        function _getCampaignRank(){
-            var defer = $q.defer();
-
-            campaignService.getRank({
-                idCampaign: $routeParams.campaignId
-            }, defer.resolve, defer.reject);
-
-            return defer.promise;
-        }
-
-        function _populateCampaign(rank){
-            $scope.campaignRank = rank;
+        function _getCampaignRank() {
+            return campaignService.getRank()
+                .$promise
+                .then(function(ranking) {
+                    $scope.campaignRanking = ranking;
+                    _hideLoader();
+                })
+                .catch(function(err){
+                    console.log(err);
+                });
         }
 
         function _showLoader(){
@@ -635,9 +633,7 @@ String.prototype.replaceAll = function (from, to) {
 
         function _init(){
             _showLoader();
-            _getCampaignRank()
-                .then(_populateCampaign)
-                .then(_hideLoader);
+            _getCampaignRank();
         }
 
         _init();
@@ -795,10 +791,10 @@ String.prototype.replaceAll = function (from, to) {
 
     global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/campaign/rank/:campaignId', {
+            .when('/rank', {
                 viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
                 templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Rank influenciadores'
+                pageTitle: 'Ranking'
             });
     }]);
 
@@ -852,6 +848,23 @@ String.prototype.replaceAll = function (from, to) {
             }
         }
     ]);
+
+})(window);
+(function(global){
+    "use strict";
+
+    global.squid.app.factory('campaignService', ['$resource', function($resource){
+        var channel = global.APP_CONFIG.APP_ID();
+        var url = global.APP_CONFIG.CAMPAIGN_END_POINT_URL();
+        return $resource(url + '/channels/' + channel + '/ranking', {
+            channel: '@channel'
+        }, {
+            getRank: {
+                method: 'GET',
+                isArray: true
+            }
+        });
+    }]);
 
 })(window);
 (function(global, appConfig){
@@ -1966,15 +1979,10 @@ String.prototype.replaceAll = function (from, to) {
                 $location.path('mission/mission-details/' + campaign._id);
             }
 
-            function _redirectToUniqueCampaignRank(campaign){
-                $location.path('campaign/rank/' + campaign._id);
-            }
-
             return {
                 getUniqueCampaign: _getUniqueCampaign,
                 notifyNotHaveCampaign: _notifyNotHaveCampaign,
-                redirectToUniqueCampaign: _redirectToUniqueCampaign,
-                redirectToUniqueCampaignRank: _redirectToUniqueCampaignRank
+                redirectToUniqueCampaign: _redirectToUniqueCampaign
             };
         }
     ]);
@@ -2217,6 +2225,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.user.factory('squidSpidermanService', ['$resource',
@@ -2282,18 +2302,6 @@ String.prototype.replaceAll = function (from, to) {
             });
         }
     ]);
-
-})(window);
-(function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
 
 })(window);
 (function (global) {

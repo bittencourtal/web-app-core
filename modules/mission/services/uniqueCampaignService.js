@@ -61,15 +61,10 @@
                 $location.path('mission/mission-details/' + campaign._id);
             }
 
-            function _redirectToUniqueCampaignRank(campaign){
-                $location.path('campaign/rank/' + campaign._id);
-            }
-
             return {
                 getUniqueCampaign: _getUniqueCampaign,
                 notifyNotHaveCampaign: _notifyNotHaveCampaign,
-                redirectToUniqueCampaign: _redirectToUniqueCampaign,
-                redirectToUniqueCampaignRank: _redirectToUniqueCampaignRank
+                redirectToUniqueCampaign: _redirectToUniqueCampaign
             };
         }
     ]);

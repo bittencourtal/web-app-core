@@ -26,7 +26,7 @@
                 <md-tooltip>Feed</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
             </md-button>
-            <md-button ng-if="APP_CONFIG.RANK.SHOW && APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE && auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Rank" ng-class="getButtonClass('campaign')" ng-click="goToUniqueCampaignRank()">
+            <md-button ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Rank" ng-class="getButtonClass('campaign')" ng-click="$location.path('rank')">
                 <md-tooltip>Rank</md-tooltip>
                 <md-icon class="mdi md-headline mdi-trophy"></md-icon>
             </md-button>
