@@ -556,6 +556,18 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
+
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/rank', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Ranking'
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict"
 
     function AboutCampaignDialogController($scope, $mdDialog, store, AboutCampaignModalService) {
@@ -785,18 +797,6 @@ String.prototype.replaceAll = function (from, to) {
     'squidSpidermanService',
     TermsOfUseDialogController
   ]);
-
-})(window);
-(function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/rank', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Ranking'
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -1391,6 +1391,8 @@ String.prototype.replaceAll = function (from, to) {
 
     var _campaignControllers = global.squid.campaign.controllers;
     var _loginControllers = global.squid.login.controllers;
+    var _isFirstTimeLogin = true;
+    var $document = angular.element(document);
 
     global.squid.login.controller('LoginController', [
         '$scope', '$rootScope', 'auth', '$location', '$timeout', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
@@ -1434,7 +1436,7 @@ String.prototype.replaceAll = function (from, to) {
             }
 
             function _redirectToLogin() {
-                $timeout(function(){
+                $timeout(function () {
                     $location.path(global.APP_CONFIG.LOGIN_ROUTE);
                 }, 500);
             }
@@ -1471,20 +1473,18 @@ String.prototype.replaceAll = function (from, to) {
                 return defer.promise;
             }
 
-            function _initWorkflow(){
+            function _initWorkflow() {
                 return WorkflowInitializer
-                        .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
             }
 
             function _loggedIn() {
                 return _showLoader()
-                        .then(_initWorkflow)
-                        .then(_hideLoader);
+                    .then(_initWorkflow)
+                    .then(_hideLoader);
             }
 
-            function _initAuthLockComponent() {
-                $scope.isLoading = false;
-                auth.config.auth0lib.$container = null;
+            function _initAsyncMode() {
                 auth.signin({
                     connections: ['instagram'],
                     container: 'login-box',
@@ -1499,12 +1499,72 @@ String.prototype.replaceAll = function (from, to) {
                 });
             }
 
+            function _initRedirectMode() {
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                });
+            }
+
+            function _initAuthLockComponent() {
+                $scope.isLoading = false;
+                auth.config.auth0lib.$container = null;
+
+                if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
+                    _initRedirectMode();
+                else
+                    _initAsyncMode();
+            }
+
             _redirectIfIsLoggedIn()
                 .then(_initAuthLockComponent);
 
             $rootScope.$on('refreshLogin', _initAuthLockComponent);
         }
     ]);
+
+    function _configureEventsHandlersToRedirectMode() {
+        global.squid.login.config(['authProvider', function (authProvider) {
+
+            authProvider.on('loginSuccess', function ($location, profilePromise, idToken, store) {
+                profilePromise.then(function (profile) {
+                    store.set('profile', profile);
+                    store.set('token', idToken);
+                    $document.trigger('loggedIn');
+                });
+            });
+
+            authProvider.on('authenticated', function ($location) {
+                if(!_isFirstTimeLogin)
+                    return;
+
+                $document.trigger('loggedIn');
+            });
+
+            authProvider.on('loginFailure', function ($location, error) {
+
+            });
+        }]);
+
+        global.squid.login.run(['WorkflowInitializer', function (WorkflowInitializer) {
+
+            function _initWorkflow() {
+                return WorkflowInitializer
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+            }
+
+            $document.on('loggedIn', function(){
+                _isFirstTimeLogin = false;
+                _initWorkflow();
+            });
+        }])
+    }
+
+    if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
+        _configureEventsHandlersToRedirectMode();
+
 })(window);
 (function (global) {
 

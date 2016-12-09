@@ -162,6 +162,10 @@
     text-align: center;
 }
 
+.text-right{
+    text-align: right;
+}
+
 .block {
     display: block;
 }
@@ -198,6 +202,9 @@
     }
     .sm-margin-top {
         margin-top: 12px !important;
+    }
+    .sm-no-padding{
+        padding: 0 !important;
     }
     .sm-padding {
         padding: 12px !important;

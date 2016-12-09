@@ -27,6 +27,19 @@ a.md-button.md-primary.md-fab:not([disabled]) md-icon,
 .md-button.md-primary.md-fab:not([disabled]) md-icon{
     color: ||primary.50||;
 }
+.card-checkout .card-header{
+    background: ||primary.default||;
+    color: white;
+    margin: -1px;
+}
+
+.card-checkout .card-header h2,
+.card-checkout .card-header h3,
+.card-checkout .card-header a{
+    margin: 0;
+    padding: 0;
+    color: inherit;
+}
 .bg-primary{
     background-color: ||primary.default|| !important;
 }
@@ -120,6 +133,9 @@ header md-toolbar .md-toolbar-brand {
     -moz-border-radius: 50%;
     border-radius: 50%;
 
+}
+.hover-list > *:hover{
+    background: #f1f1f1;
 }
 md-dialog figure {
     margin: 0;
