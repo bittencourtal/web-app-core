@@ -8,10 +8,10 @@
         <div class="md-dialog-content" ng-bind-html="aboutText.CONTENT"></div>
     </md-dialog-content>
     <div class="md-actions" layout="row">
-        <md-button ng-click="back()" ng-show="isLastText(currentText) || !isFirstText(currentText)">
+        <md-button ng-click="back()" ng-show="!isFirstText(currentText)">
             Voltar
         </md-button>
-        <md-button ng-click="next()" ng-show="!isLastText(currentText) || isFirstText(currentText)">
+        <md-button ng-click="next()" ng-show="!isLastText(currentText)">
             Avançar
         </md-button>
         <md-button ng-click="ok()" ng-show="isLastText(currentText)">

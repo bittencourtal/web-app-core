@@ -2,8 +2,8 @@
 	"use strict";
 
 	global.squid.checkout.controller('CheckoutController', [
-		'$scope', 'channelService',
-		function ($scope, channelService) {
+		'$scope',
+		function ($scope) {
 
 			$scope.APP_CONFIG = global.APP_CONFIG;
 

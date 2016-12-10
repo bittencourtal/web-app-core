@@ -303,11 +303,11 @@ String.prototype.replaceAll = function (from, to) {
             };
 
             $scope.$on('$routeChangeStart', function() {
-                $scope.isLoading = true;
+                NProgress.start();
             });
 
             $scope.$on('$routeChangeError', function() {
-                $scope.isLoading = false;
+                NProgress.done();
             });
 
             $scope.$on('$routeChangeSuccess', function (e, nextRoute) {
@@ -315,7 +315,7 @@ String.prototype.replaceAll = function (from, to) {
                 $scope.viewUrl = nextRoute && nextRoute.$$route ? nextRoute.$$route.viewUrl : "";
                 $rootScope.secondaryNav = nextRoute && nextRoute.$$route ? nextRoute.$$route.secondaryNav : false;
                 $scope.path = $location.$$path.split("/")[1];
-                $scope.isLoading = false;
+                NProgress.done();
             });
 
             mdThemeColorsDSS.init();
@@ -556,18 +556,6 @@ String.prototype.replaceAll = function (from, to) {
 
 })(window);
 (function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/rank', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Ranking'
-            });
-    }]);
-
-})(window);
-(function (global) {
     "use strict"
 
     function AboutCampaignDialogController($scope, $mdDialog, store, AboutCampaignModalService) {
@@ -801,6 +789,18 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/rank', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Ranking'
+            });
+    }]);
+
+})(window);
+(function (global) {
+
     var toastConfig = {
         delay: 10000,
         close: 'OK'
@@ -927,8 +927,8 @@ String.prototype.replaceAll = function (from, to) {
 	"use strict";
 
 	global.squid.checkout.controller('CheckoutController', [
-		'$scope', 'channelService',
-		function ($scope, channelService) {
+		'$scope',
+		function ($scope) {
 
 			$scope.APP_CONFIG = global.APP_CONFIG;
 
@@ -2556,12 +2556,14 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutHistory', ['checkoutService', function (checkoutService) {
+    global.squid.checkout.directive('checkoutHistory', ['checkoutService', 'auth', function (checkoutService, auth) {
         return {
+            scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-history/checkout-history.html',
             link: function ($scope, $element, $attrs, $ctrl) {
 
                 $scope.isLoading = false;
+                $scope.auth = auth;
                 $scope.checkoutHistoryList = [];
 
                 function _populateCheckoutHistory(history) {
@@ -2661,15 +2663,17 @@ String.prototype.replaceAll = function (from, to) {
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutRescue', ['channelService', function (channelService) {
+    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', function (channelService, auth) {
         return {
+            scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-rescue/checkout-rescue.html',
             link: function ($scope, $element, $attrs, $ctrl) {
 
                 $scope.checkoutList = [];
+                $scope.auth = auth;
                 $scope.isLoading = false;
 
-                function _prizeWithoutAvailableStockExpression(prize){
+                function _prizeWithoutAvailableStockExpression(prize) {
                     return !prize.hasAvailableStock;
                 }
 
@@ -2698,11 +2702,12 @@ String.prototype.replaceAll = function (from, to) {
 
                 function _getCheckouts(minId) {
                     $scope.isLoading = true;
+
                     channelService.getSelfPoints().$promise
                         .then(_parseCheckoutList)
                         .then(_populateCheckoutList)
                         .then(_hideLoader)
-                        .catch(_hideLoader);;
+                        .catch(_hideLoader);
                 }
 
                 function _showLoader() {

@@ -1,12 +1,14 @@
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutHistory', ['checkoutService', function (checkoutService) {
+    global.squid.checkout.directive('checkoutHistory', ['checkoutService', 'auth', function (checkoutService, auth) {
         return {
+            scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-history/checkout-history.html',
             link: function ($scope, $element, $attrs, $ctrl) {
 
                 $scope.isLoading = false;
+                $scope.auth = auth;
                 $scope.checkoutHistoryList = [];
 
                 function _populateCheckoutHistory(history) {
