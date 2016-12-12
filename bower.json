@@ -1,6 +1,6 @@
 {
   "name": "squid-web-app-core",
-  "version": "1.3.5",
+  "version": "1.3.6",
   "authors": [
     "João M. <joaom182@hotmail.com>"
   ],
@@ -29,7 +29,8 @@
     "dss": "0.1.2",
     "tagged-infinite-scroll": "~1.1.1",
     "mdi": "1.7.22",
-    "angular-messages": "1.5.8"
+    "angular-messages": "1.5.8",
+    "nprogress": "^0.2.0"
   },
   "resolutions": {
     "angular": "1.5.8",

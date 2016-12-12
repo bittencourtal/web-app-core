@@ -1,15 +1,17 @@
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutRescue', ['channelService', function (channelService) {
+    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', function (channelService, auth) {
         return {
+            scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-rescue/checkout-rescue.html',
             link: function ($scope, $element, $attrs, $ctrl) {
 
                 $scope.checkoutList = [];
+                $scope.auth = auth;
                 $scope.isLoading = false;
 
-                function _prizeWithoutAvailableStockExpression(prize){
+                function _prizeWithoutAvailableStockExpression(prize) {
                     return !prize.hasAvailableStock;
                 }
 
@@ -38,11 +40,12 @@
 
                 function _getCheckouts(minId) {
                     $scope.isLoading = true;
+
                     channelService.getSelfPoints().$promise
                         .then(_parseCheckoutList)
                         .then(_populateCheckoutList)
                         .then(_hideLoader)
-                        .catch(_hideLoader);;
+                        .catch(_hideLoader);
                 }
 
                 function _showLoader() {

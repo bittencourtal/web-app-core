@@ -11,18 +11,21 @@ md-dialog ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    margin-left: 18px;
 }
 
 md-dialog li {
-    text-indent: -14px;
-    margin-left: 30px;
+    text-indent: 2px;
+    margin: 0px;
+    margin-bottom: 18px;
 }
 
 md-dialog li:before {
     content: "• ";
     color: ||primary.default||;
     position: relative;
-    right: -8px;
+    top: -1px;
+    right: 5px;
     display: inline-block;
     vertical-align: middle;
     font-size: 2em;

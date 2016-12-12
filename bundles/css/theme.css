@@ -150,18 +150,21 @@ md-dialog ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    margin-left: 18px;
 }
 
 md-dialog li {
-    text-indent: -14px;
-    margin-left: 30px;
+    text-indent: 2px;
+    margin: 0px;
+    margin-bottom: 18px;
 }
 
 md-dialog li:before {
     content: "• ";
     color: ||primary.default||;
     position: relative;
-    right: -8px;
+    top: -1px;
+    right: 5px;
     display: inline-block;
     vertical-align: middle;
     font-size: 2em;
@@ -174,15 +177,43 @@ md-dialog .push {
 md-input-container{
     font-size: 16px;
 }
-md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]).md-active{
+md-tabs>md-tabs-wrapper>md-tabs-canvas>md-pagination-wrapper>md-tab-item:not([disabled]).md-active {
     color: ||primary.default||;
 }
 
-md-tabs > md-tabs-wrapper > md-tabs-canvas > md-pagination-wrapper > md-tab-item:not([disabled]){
+md-tabs>md-tabs-wrapper>md-tabs-canvas>md-pagination-wrapper>md-tab-item:not([disabled]) {
     color: ||primary.200||;
+}
+
+md-tabs-wrapper md-next-button {
+    z-index: 1;
 }
 .md-toolbar-tools h2{
     color: ||primary.50||;
+}
+#nprogress .bar {
+    background: #FFF;
+}
+
+#nprogress .peg {
+    box-shadow: 0 0 10px ||primary.default||, 0 0 5px ||primary.default||;
+}
+
+#nprogress .spinner {
+    top: 22px;
+    right: 6px;
+}
+
+#nprogress .spinner-icon {
+    border-top-color: #fff;
+    border-left-color: #d6d6d6;
+}
+
+@media (max-width: 767px){
+    #nprogress .spinner {
+        top: 18px;
+        right: 10px;
+    }
 }
 .card.profile .card-header{
     background: ||primary.default||;

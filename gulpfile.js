@@ -49,7 +49,8 @@ var scripts = {
         './bower_components/async/lib/async.js',
         './bower_components/jstorage/jstorage.min.js',
         './bower_components/dss/dist/dss.js',
-        './bower_components/tagged-infinite-scroll/taggedInfiniteScroll.js'
+        './bower_components/tagged-infinite-scroll/taggedInfiniteScroll.js',
+        './bower_components/nprogress/nprogress.js'
     ]
 };
 
@@ -62,7 +63,8 @@ var styles = {
     ],
     vendors: [
         './bower_components/toastr/toastr.min.css',
-        './bower_components/normalize-css/normalize.css'
+        './bower_components/normalize-css/normalize.css',
+        './bower_components/nprogress/nprogress.css'
     ]
 };
 

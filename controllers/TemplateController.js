@@ -34,11 +34,11 @@
             };
 
             $scope.$on('$routeChangeStart', function() {
-                $scope.isLoading = true;
+                NProgress.start();
             });
 
             $scope.$on('$routeChangeError', function() {
-                $scope.isLoading = false;
+                NProgress.done();
             });
 
             $scope.$on('$routeChangeSuccess', function (e, nextRoute) {
@@ -46,7 +46,7 @@
                 $scope.viewUrl = nextRoute && nextRoute.$$route ? nextRoute.$$route.viewUrl : "";
                 $rootScope.secondaryNav = nextRoute && nextRoute.$$route ? nextRoute.$$route.secondaryNav : false;
                 $scope.path = $location.$$path.split("/")[1];
-                $scope.isLoading = false;
+                NProgress.done();
             });
 
             mdThemeColorsDSS.init();
