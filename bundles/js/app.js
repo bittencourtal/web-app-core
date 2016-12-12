@@ -522,13 +522,13 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function(global) {
 
-	global.squid.checkout = angular.module("squid-checkout", []);
-	global.squid.checkout.controllers = {};
+	global.squid.feed = angular.module("squid-feed", []);
 
 })(window);
 (function(global) {
 
-	global.squid.feed = angular.module("squid-feed", []);
+	global.squid.checkout = angular.module("squid-checkout", []);
+	global.squid.checkout.controllers = {};
 
 })(window);
 (function (global) {
@@ -553,18 +553,6 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
-
-})(window);
-(function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/rank', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Ranking'
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -612,44 +600,45 @@ String.prototype.replaceAll = function (from, to) {
     global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', 'AboutCampaignModalService', AboutCampaignDialogController]);
 
 })(window);
-(function(global){
-    "use strict";
+(function (global) {
+	"use strict";
 
-    global.squid.campaign.controller('CampaignRankController', [
-        '$scope', 'campaignService', '$routeParams', '$mdMedia',
-        function($scope, campaignService, $routeParams, $mdMedia){
+	global.squid.campaign.controller('CampaignRankController', [
+		'$scope', 'campaignService', '$routeParams', '$mdMedia',
+		function ($scope, campaignService, $routeParams, $mdMedia) {
 
-        $scope.isLoading = false;
-        $scope.campaignRanking = [];
-        $scope.isSmallDevice = $mdMedia('sm');
+			$scope.isLoading = false;
+			$scope.campaignRanking = [];
+			$scope.isSmallDevice = $mdMedia('sm');
 
-        function _getCampaignRank() {
-            return campaignService.getRank()
-                .$promise
-                .then(function(ranking) {
-                    $scope.campaignRanking = ranking;
-                    _hideLoader();
-                })
-                .catch(function(err){
-                    console.log(err);
-                });
-        }
+			function _getCampaignRank() {
+				return campaignService.getRank()
+					.$promise
+					.then(function (ranking) {
+						$scope.campaignRanking = ranking;
+						_hideLoader();
+					})
+					.catch(function (err) {
+						console.log(err);
+					});
+			}
 
-        function _showLoader(){
-            $scope.isLoading = true;
-        }
+			function _showLoader() {
+				$scope.isLoading = true;
+			}
 
-        function _hideLoader(){
-            $scope.isLoading = false;
-        }
+			function _hideLoader() {
+				$scope.isLoading = false;
+			}
 
-        function _init(){
-            _showLoader();
-            _getCampaignRank();
-        }
+			function _init() {
+				_showLoader();
+				_getCampaignRank();
+			}
 
-        _init();
-    }]);
+			_init();
+		}
+	]);
 
 })(window);
 (function (global) {
@@ -801,6 +790,18 @@ String.prototype.replaceAll = function (from, to) {
 })(window);
 (function (global) {
 
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/rank', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Ranking'
+            });
+    }]);
+
+})(window);
+(function (global) {
+
     var toastConfig = {
         delay: 10000,
         close: 'OK'
@@ -923,6 +924,199 @@ String.prototype.replaceAll = function (from, to) {
     }]);
 
 })(window, window.APP_CONFIG);
+(function (global, config) {
+    "use strict";
+
+    var _manualPausedVideos = [];
+
+    global.squid.feed.controller('FeedController', [
+        '$scope', 'feedService', '$element', '$timeout', '$q',
+        function ($scope, feedService, $element, $timeout, $q) {
+
+            $scope.feedList = [];
+            $scope.paginationMetadata = {};
+            $scope.isLoading = false;
+
+            function _autoPlayVideosOnScreen() {
+                var videos = $($element).find('video').not("[autoplay='autoplay']");
+                var tolerancePixel = 80;
+
+                function _hasPausedManualy(video){
+                    return _manualPausedVideos.any(function(manualPausedVideo){
+                        return manualPausedVideo.currentSrc == video.currentSrc;
+                    });
+                }
+
+                function _playVideo(video){
+                    if(_hasPausedManualy(video))
+                        return;
+
+                    video.play();
+                }
+
+                function _videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia){
+                    return scrollTop < yBottomMedia && scrollBottom > yTopMedia;
+                }
+
+                function _checkMedia() {
+                    var scrollTop = $(window).scrollTop() + tolerancePixel;
+                    var scrollBottom = $(window).scrollTop() + $(window).height() - tolerancePixel;
+
+                    videos.each(function (index, el) {
+                        var yTopMedia = $(this).offset().top;
+                        var yBottomMedia = $(this).height() + yTopMedia;
+                        var $video = $(this).get(0);
+
+                        if (_videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia))
+                            _playVideo($video);
+                        else
+                            $video.pause();
+                    });
+                }
+
+                $(document).unbind('scroll');
+                $(document).on('scroll', _checkMedia);
+            }
+
+            function _handleVideoEvents() {
+                var $videos = $($element).find('video');
+
+                function _attachVideoEvent(index, $video) {
+                    var $card = $($video).closest('.card');
+                    $video.onplay = function () {
+                        $card.addClass('video-playing');
+                    };
+
+                    $video.onpause = function () {
+                        $card.removeClass('video-playing');
+                    };
+                }
+
+                $.each($videos, _attachVideoEvent);
+            }
+
+            function _attachEvents(){
+                var defer = $q.defer();
+
+                $timeout(function(){
+                    _handleVideoEvents();
+                    _autoPlayVideosOnScreen();
+                    defer.resolve();
+                }, 100);
+
+                return defer.promise;
+            }
+
+            function _populateFeedList(result){
+                var defer = $q.defer();
+
+                $scope.feedList = $scope.feedList.concat(result.data);
+                $scope.paginationMetadata = result.paginationMetadata;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _stopLoading(){
+                $scope.isLoading = false;
+            }
+
+            function _loadFeed(minId){
+                $scope.isLoading = true;
+
+                _getFeed(minId)
+                    .then(_populateFeedList)
+                    .then(_attachEvents)
+                    .then(_stopLoading);
+            }
+
+            function _getFeed(minId) {
+                var defer = $q.defer();
+                var query = { };
+
+                if (config.ONLY_APPROVED) {
+                    query.status = 'approved';
+                }
+                if (minId)
+                    query.minId = minId;
+
+                feedService.getFeedParticipation(query, defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            $scope.getCardClass = function (feedItem) {
+                var objClass = {};
+                objClass['card-feed-' + feedItem.mediaType] = true;
+
+                return objClass;
+            }
+
+            $scope.playVideo = function ($event, feedItem) {
+                var $video = $($event.currentTarget).get(0);
+                if (!$video)
+                    return;
+
+                if ($video.paused)
+                    return $video.play();
+
+                _manualPausedVideos.push($video);
+                _manualPausedVideos = _manualPausedVideos.distinct(function(v1, v2){
+                    return v1.currentSrc == v2.currentSrc;
+                });
+                return $video.pause();
+            };
+
+            $scope.loadMore = function () {
+                if ($scope.isLoading || !$scope.paginationMetadata.next)
+                    return;
+
+                _loadFeed($scope.paginationMetadata.next.minId);
+            };
+
+            _loadFeed();
+        }]);
+
+})(window, window.APP_CONFIG.CAMPAIGNS);
+
+(function (global) {
+
+    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/feed', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/feed/views/feed.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Feed'
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.feed.factory('feedService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/feed/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getFeedParticipation: {
+                    method: 'GET',
+                    params:{
+                        action: 'participation'
+                    }
+                },
+                getMissionsActive: {
+                    method: 'GET',
+                    params:{
+                        action: 'mission'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
 (function (global) {
 	"use strict";
 
@@ -1184,199 +1378,6 @@ String.prototype.replaceAll = function (from, to) {
             }
         });
     }]);
-
-})(window);
-(function (global, config) {
-    "use strict";
-
-    var _manualPausedVideos = [];
-
-    global.squid.feed.controller('FeedController', [
-        '$scope', 'feedService', '$element', '$timeout', '$q',
-        function ($scope, feedService, $element, $timeout, $q) {
-
-            $scope.feedList = [];
-            $scope.paginationMetadata = {};
-            $scope.isLoading = false;
-
-            function _autoPlayVideosOnScreen() {
-                var videos = $($element).find('video').not("[autoplay='autoplay']");
-                var tolerancePixel = 80;
-
-                function _hasPausedManualy(video){
-                    return _manualPausedVideos.any(function(manualPausedVideo){
-                        return manualPausedVideo.currentSrc == video.currentSrc;
-                    });
-                }
-
-                function _playVideo(video){
-                    if(_hasPausedManualy(video))
-                        return;
-
-                    video.play();
-                }
-
-                function _videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia){
-                    return scrollTop < yBottomMedia && scrollBottom > yTopMedia;
-                }
-
-                function _checkMedia() {
-                    var scrollTop = $(window).scrollTop() + tolerancePixel;
-                    var scrollBottom = $(window).scrollTop() + $(window).height() - tolerancePixel;
-
-                    videos.each(function (index, el) {
-                        var yTopMedia = $(this).offset().top;
-                        var yBottomMedia = $(this).height() + yTopMedia;
-                        var $video = $(this).get(0);
-
-                        if (_videoIsVisible(scrollTop, yBottomMedia, scrollBottom, yTopMedia))
-                            _playVideo($video);
-                        else
-                            $video.pause();
-                    });
-                }
-
-                $(document).unbind('scroll');
-                $(document).on('scroll', _checkMedia);
-            }
-
-            function _handleVideoEvents() {
-                var $videos = $($element).find('video');
-
-                function _attachVideoEvent(index, $video) {
-                    var $card = $($video).closest('.card');
-                    $video.onplay = function () {
-                        $card.addClass('video-playing');
-                    };
-
-                    $video.onpause = function () {
-                        $card.removeClass('video-playing');
-                    };
-                }
-
-                $.each($videos, _attachVideoEvent);
-            }
-
-            function _attachEvents(){
-                var defer = $q.defer();
-
-                $timeout(function(){
-                    _handleVideoEvents();
-                    _autoPlayVideosOnScreen();
-                    defer.resolve();
-                }, 100);
-
-                return defer.promise;
-            }
-
-            function _populateFeedList(result){
-                var defer = $q.defer();
-
-                $scope.feedList = $scope.feedList.concat(result.data);
-                $scope.paginationMetadata = result.paginationMetadata;
-                defer.resolve();
-
-                return defer.promise;
-            }
-
-            function _stopLoading(){
-                $scope.isLoading = false;
-            }
-
-            function _loadFeed(minId){
-                $scope.isLoading = true;
-
-                _getFeed(minId)
-                    .then(_populateFeedList)
-                    .then(_attachEvents)
-                    .then(_stopLoading);
-            }
-
-            function _getFeed(minId) {
-                var defer = $q.defer();
-                var query = { };
-
-                if (config.ONLY_APPROVED) {
-                    query.status = 'approved';
-                }
-                if (minId)
-                    query.minId = minId;
-
-                feedService.getFeedParticipation(query, defer.resolve, defer.reject);
-
-                return defer.promise;
-            }
-
-            $scope.getCardClass = function (feedItem) {
-                var objClass = {};
-                objClass['card-feed-' + feedItem.mediaType] = true;
-
-                return objClass;
-            }
-
-            $scope.playVideo = function ($event, feedItem) {
-                var $video = $($event.currentTarget).get(0);
-                if (!$video)
-                    return;
-
-                if ($video.paused)
-                    return $video.play();
-
-                _manualPausedVideos.push($video);
-                _manualPausedVideos = _manualPausedVideos.distinct(function(v1, v2){
-                    return v1.currentSrc == v2.currentSrc;
-                });
-                return $video.pause();
-            };
-
-            $scope.loadMore = function () {
-                if ($scope.isLoading || !$scope.paginationMetadata.next)
-                    return;
-
-                _loadFeed($scope.paginationMetadata.next.minId);
-            };
-
-            _loadFeed();
-        }]);
-
-})(window, window.APP_CONFIG.CAMPAIGNS);
-
-(function (global) {
-
-    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/feed', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Feed'
-            });
-    }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.feed.factory('feedService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/feed/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getFeedParticipation: {
-                    method: 'GET',
-                    params:{
-                        action: 'participation'
-                    }
-                },
-                getMissionsActive: {
-                    method: 'GET',
-                    params:{
-                        action: 'mission'
-                    }
-                }
-            });
-        }
-    ]);
 
 })(window);
 /* jshint undef: true, unused: false */
