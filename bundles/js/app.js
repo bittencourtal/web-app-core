@@ -517,26 +517,20 @@ if (!String.prototype.startsWith) {
 
 (function (global) {
 
-    global.squid.channel = angular.module("squid-channel", []);
-    global.squid.channel.controllers = {};
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function (global) {
 
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
 
 })(window);
 (function(global) {
 
 	global.squid.checkout = angular.module("squid-checkout", []);
 	global.squid.checkout.controllers = {};
-
-})(window);
-(function (global) {
-
-	global.squid.login = angular.module("squid-login", []);
-	global.squid.login.controllers = {};
 
 })(window);
 (function(global) {
@@ -547,6 +541,12 @@ if (!String.prototype.startsWith) {
 (function(global) {
 
 	global.squid.mission = angular.module("squid-mission", []);
+
+})(window);
+(function (global) {
+
+	global.squid.login = angular.module("squid-login", []);
+	global.squid.login.controllers = {};
 
 })(window);
 (function(global) {
@@ -562,62 +562,6 @@ if (!String.prototype.startsWith) {
     global.squid.workflow.models = {};
 
 })(window);
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global) {
     "use strict"
 
@@ -663,44 +607,45 @@ if (!String.prototype.startsWith) {
     global.squid.campaign.controller('AboutCampaignDialogController', ['$scope', '$mdDialog', 'store', 'AboutCampaignModalService', AboutCampaignDialogController]);
 
 })(window);
-(function(global){
-    "use strict";
+(function (global) {
+	"use strict";
 
-    global.squid.campaign.controller('CampaignRankController', [
-        '$scope', 'campaignService', '$routeParams', '$mdMedia',
-        function($scope, campaignService, $routeParams, $mdMedia){
+	global.squid.campaign.controller('CampaignRankController', [
+		'$scope', 'campaignService', '$routeParams', '$mdMedia',
+		function ($scope, campaignService, $routeParams, $mdMedia) {
 
-        $scope.isLoading = false;
-        $scope.campaignRanking = [];
-        $scope.isSmallDevice = $mdMedia('sm');
+			$scope.isLoading = false;
+			$scope.campaignRanking = [];
+			$scope.isSmallDevice = $mdMedia('sm');
 
-        function _getCampaignRank() {
-            return campaignService.getRank()
-                .$promise
-                .then(function(ranking) {
-                    $scope.campaignRanking = ranking;
-                    _hideLoader();
-                })
-                .catch(function(err){
-                    console.log(err);
-                });
-        }
+			function _getCampaignRank() {
+				return campaignService.getRank()
+					.$promise
+					.then(function (ranking) {
+						$scope.campaignRanking = ranking;
+						_hideLoader();
+					})
+					.catch(function (err) {
+						console.log(err);
+					});
+			}
 
-        function _showLoader(){
-            $scope.isLoading = true;
-        }
+			function _showLoader() {
+				$scope.isLoading = true;
+			}
 
-        function _hideLoader(){
-            $scope.isLoading = false;
-        }
+			function _hideLoader() {
+				$scope.isLoading = false;
+			}
 
-        function _init(){
-            _showLoader();
-            _getCampaignRank();
-        }
+			function _init() {
+				_showLoader();
+				_getCampaignRank();
+			}
 
-        _init();
-    }]);
+			_init();
+		}
+	]);
 
 })(window);
 (function (global) {
@@ -930,6 +875,62 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
+(function(global, appConfig){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
+            });
+    }]);
+
+})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -1193,202 +1194,14 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
-/* jshint undef: true, unused: false */
-/* global app, window */
-
 (function (global) {
 
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    var _campaignControllers = global.squid.campaign.controllers;
-    var _loginControllers = global.squid.login.controllers;
-    var _isFirstTimeLogin = true;
-    var $document = angular.element(document);
-
-    global.squid.login.controller('LoginController', [
-        '$scope', '$rootScope', 'auth', '$location', '$timeout', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
-        function ($scope, $rootScope, auth, $location, $timeout, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
-            $scope.isLoading = false;
-
-            var dict = {
-                loadingTitle: 'carregando...',
-                close: 'fechar',
-                signin: {
-                    title: 'Seja bem-vindo!',
-                    signinText: 'Entrar',
-                    signupText: 'Cadastrar-se',
-                    usernamePlaceholder: 'e-mail',
-                    emailPlaceholder: 'e-mail',
-                    passwordPlaceholder: "Senha",
-                    separatorText: "ou",
-                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
-                    serverErrorText: 'Você não está autorizado.',
-                    strategyEmailInvalid: 'O e-mail é invalido.',
-                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.',
-                    returnUserLabel: 'Da última vez você acessou como...',
-                    all: 'Não é sua conta?',
-                    forgotText: 'Esqueceu sua senha? Clique aqui.'
-                },
-                signup: {
-                    serverErrorText: 'Não foi possível se cadastrar.'
-                },
-                reset: {
-                    serverErrorText: 'Não foi possível resetar a senha.'
-                }
-            };
-
-            function _logout() {
-                auth.signout();
-                store.remove('profile');
-                store.remove('token');
-                $.jStorage.flush();
-                _hideLoader();
-                _redirectToLogin();
-            }
-
-            function _redirectToLogin() {
-                $timeout(function () {
-                    $location.path(global.APP_CONFIG.LOGIN_ROUTE);
-                }, 500);
-            }
-
-            function _redirectIfIsLoggedIn() {
-                var defer = $q.defer();
-
-                if (!auth.isAuthenticated) {
-                    defer.resolve();
-                    return defer.promise;;
-                }
-
-                _loggedIn()
-                    .then(defer.resolve, defer.reject);
-
-                return defer.promise;
-            }
-
-            function _hideLoader() {
-                var defer = $q.defer();
-
-                $scope.isLoading = false;
-                defer.resolve();
-
-                return defer.promise;
-            }
-
-            function _showLoader() {
-                var defer = $q.defer();
-
-                $scope.isLoading = true;
-                defer.resolve();
-
-                return defer.promise;
-            }
-
-            function _initWorkflow() {
-                return WorkflowInitializer
-                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
-            }
-
-            function _loggedIn() {
-                return _showLoader()
-                    .then(_initWorkflow)
-                    .then(_hideLoader);
-            }
-
-            function _initAsyncMode() {
-                auth.signin({
-                    connections: ['instagram'],
-                    container: 'login-box',
-                    icon: '../images/logo.png',
-                    dict: dict
-                }, function (profile, token) {
-                    store.set('profile', profile);
-                    store.set('token', token);
-                    _loggedIn();
-                }, function (error) {
-
-                });
-            }
-
-            function _initRedirectMode() {
-                auth.signin({
-                    connections: ['instagram'],
-                    container: 'login-box',
-                    icon: '../images/logo.png',
-                    dict: dict
-                });
-            }
-
-            function _initAuthLockComponent() {
-                $scope.isLoading = false;
-                auth.config.auth0lib.$container = null;
-
-                if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
-                    _initRedirectMode();
-                else
-                    _initAsyncMode();
-            }
-
-            _redirectIfIsLoggedIn()
-                .then(_initAuthLockComponent);
-
-            $rootScope.$on('refreshLogin', _initAuthLockComponent);
-        }
-    ]);
-
-    function _configureEventsHandlersToRedirectMode() {
-        global.squid.login.config(['authProvider', function (authProvider) {
-
-            authProvider.on('loginSuccess', function ($location, profilePromise, idToken, store) {
-                profilePromise.then(function (profile) {
-                    store.set('profile', profile);
-                    store.set('token', idToken);
-                    $document.trigger('loggedIn');
-                });
-            });
-
-            authProvider.on('authenticated', function ($location) {
-                if(!_isFirstTimeLogin)
-                    return;
-
-                $document.trigger('loggedIn');
-            });
-
-            authProvider.on('loginFailure', function ($location, error) {
-
-            });
-        }]);
-
-        global.squid.login.run(['WorkflowInitializer', function (WorkflowInitializer) {
-
-            function _initWorkflow() {
-                return WorkflowInitializer
-                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
-            }
-
-            $document.on('loggedIn', function(){
-                _isFirstTimeLogin = false;
-                _initWorkflow();
-            });
-        }])
-    }
-
-    if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
-        _configureEventsHandlersToRedirectMode();
-
-})(window);
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
+            .when('/feed', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/feed/views/feed.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Feed'
             });
     }]);
 
@@ -1548,18 +1361,6 @@ if (!String.prototype.startsWith) {
 
 })(window, window.APP_CONFIG.CAMPAIGNS);
 
-(function (global) {
-
-    global.squid.feed.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/feed', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/feed/views/feed.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Feed'
-            });
-    }]);
-
-})(window);
 (function (global) {
     "use strict";
 
@@ -1920,24 +1721,6 @@ if (!String.prototype.startsWith) {
 
 })(window);
 (function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
-(function (global) {
     "use strict";
 
     global.squid.mission.factory('participationService', ['$resource',
@@ -2053,6 +1836,224 @@ if (!String.prototype.startsWith) {
             };
         }
     ]);
+
+})(window);
+(function (global) {
+
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/mission/actives', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: '',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
+/* jshint undef: true, unused: false */
+/* global app, window */
+
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    var _campaignControllers = global.squid.campaign.controllers;
+    var _loginControllers = global.squid.login.controllers;
+    var _isFirstTimeLogin = true;
+    var $document = angular.element(document);
+
+    global.squid.login.controller('LoginController', [
+        '$scope', '$rootScope', 'auth', '$location', '$timeout', 'store', '$mdDialog', '$mdToast', '$q', 'userService', 'WorkflowInitializer',
+        function ($scope, $rootScope, auth, $location, $timeout, store, $mdDialog, $mdToast, $q, userService, WorkflowInitializer) {
+            $scope.isLoading = false;
+
+            var dict = {
+                loadingTitle: 'carregando...',
+                close: 'fechar',
+                signin: {
+                    title: 'Seja bem-vindo!',
+                    signinText: 'Entrar',
+                    signupText: 'Cadastrar-se',
+                    usernamePlaceholder: 'e-mail',
+                    emailPlaceholder: 'e-mail',
+                    passwordPlaceholder: "Senha",
+                    separatorText: "ou",
+                    wrongEmailPasswordErrorText: 'E-mail ou senha inválidos.',
+                    serverErrorText: 'Você não está autorizado.',
+                    strategyEmailInvalid: 'O e-mail é invalido.',
+                    strategyDomainInvalid: 'O domínio {domain} não foi configurado.',
+                    returnUserLabel: 'Da última vez você acessou como...',
+                    all: 'Não é sua conta?',
+                    forgotText: 'Esqueceu sua senha? Clique aqui.'
+                },
+                signup: {
+                    serverErrorText: 'Não foi possível se cadastrar.'
+                },
+                reset: {
+                    serverErrorText: 'Não foi possível resetar a senha.'
+                }
+            };
+
+            function _logout() {
+                auth.signout();
+                store.remove('profile');
+                store.remove('token');
+                $.jStorage.flush();
+                _hideLoader();
+                _redirectToLogin();
+            }
+
+            function _redirectToLogin() {
+                $timeout(function () {
+                    $location.path(global.APP_CONFIG.LOGIN_ROUTE);
+                }, 500);
+            }
+
+            function _redirectIfIsLoggedIn() {
+                var defer = $q.defer();
+
+                if (!auth.isAuthenticated) {
+                    defer.resolve();
+                    return defer.promise;;
+                }
+
+                _loggedIn()
+                    .then(defer.resolve, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _hideLoader() {
+                var defer = $q.defer();
+
+                $scope.isLoading = false;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _showLoader() {
+                var defer = $q.defer();
+
+                $scope.isLoading = true;
+                defer.resolve();
+
+                return defer.promise;
+            }
+
+            function _initWorkflow() {
+                return WorkflowInitializer
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+            }
+
+            function _loggedIn() {
+                return _showLoader()
+                    .then(_initWorkflow)
+                    .then(_hideLoader);
+            }
+
+            function _initAsyncMode() {
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                }, function (profile, token) {
+                    store.set('profile', profile);
+                    store.set('token', token);
+                    _loggedIn();
+                }, function (error) {
+
+                });
+            }
+
+            function _initRedirectMode() {
+                auth.signin({
+                    connections: ['instagram'],
+                    container: 'login-box',
+                    icon: '../images/logo.png',
+                    dict: dict
+                });
+            }
+
+            function _initAuthLockComponent() {
+                $scope.isLoading = false;
+                auth.config.auth0lib.$container = null;
+
+                if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
+                    _initRedirectMode();
+                else
+                    _initAsyncMode();
+            }
+
+            _redirectIfIsLoggedIn()
+                .then(_initAuthLockComponent);
+
+            $rootScope.$on('refreshLogin', _initAuthLockComponent);
+        }
+    ]);
+
+    function _configureEventsHandlersToRedirectMode() {
+        global.squid.login.config(['authProvider', function (authProvider) {
+
+            authProvider.on('loginSuccess', function ($location, profilePromise, idToken, store) {
+                profilePromise.then(function (profile) {
+                    store.set('profile', profile);
+                    store.set('token', idToken);
+                    $document.trigger('loggedIn');
+                });
+            });
+
+            authProvider.on('authenticated', function ($location) {
+                if(!_isFirstTimeLogin)
+                    return;
+
+                $document.trigger('loggedIn');
+            });
+
+            authProvider.on('loginFailure', function ($location, error) {
+
+            });
+        }]);
+
+        global.squid.login.run(['WorkflowInitializer', function (WorkflowInitializer) {
+
+            function _initWorkflow() {
+                return WorkflowInitializer
+                    .initWorkflows(global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER);
+            }
+
+            $document.on('loggedIn', function(){
+                _isFirstTimeLogin = false;
+                _initWorkflow();
+            });
+        }])
+    }
+
+    if (global.APP_CONFIG.USE_LOGIN_REDIRECT_MODE)
+        _configureEventsHandlersToRedirectMode();
+
+})(window);
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
+            });
+    }]);
 
 })(window);
 (function (global) {
@@ -2371,6 +2372,39 @@ if (!String.prototype.startsWith) {
     ]);
 
 })(window);
+(function(global){
+
+    function WorkflowInitializer($q, $injector){
+
+        this.initWorkflows = function(workflows){
+            var defer = $q.defer();
+
+            function _processWorkflowsInitializers(){
+                var workflowInitializers = arguments;
+                
+                async.eachSeries(workflowInitializers, function(workflowInitializer, callback){
+                    workflowInitializer.init().then(function(result){
+                        callback(null);
+                    }).catch(callback)
+                }, function(err){
+                    if(err)
+                        return defer.reject(err);
+
+                    defer.resolve();
+                })
+            }
+            _processWorkflowsInitializers.$inject = workflows;
+            $injector.invoke(_processWorkflowsInitializers); 
+
+            return defer.promise;
+        };
+    }
+
+    global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
+        return new WorkflowInitializer($q, $injector);
+    }]);
+
+})(window);
 (function (global) {
 
     function AboutCampaignWorkflowInitializer($q, store, $mdDialog, AboutCampaignModalService) {
@@ -2504,39 +2538,6 @@ if (!String.prototype.startsWith) {
     UserMetadataWorkflowInitializer.$inject = ['$q', 'store', '$mdDialog', 'userMetadataHelper'];
     var _factoryInjector = UserMetadataWorkflowInitializer.$inject.concat(UserMetadataWorkflowInitializer);
     global.squid.workflow.factory('UserMetadataWorkflowInitializer', _factoryInjector);
-
-})(window);
-(function(global){
-
-    function WorkflowInitializer($q, $injector){
-
-        this.initWorkflows = function(workflows){
-            var defer = $q.defer();
-
-            function _processWorkflowsInitializers(){
-                var workflowInitializers = arguments;
-                
-                async.eachSeries(workflowInitializers, function(workflowInitializer, callback){
-                    workflowInitializer.init().then(function(result){
-                        callback(null);
-                    }).catch(callback)
-                }, function(err){
-                    if(err)
-                        return defer.reject(err);
-
-                    defer.resolve();
-                })
-            }
-            _processWorkflowsInitializers.$inject = workflows;
-            $injector.invoke(_processWorkflowsInitializers); 
-
-            return defer.promise;
-        };
-    }
-
-    global.squid.workflow.factory('WorkflowInitializer', ['$q', '$injector', function($q, $injector){
-        return new WorkflowInitializer($q, $injector);
-    }]);
 
 })(window);
 (function (global) {
