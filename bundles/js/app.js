@@ -521,16 +521,16 @@ if (!String.prototype.startsWith) {
     global.squid.campaign.controllers = {};
 
 })(window);
-(function(global) {
-
-	global.squid.checkout = angular.module("squid-checkout", []);
-	global.squid.checkout.controllers = {};
-
-})(window);
 (function (global) {
 
     global.squid.channel = angular.module("squid-channel", []);
     global.squid.channel.controllers = {};
+
+})(window);
+(function(global) {
+
+	global.squid.checkout = angular.module("squid-checkout", []);
+	global.squid.checkout.controllers = {};
 
 })(window);
 (function(global) {
@@ -546,6 +546,11 @@ if (!String.prototype.startsWith) {
 })(window);
 (function(global) {
 
+	global.squid.mission = angular.module("squid-mission", []);
+
+})(window);
+(function(global) {
+
 	global.squid.user = angular.module("squid-user", []);
 	global.squid.user.controllers = {};
 
@@ -555,11 +560,6 @@ if (!String.prototype.startsWith) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
-
-})(window);
-(function(global) {
-
-	global.squid.mission = angular.module("squid-mission", []);
 
 })(window);
 (function (global) {
@@ -875,6 +875,62 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
+(function(global, appConfig){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
+            });
+    }]);
+
+})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -1138,62 +1194,6 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global, config) {
     "use strict";
 
@@ -1585,6 +1585,475 @@ if (!String.prototype.startsWith) {
                 secondaryNav: true
             });
     }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.mission.controller('ActiveMissionController', [
+        '$scope', 'channelService', '$mdToast', 'uniqueCampaignService',
+        function ($scope, channelService, $mdToast, uniqueCampaignService) {
+            $scope.campaigns = [];
+            $scope.isLoading = false;
+
+            function _redirectToUniqueMission() {
+                $scope.isLoading = true;
+
+                uniqueCampaignService.getUniqueCampaign()
+                    .then(function (campaign) {
+                        uniqueCampaignService.redirectToUniqueCampaign(campaign);
+                        $scope.isLoading = false;
+                    })
+                    .catch(function () {
+                        uniqueCampaignService.notifyNotHaveCampaign();
+                        $scope.isLoading = false;
+                    });
+            }
+
+            function _loadCampaigns() {
+                $scope.isLoading = true;
+
+                channelService.getActiveCampaigns({})
+                    .$promise
+                    .then(function (result) {
+                        $scope.campaigns = result;
+                        $scope.isLoading = false;
+                    })
+                    .catch(function (err) {
+                        $scope.isLoading = false;
+                    });
+            }
+
+            function _init() {
+                if (APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
+                    _redirectToUniqueMission();
+                else
+                    _loadCampaigns();
+            }
+
+            _init();
+        }]);
+
+})(window);
+(function(global){
+
+    global.squid.mission.controller('ChallengeController',
+        ['$scope', 'mission', '$mdDialog', 'shareService',
+            function($scope, mission, $mdDialog, shareService){
+
+                $scope.mission = mission;
+                $scope.isMobile = global.isIOS() || global.isAndroid();
+                $scope.urlToShare = window.location.href.replaceAll('/#', '');
+                $scope.textToShare = '';
+                $scope.descriptionToShare = '';
+
+                function _parseHashtagsToSpecialCharacter(){
+                    $scope.mission.shareText = $scope.mission.shareText.replaceAll('#', '%23');
+                }
+
+                function _shareMission(){
+                    shareService.shareMission({
+                        id: $scope.mission._id
+                    });
+                }
+
+                function _closeModal(){
+                    $mdDialog.hide();
+                }
+
+                $scope.share = function(){
+                    _shareMission();
+                    _closeModal();
+                };
+
+                $scope.closeModal = function(){
+                    _closeModal();
+                };
+
+                _parseHashtagsToSpecialCharacter();
+            }]);
+
+})(window);
+(function (global, config) {
+	"use strict";
+
+	global.squid.mission.controller('MissionDetailsController', [
+		'$scope',
+		'$rootScope',
+		'$routeParams',
+		'participationService',
+		'$mdDialog',
+		'$timeout',
+		'channelService',
+		'$q',
+		function (
+			$scope,
+			$rootScope,
+			$routeParams,
+			participationService,
+			$mdDialog,
+			$timeout,
+			channelService,
+			$q
+		) {
+
+			var firstLoad = true;
+			$scope.campaign = {};
+			$scope.campaignPrizes = [];
+			$scope.participations = {
+				data: [],
+				minId: ''
+			};
+			$scope.isLoading = false;
+			$scope.isLoadingParticipations = false;
+			$scope.menuIsOpen = false;
+			$scope.timeLeft = "--";
+			$scope.tooltipIsOpen = false;
+
+			function _getCampaign(campaignId) {
+				return channelService.getCampaign({
+					resourceId: campaignId
+				}).$promise;
+			}
+
+			function _getTimeLeft(endDate) {
+				var now = moment();
+				var then = moment(endDate);
+
+				var ms = moment(then, "DD/MM/YYYY HH:mm:ss").diff(moment(now, "DD/MM/YYYY HH:mm:ss"));
+				var d = moment.duration(ms);
+				var days = Math.floor(d.asDays());
+				var hours = moment.utc(ms).format("HH");
+				var minutes = moment.utc(ms).format("mm");
+				var seconds = moment.utc(ms).format("ss");
+
+				if (days < 0)
+					return 'Encerrada';
+
+				return days + " dias " + hours + " horas " + minutes + " minutos e " + seconds + " segundos.";
+			}
+
+			function _notHasNextParticipationPage() {
+				return $scope.participations.data.length > 0 &&
+					!$scope.participations.minId ||
+					$scope.participations.data.length == 0 &&
+					!firstLoad;
+			}
+
+			function _getMissionParticipations(campaignId) {
+				if ($scope.isLoadingParticipations || _notHasNextParticipationPage())
+					return;
+
+				firstLoad = false;
+				$scope.isLoadingParticipations = true;
+				var query = {
+					id: campaignId,
+					minId: $scope.participations.minId,
+					take: 12
+				};
+				if (config.ONLY_APPROVED) {
+					query.status = 'approved';
+				}
+
+				participationService.getMissionParticipations(query, function (response) {
+					$scope.participations.data = $scope.participations.data
+						.concat(response.data)
+						.distinct(function (c, n) {
+							return c._id == n._id;
+						});
+					$scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
+					$scope.isLoadingParticipations = false;
+				}, function () {
+					$scope.isLoadingParticipations = false;
+				});
+			}
+
+			function _initCounter() {
+				setInterval(function () {
+					if (!$scope.campaign || !$scope.campaign.time)
+						return;
+					$scope.timeLeft = _getTimeLeft($scope.campaign.time.fixedEndDate);
+					$scope.$apply();
+				}, 1000);
+			}
+
+			function _openParticipateDialog(ev) {
+				$mdDialog.show({
+					controller: 'ParticipateController',
+					templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/participate.html',
+					parent: angular.element(document.body),
+					targetEvent: ev,
+					clickOutsideToClose: true,
+					locals: {
+						mission: $scope.campaign
+					}
+				});
+			}
+
+			function _openChallengeDialog(ev) {
+				$mdDialog.show({
+					controller: 'ChallengeController',
+					templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/challenge.html',
+					parent: angular.element(document.body),
+					targetEvent: ev,
+					clickOutsideToClose: true,
+					locals: {
+						mission: $scope.campaign
+					}
+				});
+			}
+
+			function _showLoader() {
+				$scope.isLoading = true;
+			}
+
+			function _hideLoader() {
+				$scope.isLoading = false;
+			}
+
+			function _hideMenu() {
+				$scope.menuIsOpen = false;
+			}
+
+			function _toggleTooltip(menuIsOpen) {
+				if (menuIsOpen) {
+					$timeout(function () {
+						$scope.tooltipIsOpen = true;
+					}, 250);
+					return;
+				}
+
+				$scope.tooltipIsOpen = false;
+			}
+
+			function _populateCampaign(campaign) {
+				$scope.campaign = campaign;
+			}
+
+			function _getCampaignPrizes(campaignId) {
+				return channelService.getCampaignPrizes({
+					resourceId: campaignId
+				}).$promise;
+			}
+
+			function _populateCampaignPrizes(data) {
+				$scope.campaignPrizes = data;
+				$scope.allPrizesSoldOut = data.every(function (prize) {
+					return !prize.hasAvailableStock;
+				});
+			}
+
+			function _getCampaignAndPopulate() {
+				_showLoader();
+				return _getCampaign($routeParams.missionId)
+					.then(_populateCampaign)
+					.then(_hideLoader);
+			}
+
+			function _getCampaignPrizesAndPopulate() {
+				_getCampaignPrizes($routeParams.missionId)
+					.then(_populateCampaignPrizes);
+			}
+
+			function _definePageTitle() {
+				$rootScope.pageTitle = '#' + $scope.campaign.hashtag;
+			}
+
+			function _init() {
+				_getCampaignAndPopulate().then(_definePageTitle);
+				_getCampaignPrizesAndPopulate();
+				_getMissionParticipations($routeParams.missionId);
+				_initCounter();
+			}
+
+			$scope.loadMoreParticipations = function () {
+				_getMissionParticipations($routeParams.missionId);
+			};
+
+			$scope.participate = function (ev) {
+				_hideMenu();
+				_openParticipateDialog(ev);
+			};
+
+			$scope.challenge = function (ev) {
+				_hideMenu();
+				_openChallengeDialog(ev);
+			};
+
+			$scope.toggleMenu = function () {
+				if (global.isAndroid())
+					$scope.menuIsOpen = !$scope.menuIsOpen;
+			};
+
+			$scope.$watch('menuIsOpen', _toggleTooltip);
+
+			_init();
+		}
+	]);
+
+
+})(window, window.APP_CONFIG.CAMPAIGNS);
+(function(global){
+
+    global.squid.mission.controller('ParticipateController',
+        ['$scope', 'mission', '$mdDialog',
+            function($scope, mission, $mdDialog){
+
+                $scope.mission = mission;
+
+                $scope.isMobile = global.isIOS() || global.isAndroid();
+
+                $scope.openInstagram = function(){
+
+                    if(global.isIOS())
+                        window.location = 'instagram://camera';
+                    else
+                        window.location = 'intent://instagram.com/_n/mainfeed/#Intent;package=com.instagram.android;scheme=https;end';
+
+                    $mdDialog.hide();
+                };
+
+                $scope.closeModal = function(){
+                    $mdDialog.hide();
+                };
+
+            }]);
+
+})(window);
+(function (global) {
+
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/mission/actives', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: '',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.mission.factory('participationService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/participation/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getMissionParticipations: {
+                    method: 'GET',
+                    params: {
+                        action: 'mission'
+                    }
+                },
+                getUserParticipations: {
+                    method: 'GET',
+                    params: {
+                        action: 'user'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.mission.factory('shareService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/share/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                shareMission: {
+                    method: 'POST',
+                    params: {
+                        action: 'mission'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    global.squid.mission.factory('uniqueCampaignService', [
+        '$rootScope', '$mdToast', '$q', '$location', 'channelService',
+        function ($rootScope, $mdToast, $q, $location, channelService) {
+
+            var _uniqueCampaign = null;
+
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
+                    return 'bottom left';
+                } else {
+                    return 'top right';
+                }
+            }
+
+            function _notifyNotHaveCampaign() {
+                var toast = $mdToast.simple()
+                    .content('Não há campanha cadastrada no momento.')
+                    .action(toastConfig.close)
+                    .parent($('main').get(0))
+                    .hideDelay(toastConfig.delay)
+                    .highlightAction(false)
+                    .position(_getToastPosition());
+
+                $mdToast.show(toast).then(function (response) {});
+            }
+
+            function _getUniqueCampaign() {
+                var defer = $q.defer();
+
+                if(_uniqueCampaign){
+                    defer.resolve(_uniqueCampaign);
+                    return defer.promise;
+                }
+
+                channelService.getActiveCampaigns({}, function (campaigns) {
+                    if (!campaigns)
+                        return defer.reject();
+                        
+                    var campaign = campaigns.first();
+
+                    if (!campaign)
+                        return defer.reject();
+
+                    _uniqueCampaign = campaign;
+
+                    defer.resolve(campaign);
+                }, defer.reject);
+
+                return defer.promise;
+            }
+
+            function _redirectToUniqueCampaign(campaign) {
+                $location.path('mission/mission-details/' + campaign._id);
+            }
+
+            return {
+                getUniqueCampaign: _getUniqueCampaign,
+                notifyNotHaveCampaign: _notifyNotHaveCampaign,
+                redirectToUniqueCampaign: _redirectToUniqueCampaign
+            };
+        }
+    ]);
 
 })(window);
 (function (global) {
@@ -2090,475 +2559,6 @@ if (!String.prototype.startsWith) {
     TermsOfUseValidator.$inject = ['$q', 'store', 'userMetadataHelper'];
     var _factoryInjector = TermsOfUseValidator.$inject.concat(TermsOfUseValidator);
     global.squid.workflow.factory('TermsOfUseValidator', _factoryInjector);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.mission.controller('ActiveMissionController', [
-        '$scope', 'channelService', '$mdToast', 'uniqueCampaignService',
-        function ($scope, channelService, $mdToast, uniqueCampaignService) {
-            $scope.campaigns = [];
-            $scope.isLoading = false;
-
-            function _redirectToUniqueMission() {
-                $scope.isLoading = true;
-
-                uniqueCampaignService.getUniqueCampaign()
-                    .then(function (campaign) {
-                        uniqueCampaignService.redirectToUniqueCampaign(campaign);
-                        $scope.isLoading = false;
-                    })
-                    .catch(function () {
-                        uniqueCampaignService.notifyNotHaveCampaign();
-                        $scope.isLoading = false;
-                    });
-            }
-
-            function _loadCampaigns() {
-                $scope.isLoading = true;
-
-                channelService.getActiveCampaigns({})
-                    .$promise
-                    .then(function (result) {
-                        $scope.campaigns = result;
-                        $scope.isLoading = false;
-                    })
-                    .catch(function (err) {
-                        $scope.isLoading = false;
-                    });
-            }
-
-            function _init() {
-                if (APP_CONFIG.CAMPAIGNS.UNIQUE_CAMPAIGN.IS_UNIQUE)
-                    _redirectToUniqueMission();
-                else
-                    _loadCampaigns();
-            }
-
-            _init();
-        }]);
-
-})(window);
-(function(global){
-
-    global.squid.mission.controller('ChallengeController',
-        ['$scope', 'mission', '$mdDialog', 'shareService',
-            function($scope, mission, $mdDialog, shareService){
-
-                $scope.mission = mission;
-                $scope.isMobile = global.isIOS() || global.isAndroid();
-                $scope.urlToShare = window.location.href.replaceAll('/#', '');
-                $scope.textToShare = '';
-                $scope.descriptionToShare = '';
-
-                function _parseHashtagsToSpecialCharacter(){
-                    $scope.mission.shareText = $scope.mission.shareText.replaceAll('#', '%23');
-                }
-
-                function _shareMission(){
-                    shareService.shareMission({
-                        id: $scope.mission._id
-                    });
-                }
-
-                function _closeModal(){
-                    $mdDialog.hide();
-                }
-
-                $scope.share = function(){
-                    _shareMission();
-                    _closeModal();
-                };
-
-                $scope.closeModal = function(){
-                    _closeModal();
-                };
-
-                _parseHashtagsToSpecialCharacter();
-            }]);
-
-})(window);
-(function (global, config) {
-	"use strict";
-
-	global.squid.mission.controller('MissionDetailsController', [
-		'$scope',
-		'$rootScope',
-		'$routeParams',
-		'participationService',
-		'$mdDialog',
-		'$timeout',
-		'channelService',
-		'$q',
-		function (
-			$scope,
-			$rootScope,
-			$routeParams,
-			participationService,
-			$mdDialog,
-			$timeout,
-			channelService,
-			$q
-		) {
-
-			var firstLoad = true;
-			$scope.campaign = {};
-			$scope.campaignPrizes = [];
-			$scope.participations = {
-				data: [],
-				minId: ''
-			};
-			$scope.isLoading = false;
-			$scope.isLoadingParticipations = false;
-			$scope.menuIsOpen = false;
-			$scope.timeLeft = "--";
-			$scope.tooltipIsOpen = false;
-
-			function _getCampaign(campaignId) {
-				return channelService.getCampaign({
-					resourceId: campaignId
-				}).$promise;
-			}
-
-			function _getTimeLeft(endDate) {
-				var now = moment();
-				var then = moment(endDate);
-
-				var ms = moment(then, "DD/MM/YYYY HH:mm:ss").diff(moment(now, "DD/MM/YYYY HH:mm:ss"));
-				var d = moment.duration(ms);
-				var days = Math.floor(d.asDays());
-				var hours = moment.utc(ms).format("HH");
-				var minutes = moment.utc(ms).format("mm");
-				var seconds = moment.utc(ms).format("ss");
-
-				if (days < 0)
-					return 'Encerrada';
-
-				return days + " dias " + hours + " horas " + minutes + " minutos e " + seconds + " segundos.";
-			}
-
-			function _notHasNextParticipationPage() {
-				return $scope.participations.data.length > 0 &&
-					!$scope.participations.minId ||
-					$scope.participations.data.length == 0 &&
-					!firstLoad;
-			}
-
-			function _getMissionParticipations(campaignId) {
-				if ($scope.isLoadingParticipations || _notHasNextParticipationPage())
-					return;
-
-				firstLoad = false;
-				$scope.isLoadingParticipations = true;
-				var query = {
-					id: campaignId,
-					minId: $scope.participations.minId,
-					take: 12
-				};
-				if (config.ONLY_APPROVED) {
-					query.status = 'approved';
-				}
-
-				participationService.getMissionParticipations(query, function (response) {
-					$scope.participations.data = $scope.participations.data
-						.concat(response.data)
-						.distinct(function (c, n) {
-							return c._id == n._id;
-						});
-					$scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
-					$scope.isLoadingParticipations = false;
-				}, function () {
-					$scope.isLoadingParticipations = false;
-				});
-			}
-
-			function _initCounter() {
-				setInterval(function () {
-					if (!$scope.campaign || !$scope.campaign.time)
-						return;
-					$scope.timeLeft = _getTimeLeft($scope.campaign.time.fixedEndDate);
-					$scope.$apply();
-				}, 1000);
-			}
-
-			function _openParticipateDialog(ev) {
-				$mdDialog.show({
-					controller: 'ParticipateController',
-					templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/participate.html',
-					parent: angular.element(document.body),
-					targetEvent: ev,
-					clickOutsideToClose: true,
-					locals: {
-						mission: $scope.campaign
-					}
-				});
-			}
-
-			function _openChallengeDialog(ev) {
-				$mdDialog.show({
-					controller: 'ChallengeController',
-					templateUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/templates/challenge.html',
-					parent: angular.element(document.body),
-					targetEvent: ev,
-					clickOutsideToClose: true,
-					locals: {
-						mission: $scope.campaign
-					}
-				});
-			}
-
-			function _showLoader() {
-				$scope.isLoading = true;
-			}
-
-			function _hideLoader() {
-				$scope.isLoading = false;
-			}
-
-			function _hideMenu() {
-				$scope.menuIsOpen = false;
-			}
-
-			function _toggleTooltip(menuIsOpen) {
-				if (menuIsOpen) {
-					$timeout(function () {
-						$scope.tooltipIsOpen = true;
-					}, 250);
-					return;
-				}
-
-				$scope.tooltipIsOpen = false;
-			}
-
-			function _populateCampaign(campaign) {
-				$scope.campaign = campaign;
-			}
-
-			function _getCampaignPrizes(campaignId) {
-				return channelService.getCampaignPrizes({
-					resourceId: campaignId
-				}).$promise;
-			}
-
-			function _populateCampaignPrizes(data) {
-				$scope.campaignPrizes = data;
-				$scope.allPrizesSoldOut = data.every(function (prize) {
-					return !prize.hasAvailableStock;
-				});
-			}
-
-			function _getCampaignAndPopulate() {
-				_showLoader();
-				return _getCampaign($routeParams.missionId)
-					.then(_populateCampaign)
-					.then(_hideLoader);
-			}
-
-			function _getCampaignPrizesAndPopulate() {
-				_getCampaignPrizes($routeParams.missionId)
-					.then(_populateCampaignPrizes);
-			}
-
-			function _definePageTitle() {
-				$rootScope.pageTitle = '#' + $scope.campaign.hashtag;
-			}
-
-			function _init() {
-				_getCampaignAndPopulate().then(_definePageTitle);
-				_getCampaignPrizesAndPopulate();
-				_getMissionParticipations($routeParams.missionId);
-				_initCounter();
-			}
-
-			$scope.loadMoreParticipations = function () {
-				_getMissionParticipations($routeParams.missionId);
-			};
-
-			$scope.participate = function (ev) {
-				_hideMenu();
-				_openParticipateDialog(ev);
-			};
-
-			$scope.challenge = function (ev) {
-				_hideMenu();
-				_openChallengeDialog(ev);
-			};
-
-			$scope.toggleMenu = function () {
-				if (global.isAndroid())
-					$scope.menuIsOpen = !$scope.menuIsOpen;
-			};
-
-			$scope.$watch('menuIsOpen', _toggleTooltip);
-
-			_init();
-		}
-	]);
-
-
-})(window, window.APP_CONFIG.CAMPAIGNS);
-(function(global){
-
-    global.squid.mission.controller('ParticipateController',
-        ['$scope', 'mission', '$mdDialog',
-            function($scope, mission, $mdDialog){
-
-                $scope.mission = mission;
-
-                $scope.isMobile = global.isIOS() || global.isAndroid();
-
-                $scope.openInstagram = function(){
-
-                    if(global.isIOS())
-                        window.location = 'instagram://camera';
-                    else
-                        window.location = 'intent://instagram.com/_n/mainfeed/#Intent;package=com.instagram.android;scheme=https;end';
-
-                    $mdDialog.hide();
-                };
-
-                $scope.closeModal = function(){
-                    $mdDialog.hide();
-                };
-
-            }]);
-
-})(window);
-(function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.mission.factory('participationService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/participation/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getMissionParticipations: {
-                    method: 'GET',
-                    params: {
-                        action: 'mission'
-                    }
-                },
-                getUserParticipations: {
-                    method: 'GET',
-                    params: {
-                        action: 'user'
-                    }
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.mission.factory('shareService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/share/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                shareMission: {
-                    method: 'POST',
-                    params: {
-                        action: 'mission'
-                    }
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    global.squid.mission.factory('uniqueCampaignService', [
-        '$rootScope', '$mdToast', '$q', '$location', 'channelService',
-        function ($rootScope, $mdToast, $q, $location, channelService) {
-
-            var _uniqueCampaign = null;
-
-            function _getToastPosition() {
-                if ($rootScope.isSmallDevice) {
-                    return 'bottom left';
-                } else {
-                    return 'top right';
-                }
-            }
-
-            function _notifyNotHaveCampaign() {
-                var toast = $mdToast.simple()
-                    .content('Não há campanha cadastrada no momento.')
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
-
-                $mdToast.show(toast).then(function (response) {});
-            }
-
-            function _getUniqueCampaign() {
-                var defer = $q.defer();
-
-                if(_uniqueCampaign){
-                    defer.resolve(_uniqueCampaign);
-                    return defer.promise;
-                }
-
-                channelService.getActiveCampaigns({}, function (campaigns) {
-                    if (!campaigns)
-                        return defer.reject();
-                        
-                    var campaign = campaigns.first();
-
-                    if (!campaign)
-                        return defer.reject();
-
-                    _uniqueCampaign = campaign;
-
-                    defer.resolve(campaign);
-                }, defer.reject);
-
-                return defer.promise;
-            }
-
-            function _redirectToUniqueCampaign(campaign) {
-                $location.path('mission/mission-details/' + campaign._id);
-            }
-
-            return {
-                getUniqueCampaign: _getUniqueCampaign,
-                notifyNotHaveCampaign: _notifyNotHaveCampaign,
-                redirectToUniqueCampaign: _redirectToUniqueCampaign
-            };
-        }
-    ]);
 
 })(window);
 (function (global) {
