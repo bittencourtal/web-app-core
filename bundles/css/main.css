@@ -839,6 +839,12 @@ header .md-toolbar-tools > .md-button:last-child{
     .sm-no-margin {
         margin: 0 !important;
     }
+    .sm-margin-bottom {
+        margin-bottom: 12px !important;
+    }
+    .sm-margin-bottom-2 {
+        margin-bottom: 24px !important;
+    }
     .sm-margin-bottom-3 {
         margin-bottom: 36px !important;
     }

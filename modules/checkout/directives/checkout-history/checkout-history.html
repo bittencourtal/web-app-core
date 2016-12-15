@@ -4,13 +4,11 @@
             <div class="text-center" flex-sm="100" flex="15">
                 <time ng-bind="checkout.createdAt | date:'dd/MM/yyyy'"></time>
             </div>
-            <div class="md-padding sm-text-center sm-padding" flex-sm="100" flex="65">
+            <div class="md-padding sm-text-center sm-padding" flex-sm="100" flex="45">
                 <h3 ng-bind="checkout.prize.value"></h3>
             </div>
-            <div class="text-center" flex-sm="100" flex="20">
-                <span class="badge block margin-bottom" ng-bind="checkout.prize.points + ' pontos'"></span>
-                <span class="block" ng-bind="checkout.status"></span>
-            </div>
+            <span class="text-center sm-margin-bottom" flex-sm="100" flex="20" ng-bind="checkout.prize.points + ' pontos'"></span>
+            <span class="text-center" ng-bind="getStatusLabel(checkout.status)"></span>
         </div>
         <md-divider ng-repeat-end ng-if="!$last"></md-divider>
     </div>

@@ -24,6 +24,22 @@
                         .then(_populateCheckoutHistory)
                 }
 
+                $scope.getStatusLabel = function (status) {
+                    switch (status) {
+                        case 'requested':
+                            return 'Solicitado';
+
+                        case 'approved':
+                            return 'Aprovado';
+
+                        case 'reproved':
+                            return 'Reprovado';
+
+                        default:
+                            return '?';
+                    }
+                };
+
                 _init();
             }
         }
