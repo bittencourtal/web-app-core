@@ -34,7 +34,38 @@
 				_getCampaignRank();
 			}
 
-			_init();
+			function _mock(){
+				$scope.campaignRanking = [{
+					campaign: {
+						tag: 'squidmock'
+					},
+					ranking: [{
+						user: {
+							name: 'Nome de teste 01',
+							picture: '/err.jpg'
+						},
+						total: 272
+					},
+					{
+						user: {
+							name: '',
+							nickname: 'Nickname de teste 02',
+							picture: '/err.jpg'
+						},
+						total: 2871
+					},
+					{
+						user: {
+							name: 'Nome de teste 03',
+							picture: '/err.jpg'
+						},
+						total: 24
+					}]
+				}];
+			}
+
+			// _init();
+			_mock();
 		}
 	]);
 

@@ -191,6 +191,12 @@
     .sm-text-center {
         text-align: center !important;
     }
+    .sm-text-left{
+        text-align: left !important;
+    }
+    .sm-text-right{
+        text-align: right !important;
+    }
     .sm-margin-top-double {
         margin-top: 24px !important;
     }

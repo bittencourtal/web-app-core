@@ -188,7 +188,8 @@ md-tabs>md-tabs-wrapper>md-tabs-canvas>md-pagination-wrapper>md-tab-item:not([di
 md-tabs-wrapper md-next-button {
     z-index: 1;
 }
-.md-toolbar-tools h2{
+.md-toolbar-tools h2,
+.md-toolbar-tools h3{
     color: ||primary.50||;
 }
 #nprogress .bar {
@@ -226,37 +227,62 @@ md-tabs-wrapper md-next-button {
 .card.profile .profile-statistics-list li{
     color: ||primary.50||;
 }
+.rank-list li{
+    margin-bottom: 12px;
+    padding-top: 12px;
+}
+
+.rank-list li:first-child > div:nth-child(2){
+    padding-left:0;
+}
+
+.rank-list li:first-child > div:nth-child(2) img{
+    height: auto;
+    width: 95%;
+    border: 2px solid #dcc11a;
+}
+
+.rank-list li:first-child .rank-position{
+    background: #dcc11a;
+}
+
+.rank-list li:first-child > div:nth-child(3){
+    padding-left:12px;
+}
+
+.rank-list li:first-child{
+
+}
+
+.rank-list li > [class*='flex']{
+    padding-left: 8px;
+}
+
+.rank-list li > [class*='flex']:first-child{
+    padding-left:0;
+}
+
 .rank-list .rank-position {
     color: #FFF;
     background: #7b7876;
-    display: inline-block;
     padding: 4px 8px;
     border-radius: 12px;
-    margin-right: 8px;
 }
 
-.rank-points,
-.rank-position {
+.rank-list .rank-points,
+.rank-list .rank-position {
     font-size: 1.2em;
     font-weight: bold;
 }
 
-@media (max-width: 767px) {
-    .rank-list h3 {
-        width: 200px;
-    }
-    .rank-list md-list-item {
-        padding: 0;
-    }
-    .rank-list .md-list-item-text {
-        display: block;
-    }
-    .rank-list .md-list-item>.md-avatar {
-        margin-right: 8px;
-    }
-    .rank-list .rank-position {
+@media (max-width: 767px){
+    .rank-list .rank-position{
         font-size: 1em;
     }
+
+    .rank-list .rank-points{
+        font-size:1em;
+    }   
 }
 a {
     color: ||primary.default||;

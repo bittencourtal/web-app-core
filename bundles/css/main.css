@@ -833,6 +833,12 @@ header .md-toolbar-tools > .md-button:last-child{
     .sm-text-center {
         text-align: center !important;
     }
+    .sm-text-left{
+        text-align: left !important;
+    }
+    .sm-text-right{
+        text-align: right !important;
+    }
     .sm-margin-top-double {
         margin-top: 24px !important;
     }
@@ -1059,8 +1065,23 @@ md-tooltip{
         padding-left: 0;
     }
 }
-.rank-list .badge {
-    margin-top: 6px;
+.rank-list{
+    margin: 0;
+    padding: 0;
+}
+
+.rank-list img{
+    width: auto;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.rank-list label{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
 }
 html,
 body {

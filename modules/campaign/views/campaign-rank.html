@@ -6,25 +6,37 @@
             </div>
         </md-toolbar>
         <md-card-content ng-repeat="campaignRank in campaignRanking">
-            <h3>#{{campaignRank.campaign.tag}}</h3>
-            <md-list flex class="rank-list">
-                <md-list-item ng-class="{'md-2-line': isSmallDevice, 'secondary-button-padding': !isSmallDevice}" ng-repeat-start="ranking in campaignRank.ranking">
-                    <span class="rank-position" ng-bind="'#' + ($index + 1)"></span>
-                    <img ng-src="{{ranking.user.picture}}" onerror="this.onerror=null;this.src='/img/no-usr-img.png';" class="md-avatar" />
-                    <div class="md-list-item-text" layout="column">
-                        <label for="">{{ranking.user.name}}</label>
-                        <span class="rank-points" ng-class="{'md-secondary': !isSmallDevice }" ng-bind="(ranking.total || 0) + ' pontos'"></span>
+            <h3 ng-bind="'#' + campaignRank.campaign.tag"></h3>
+            <ul class="rank-list">
+                <li layout="row" layout-align="start center" ng-repeat-start="ranking in campaignRank.ranking">
+                    <div class="text-center" flex="10" flex-sm="20">
+                        <span class="rank-position" ng-bind="'#' + ($index + 1)"></span>
                     </div>
-                </md-list-item>
+                    <div flex="10" flex-sm="20">
+                        <img ng-src="{{ranking.user.picture}}" onerror="this.onerror=null; this.src=window.APP_CONFIG.APP_DIR+'/images/no-img.jpg'" />
+                    </div>
+                    <div layout="row" layout-sm="column" flex="80" flex-sm="60">
+                        <div flex="70" flex-sm="100">
+                            <label ng-bind="ranking.user.name || ranking.user.nickname"></label>
+                        </div>
+                        <div class="sm-text-left text-right" flex="30" flex-sm="100">
+                            <span class="rank-points" ng-bind="(ranking.total || 0) + ' pontos'"></span>
+                        </div>
+                    </div>
+                </li>
                 <md-divider ng-repeat-end ng-if="!$last"></md-divider>
-                <md-list-item class="text-center" ng-if="campaignRank.length == 0 && !isLoading">
-                    <div class="stack">
-                        <md-icon class="mdi mdi-emoticon-sad"></md-icon>
-                        <h3>Não houve participações na campanha até o momento.</h3>
-                    </div>
-                </md-list-item>
-            </md-list>
-            <div class="loader-wrapper" layout="row" layout-align="center center" ng-show="isLoading">
+            </ul>
+            <div ng-if="campaignRank.ranking.length == 0 && !isLoading">
+                <md-icon class="mdi mdi-emoticon-sad md-display-3"></md-icon>
+                <h3>Não houve participações na campanha até o momento.</h3>
+            </div>
+        </md-card-content>
+        <md-card-content ng-if="campaignRank.length == 0 && !isLoading">
+            <md-icon class="mdi mdi-emoticon-sad md-display-3"></md-icon>
+            <h3>Não há nenhuma campanha ativa até o momento.</h3>
+        </md-card-content>
+        <md-card-content ng-show="isLoading">
+            <div class="loader-wrapper" layout="row" layout-align="center center">
                 <md-progress-circular md-mode="indeterminate"></md-progress-circular>
             </div>
         </md-card-content>

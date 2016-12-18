@@ -87,7 +87,7 @@
 			ONLY_APPROVED: false
 		},
 		RANK: {
-			SHOW: false,
+			SHOW: true,
 		},
 		WORKFLOWS: {
 			LOGIN: {

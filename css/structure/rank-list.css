@@ -1,3 +1,18 @@
-.rank-list .badge {
-    margin-top: 6px;
+.rank-list{
+    margin: 0;
+    padding: 0;
+}
+
+.rank-list img{
+    width: auto;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.rank-list label{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
 }

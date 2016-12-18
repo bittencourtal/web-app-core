@@ -36,9 +36,9 @@
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
                 <p>Feed</p>
             </md-list-item>
-            <md-list-item ng-click="$location.path('rank')" ng-class="getButtonClass('campaign')" ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated">
+            <md-list-item ng-click="$location.path('rank')" ng-class="getButtonClass('rank')" ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated">
                 <md-icon class="mdi md-headline mdi-trophy"></md-icon>
-                <p>Rank</p>
+                <p>Ranking</p>
             </md-list-item>
             <md-list-item ng-show="APP_CONFIG.TERMS_OF_USE.SHOW">
                 <a ng-href="{{APP_CONFIG.TERMS_OF_USE.LINK}}" class="md-no-style md-button md-ink-ripple" target="_blank">

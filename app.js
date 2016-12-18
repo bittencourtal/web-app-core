@@ -18,6 +18,8 @@
             function ($rootScope, auth, store, jwtHelper, $location, WorkflowInitializer) {
                 $rootScope = $rootScope || {};
 
+                $rootScope.pageTitle = "";
+
                 function _redirectToLogin() {
                     $location.path(global.APP_CONFIG.LOGIN_ROUTE);
                 }
@@ -37,6 +39,17 @@
                     return auth.profile.app_metadata.acceptedTerms;
                 }
 
+                function _persistToken(){
+                    var token = store.get('token');
+
+                    if(!token)
+                        return;
+
+                    !jwtHelper.isTokenExpired(token)
+                        ? auth.authenticate(store.get('profile'), token)
+                        : $.jStorage.flush();
+                }
+
                 function _logout() {
                     auth.signout();
                     store.remove('profile');
@@ -50,40 +63,32 @@
                     }
                 }
 
-                $rootScope.pageTitle = "";
+                function _onLocationChangeStart(){
+                    _persistToken();
 
-                $rootScope.setPageTitle = function (title) {
-                    $rootScope.pageTitle = title;
-                };
-
-                $rootScope.$on('$locationChangeStart', function () {
-                    var token = store.get('token');
-                    if (token) {
-                        if (!jwtHelper.isTokenExpired(token)) {
-                            auth.authenticate(store.get('profile'), token);
-                        } else {
-                            $.jStorage.flush();
-                        }
-                    }
-
-                    if (!auth.isAuthenticated) {
-                        $.jStorage.flush();
-                        if (global.APP_CONFIG.REQUIRE_AUTHENTICATION)
-                            _redirectToLogin();
-
+                    if (auth.isAuthenticated)
                         return;
-                    }
-                });
 
-                $rootScope.$on('$routeChangeSuccess', function (e, nextRoute) {
+                    $.jStorage.flush();
+                    if (global.APP_CONFIG.REQUIRE_AUTHENTICATION)
+                        _redirectToLogin();
+                }
+
+                function _onRouteChangeSuccess(ev, nextRoute){
                     WorkflowInitializer
                         .initWorkflows(global.APP_CONFIG.WORKFLOWS.ROUTES.CHANGED)
                         .catch(_logout);
 
                     if (_nextRouteRequireLogin(nextRoute) && !auth.isAuthenticated)
                         _redirectToLogin();
-                });
+                }
 
+                $rootScope.setPageTitle = function (title) {
+                    $rootScope.pageTitle = title;
+                };
+
+                $rootScope.$on('$locationChangeStart', _onLocationChangeStart);
+                $rootScope.$on('$routeChangeSuccess', _onRouteChangeSuccess);
                 auth.hookEvents();
             }
         ]);
