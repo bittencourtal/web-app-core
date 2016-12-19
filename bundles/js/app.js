@@ -567,13 +567,13 @@ if (!String.prototype.startsWith) {
 })(window);
 (function(global) {
 
-	global.squid.user = angular.module("squid-user", []);
-	global.squid.user.controllers = {};
+	global.squid.mission = angular.module("squid-mission", []);
 
 })(window);
 (function(global) {
 
-	global.squid.mission = angular.module("squid-mission", []);
+	global.squid.user = angular.module("squid-user", []);
+	global.squid.user.controllers = {};
 
 })(window);
 (function (global) {
@@ -581,6 +581,18 @@ if (!String.prototype.startsWith) {
     global.squid.workflow = angular.module("squid-workflow", []);
     global.squid.workflow.controllers = {};
     global.squid.workflow.models = {};
+
+})(window);
+(function (global) {
+
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/rank', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Ranking'
+            });
+    }]);
 
 })(window);
 (function (global) {
@@ -912,18 +924,6 @@ if (!String.prototype.startsWith) {
                 isArray: true
             }
         });
-    }]);
-
-})(window);
-(function (global) {
-
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/rank', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Ranking'
-            });
     }]);
 
 })(window);
@@ -1642,322 +1642,6 @@ if (!String.prototype.startsWith) {
 (function (global) {
     "use strict";
 
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    global.squid.user.controller('MyProfileController', [
-        '$scope',
-        '$rootScope',
-        'auth',
-        'userService',
-        '$location',
-        'participationService',
-        '$mdToast',
-        function (
-            $scope,
-            $rootScope,
-            auth,
-            userService,
-            $location,
-            participationService,
-            $mdToast
-        ) {
-
-            var firstLoad = true;
-            $scope.isSaving = false;
-            $scope.isLoadingParticipations = false;
-            $scope.auth = auth;
-            $scope.userMetadata = {};
-            $scope.selectedTabIndex = 0;
-            $scope.isLoading = false;
-            $scope.participations = {
-                data: [],
-                minId: ''
-            };
-
-            function _getToastPosition() {
-                if ($rootScope.isSmallDevice) {
-                    return 'bottom left';
-                } else {
-                    return 'top right';
-                }
-            }
-
-            function _getUserStatistics() {
-                userStatisticsService.getUserProfileStatistics(function (userStatistics) {
-                    $scope.userStatistics = userStatistics;
-                });
-            }
-
-            function _canNotLoadParticipations() {
-                return $scope.isLoadingParticipations ||
-                    $scope.participations.data.length > 0 && !$scope.participations.minId ||
-                    $scope.participations.data.length == 0 && !firstLoad;
-            }
-
-            function _onUserMetadataSaved(userMetadata) {
-                var toast = $mdToast.simple()
-                    .content('Dados salvos :)')
-                    .action(toastConfig.close)
-                    .parent($('main').get(0))
-                    .hideDelay(toastConfig.delay)
-                    .highlightAction(false)
-                    .position(_getToastPosition());
-
-                $mdToast.show(toast).then(function (response) {});
-            }
-
-            function _getUserParticipation() {
-                if (_canNotLoadParticipations())
-                    return;
-
-                firstLoad = false;
-                $scope.isLoadingParticipations = true;
-
-                participationService.getUserParticipations({
-                    id: auth.profile.user_id,
-                    minId: $scope.participations.minId,
-                    take: 12
-                }, function (response) {
-                    $scope.participations.data = $scope.participations.data
-                        .concat(response.data)
-                        .distinct(function (c, n) {
-                            return c._id == n._id;
-                        });
-                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
-                    $scope.isLoadingParticipations = false;
-                }, function () {
-                    $scope.isLoadingParticipations = false;
-                });
-            }
-
-            function _init() {
-                if (!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-            }
-
-            $scope.loadMoreParticipations = function () {
-                if (!auth.isAuthenticated)
-                    return;
-
-                _getUserParticipation();
-            };
-
-            $scope.save = function () {
-                $scope.saveUserMetadata()
-                    .then(_onUserMetadataSaved);
-            };
-
-            $scope.saveUserMetadata = function () {}; // user-metadata-directive will override this method!
-
-            $scope.getSaveButtonLabel = function () {
-                return $scope.isSaving ? 'Salvando...' : 'Salvar';
-            };
-
-            _init();
-        }
-    ]);
-
-
-})(window);
-(function (global) {
-
-    var toastConfig = {
-        delay: 10000,
-        close: 'OK'
-    };
-
-    function UserMetadataDialogController($scope, $rootScope, $mdDialog, $mdToast, squidSpidermanService, userMetadataHelper) {
-
-        var EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-        $scope.isLoading = false;
-        $scope.userMetadata = userMetadataHelper.getUserMetadata() || {};
-
-        function _getToastPosition() {
-            if ($rootScope.isSmallDevice) {
-                return 'bottom left';
-            } else {
-                return 'top right';
-            }
-        }
-
-        function _isValidEmail(email) {
-            return EMAIL_REGEX.test(email);
-        }
-
-        function _metadataUpdated() {
-            $scope.isLoading = false;
-            $mdDialog.hide();
-        }
-
-        function _metadataNotUpdated() {
-            $scope.isLoading = false;
-            var toast = $mdToast.simple()
-                .content('Não foi possível salvar os dados, contate o administrador.')
-                .action(toastConfig.close)
-                .parent($('main').get(0))
-                .hideDelay(toastConfig.delay)
-                .highlightAction(false)
-                .position(_getToastPosition());
-
-            $mdToast.show(toast);
-        }
-
-        function _invalidEmail() {
-            var toast = $mdToast.simple()
-                .content('Insira um e-mail válido.')
-                .action(toastConfig.close)
-                .parent($('main').get(0))
-                .hideDelay(toastConfig.delay)
-                .highlightAction(false)
-                .position(_getToastPosition());
-
-            $mdToast.show(toast);
-        }
-
-        $scope.save = function (userMetadata) {
-            if (!_isValidEmail(userMetadata.email))
-                return _invalidEmail();
-
-            $scope.isLoading = true;
-            squidSpidermanService
-                .updateUserMetadata(userMetadata, _metadataUpdated, _metadataNotUpdated);
-        };
-
-    }
-
-    global.squid.user.controllers.UserMetadataDialogController = UserMetadataDialogController;
-    global.squid.user.controller('UserMetadataDialogController', [
-        '$scope',
-        '$rootScope',
-        '$mdDialog',
-        '$mdToast',
-        'squidSpidermanService',
-        'userMetadataHelper',
-        UserMetadataDialogController
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
-
-        function _getProfile() {
-            return store.get('profile');
-        }
-
-        function _termsIsAccepted() {
-            var userMetadata = _getUserMetadata();
-            return !userMetadata ? false : userMetadata.acceptedTerms;
-        }
-
-        function _getUserMetadata() {
-            var userProfile = _getProfile();
-
-            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
-                return null;
-
-            return userProfile.user_metadata.infos.first(function (userMetadata) {
-                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
-            });
-        }
-
-        return {
-            getProfile: _getProfile,
-            getUserMetadata: _getUserMetadata,
-            termsIsAccepted: _termsIsAccepted
-        };
-    }]);
-
-})(window);
-(function (global) {
-
-    global.squid.user.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/my-profile', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Meu Perfil'
-            });
-    }]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('squidSpidermanService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.SPIDERMAN_END_POINT_URL() + '/:action', {
-                action: '@action'
-            }, {
-                updateUserMetadata: {
-                    method: 'PATCH',
-                    params:{
-                        action: 'usermetadata'
-                    }
-                },
-                getUserMetadata: {
-                    method: 'GET',
-                    params:{
-                        action: 'usermetadata'
-                    }
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                email: {
-                    method: 'PUT',
-                    params:{
-                        action: 'email'
-                    }
-                },
-                update: {
-                    method: 'PUT'
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
-    global.squid.user.factory('userStatisticsService', ['$resource',
-        function ($resource) {
-            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/statistics/user/:action/:id', {
-                action: '@action',
-                id: '@id'
-            }, {
-                getUserProfileStatistics: {
-                    method: 'GET',
-                    params:{
-                        action: 'me'
-                    }
-                }
-            });
-        }
-    ]);
-
-})(window);
-(function (global) {
-    "use strict";
-
     global.squid.mission.controller('ActiveMissionController', [
         '$scope', 'channelService', '$mdToast', 'uniqueCampaignService',
         function ($scope, channelService, $mdToast, uniqueCampaignService) {
@@ -2425,6 +2109,322 @@ if (!String.prototype.startsWith) {
 
 })(window);
 (function (global) {
+    "use strict";
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    global.squid.user.controller('MyProfileController', [
+        '$scope',
+        '$rootScope',
+        'auth',
+        'userService',
+        '$location',
+        'participationService',
+        '$mdToast',
+        function (
+            $scope,
+            $rootScope,
+            auth,
+            userService,
+            $location,
+            participationService,
+            $mdToast
+        ) {
+
+            var firstLoad = true;
+            $scope.isSaving = false;
+            $scope.isLoadingParticipations = false;
+            $scope.auth = auth;
+            $scope.userMetadata = {};
+            $scope.selectedTabIndex = 0;
+            $scope.isLoading = false;
+            $scope.participations = {
+                data: [],
+                minId: ''
+            };
+
+            function _getToastPosition() {
+                if ($rootScope.isSmallDevice) {
+                    return 'bottom left';
+                } else {
+                    return 'top right';
+                }
+            }
+
+            function _getUserStatistics() {
+                userStatisticsService.getUserProfileStatistics(function (userStatistics) {
+                    $scope.userStatistics = userStatistics;
+                });
+            }
+
+            function _canNotLoadParticipations() {
+                return $scope.isLoadingParticipations ||
+                    $scope.participations.data.length > 0 && !$scope.participations.minId ||
+                    $scope.participations.data.length == 0 && !firstLoad;
+            }
+
+            function _onUserMetadataSaved(userMetadata) {
+                var toast = $mdToast.simple()
+                    .content('Dados salvos :)')
+                    .action(toastConfig.close)
+                    .parent($('main').get(0))
+                    .hideDelay(toastConfig.delay)
+                    .highlightAction(false)
+                    .position(_getToastPosition());
+
+                $mdToast.show(toast).then(function (response) {});
+            }
+
+            function _getUserParticipation() {
+                if (_canNotLoadParticipations())
+                    return;
+
+                firstLoad = false;
+                $scope.isLoadingParticipations = true;
+
+                participationService.getUserParticipations({
+                    id: auth.profile.user_id,
+                    minId: $scope.participations.minId,
+                    take: 12
+                }, function (response) {
+                    $scope.participations.data = $scope.participations.data
+                        .concat(response.data)
+                        .distinct(function (c, n) {
+                            return c._id == n._id;
+                        });
+                    $scope.participations.minId = response.paginationMetadata.next ? response.paginationMetadata.next.minId : null;
+                    $scope.isLoadingParticipations = false;
+                }, function () {
+                    $scope.isLoadingParticipations = false;
+                });
+            }
+
+            function _init() {
+                if (!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+            }
+
+            $scope.loadMoreParticipations = function () {
+                if (!auth.isAuthenticated)
+                    return;
+
+                _getUserParticipation();
+            };
+
+            $scope.save = function () {
+                $scope.saveUserMetadata()
+                    .then(_onUserMetadataSaved);
+            };
+
+            $scope.saveUserMetadata = function () {}; // user-metadata-directive will override this method!
+
+            $scope.getSaveButtonLabel = function () {
+                return $scope.isSaving ? 'Salvando...' : 'Salvar';
+            };
+
+            _init();
+        }
+    ]);
+
+
+})(window);
+(function (global) {
+
+    var toastConfig = {
+        delay: 10000,
+        close: 'OK'
+    };
+
+    function UserMetadataDialogController($scope, $rootScope, $mdDialog, $mdToast, squidSpidermanService, userMetadataHelper) {
+
+        var EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+        $scope.isLoading = false;
+        $scope.userMetadata = userMetadataHelper.getUserMetadata() || {};
+
+        function _getToastPosition() {
+            if ($rootScope.isSmallDevice) {
+                return 'bottom left';
+            } else {
+                return 'top right';
+            }
+        }
+
+        function _isValidEmail(email) {
+            return EMAIL_REGEX.test(email);
+        }
+
+        function _metadataUpdated() {
+            $scope.isLoading = false;
+            $mdDialog.hide();
+        }
+
+        function _metadataNotUpdated() {
+            $scope.isLoading = false;
+            var toast = $mdToast.simple()
+                .content('Não foi possível salvar os dados, contate o administrador.')
+                .action(toastConfig.close)
+                .parent($('main').get(0))
+                .hideDelay(toastConfig.delay)
+                .highlightAction(false)
+                .position(_getToastPosition());
+
+            $mdToast.show(toast);
+        }
+
+        function _invalidEmail() {
+            var toast = $mdToast.simple()
+                .content('Insira um e-mail válido.')
+                .action(toastConfig.close)
+                .parent($('main').get(0))
+                .hideDelay(toastConfig.delay)
+                .highlightAction(false)
+                .position(_getToastPosition());
+
+            $mdToast.show(toast);
+        }
+
+        $scope.save = function (userMetadata) {
+            if (!_isValidEmail(userMetadata.email))
+                return _invalidEmail();
+
+            $scope.isLoading = true;
+            squidSpidermanService
+                .updateUserMetadata(userMetadata, _metadataUpdated, _metadataNotUpdated);
+        };
+
+    }
+
+    global.squid.user.controllers.UserMetadataDialogController = UserMetadataDialogController;
+    global.squid.user.controller('UserMetadataDialogController', [
+        '$scope',
+        '$rootScope',
+        '$mdDialog',
+        '$mdToast',
+        'squidSpidermanService',
+        'userMetadataHelper',
+        UserMetadataDialogController
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userMetadataHelper', ['store', function (store) {
+
+        function _getProfile() {
+            return store.get('profile');
+        }
+
+        function _termsIsAccepted() {
+            var userMetadata = _getUserMetadata();
+            return !userMetadata ? false : userMetadata.acceptedTerms;
+        }
+
+        function _getUserMetadata() {
+            var userProfile = _getProfile();
+
+            if (!userProfile || !userProfile.user_metadata || !userProfile.user_metadata.infos)
+                return null;
+
+            return userProfile.user_metadata.infos.first(function (userMetadata) {
+                return userMetadata.channelId == global.APP_CONFIG.APP_ID();
+            });
+        }
+
+        return {
+            getProfile: _getProfile,
+            getUserMetadata: _getUserMetadata,
+            termsIsAccepted: _termsIsAccepted
+        };
+    }]);
+
+})(window);
+(function (global) {
+
+    global.squid.user.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/my-profile', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/user/views/my-profile.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Meu Perfil'
+            });
+    }]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('squidSpidermanService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.SPIDERMAN_END_POINT_URL() + '/:action', {
+                action: '@action'
+            }, {
+                updateUserMetadata: {
+                    method: 'PATCH',
+                    params:{
+                        action: 'usermetadata'
+                    }
+                },
+                getUserMetadata: {
+                    method: 'GET',
+                    params:{
+                        action: 'usermetadata'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                email: {
+                    method: 'PUT',
+                    params:{
+                        action: 'email'
+                    }
+                },
+                update: {
+                    method: 'PUT'
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
+    "use strict";
+
+    global.squid.user.factory('userStatisticsService', ['$resource',
+        function ($resource) {
+            return $resource(global.APP_CONFIG.END_POINT_URL() + '/api/statistics/user/:action/:id', {
+                action: '@action',
+                id: '@id'
+            }, {
+                getUserProfileStatistics: {
+                    method: 'GET',
+                    params:{
+                        action: 'me'
+                    }
+                }
+            });
+        }
+    ]);
+
+})(window);
+(function (global) {
 
     function AboutCampaignWorkflowInitializer($q, store, $mdDialog, AboutCampaignModalService) {
 
@@ -2754,7 +2754,7 @@ if (!String.prototype.startsWith) {
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', function (channelService, auth) {
+    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', '$location', function (channelService, auth, $location) {
         return {
             scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-rescue/checkout-rescue.html',
@@ -2813,12 +2813,17 @@ if (!String.prototype.startsWith) {
                     return checkout.totalAvaible >= prize.points;
                 };
 
+                $scope.checkoutPrize = function (prize) {
+                  $location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)
+                }
+
                 _getCheckouts();
             }
         }
     }]);
 
 })(window);
+
 (function (global) {
     "use strict";
 

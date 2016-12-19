@@ -11,10 +11,10 @@
                 </div>
             </div>
             <div class="card-body md-padding sm-padding">
-                <div ng-if="!checkout.allPrizesSoldOut">
+                <div ng-hide="checkout.allPrizesSoldOut">
                     <h4>Prêmios</h4>
                     <md-list class="checkout-list">
-                        <md-list-item ng-if="!checkout.allPrizesSoldOut" class="md-2-line checkout-list-item" ng-repeat-start="prize in checkout.prizes" ng-if="prize.hasAvailableStock">
+                        <md-list-item class="md-2-line checkout-list-item" ng-repeat="prize in checkout.prizes" ng-show="prize.hasAvailableStock">
                             <md-icon class="hide-sm">
                                 <span class="mdi mdi-gift md-display-1"></span>
                             </md-icon>
@@ -22,16 +22,11 @@
                                 <h3 ng-bind="prize.points + ' pontos'"></h3>
                                 <p ng-bind="prize.value"></p>
                             </div>
-                            <md-button class="md-raised md-fab hide-gt-sm md-mini md-secondary md-primary" ng-disabled="!hasPointsAvailable(checkout, prize)"
-                                ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id">
-                                <span class="mdi mdi-briefcase-check"></span>
-                            </md-button>
-                            <md-button class="md-raised hide-sm md-secondary md-primary" ng-disabled="!hasPointsAvailable(checkout, prize)" ng-click="$location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)">
+                            <md-button class="md-raised hide-sm md-secondary md-primary" ng-disabled="!hasPointsAvailable(checkout, prize)" ng-click="checkoutPrize(prize)">
                                 <span class="mdi mdi-briefcase-check"></span>
                                 <span>Resgatar</span>
                             </md-button>
                         </md-list-item>
-                        <md-divider ng-repeat-end ng-if="!$last"></md-divider>
                     </md-list>
                 </div>
                 <div ng-if="checkout.allPrizesSoldOut">

@@ -1,7 +1,7 @@
 (function (global) {
     "use strict";
 
-    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', function (channelService, auth) {
+    global.squid.checkout.directive('checkoutRescue', ['channelService', 'auth', '$location', function (channelService, auth, $location) {
         return {
             scope: {},
             templateUrl: global.APP_CONFIG.APP_DIR + '/modules/checkout/directives/checkout-rescue/checkout-rescue.html',
@@ -59,6 +59,10 @@
                 $scope.hasPointsAvailable = function (checkout, prize) {
                     return checkout.totalAvaible >= prize.points;
                 };
+
+                $scope.checkoutPrize = function (prize) {
+                  $location.path('/checkout/campaigns/' + prize.mission + '/prize/' + prize._id)
+                }
 
                 _getCheckouts();
             }
