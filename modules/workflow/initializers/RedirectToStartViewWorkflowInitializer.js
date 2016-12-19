@@ -2,15 +2,17 @@
 
     function RedirectToStartViewWorkflowInitializer($q, $location, navigationService) {
 
-        function _startViewIsEmpty() {
-            return !global.APP_CONFIG.START_VIEW;
+        function _isToRedirectUniqueCampaignAfterLogin(){
+            return global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER.any(function(workflowInitializerName){
+                return workflowInitializerName == 'RedirectToUniqueCampaignWorkflowInitializer';
+            });
         }
 
         return {
             init: function () {
                 var defer = $q.defer();
 
-                if (navigationService.isRefresh() || _startViewIsEmpty()) {
+                if (navigationService.isRefresh() || _isToRedirectUniqueCampaignAfterLogin()) {
                     defer.resolve();
                     return defer.promise;
                 }

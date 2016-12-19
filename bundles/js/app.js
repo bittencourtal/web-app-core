@@ -538,14 +538,14 @@ if (!String.prototype.startsWith) {
 
 (function (global) {
 
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
 
 })(window);
 (function (global) {
 
-    global.squid.channel = angular.module("squid-channel", []);
-    global.squid.channel.controllers = {};
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function(global) {
@@ -583,18 +583,62 @@ if (!String.prototype.startsWith) {
     global.squid.workflow.models = {};
 
 })(window);
-(function (global) {
+(function(global, appConfig){
+    "use strict";
 
-    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/rank', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Ranking'
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
             });
     }]);
 
-})(window);
+})(window, window.APP_CONFIG);
 (function (global) {
     "use strict"
 
@@ -861,6 +905,18 @@ if (!String.prototype.startsWith) {
 })(window);
 (function (global) {
 
+    global.squid.campaign.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/rank', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/campaign/views/campaign-rank.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Ranking'
+            });
+    }]);
+
+})(window);
+(function (global) {
+
     var toastConfig = {
         delay: 10000,
         close: 'OK'
@@ -927,62 +983,6 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -1640,6 +1640,24 @@ if (!String.prototype.startsWith) {
 
 })(window);
 (function (global) {
+
+    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/mission/actives', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: 'Missões'
+            })
+            .when('/mission/mission-details/:missionId', {
+                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
+                pageTitle: '',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
+(function (global) {
     "use strict";
 
     global.squid.mission.controller('ActiveMissionController', [
@@ -1970,24 +1988,6 @@ if (!String.prototype.startsWith) {
                 };
 
             }]);
-
-})(window);
-(function (global) {
-
-    global.squid.mission.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/mission/actives', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/mission/views/actives.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: 'Missões'
-            })
-            .when('/mission/mission-details/:missionId', {
-                viewUrl: global.APP_CONFIG.APP_DIR +  '/modules/mission/views/mission-details.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.DEFAULT(),
-                pageTitle: '',
-                secondaryNav: true
-            });
-    }]);
 
 })(window);
 (function (global) {
@@ -2449,15 +2449,17 @@ if (!String.prototype.startsWith) {
 
     function RedirectToStartViewWorkflowInitializer($q, $location, navigationService) {
 
-        function _startViewIsEmpty() {
-            return !global.APP_CONFIG.START_VIEW;
+        function _isToRedirectUniqueCampaignAfterLogin(){
+            return global.APP_CONFIG.WORKFLOWS.LOGIN.AFTER.any(function(workflowInitializerName){
+                return workflowInitializerName == 'RedirectToUniqueCampaignWorkflowInitializer';
+            });
         }
 
         return {
             init: function () {
                 var defer = $q.defer();
 
-                if (navigationService.isRefresh() || _startViewIsEmpty()) {
+                if (navigationService.isRefresh() || _isToRedirectUniqueCampaignAfterLogin()) {
                     defer.resolve();
                     return defer.promise;
                 }
@@ -2484,13 +2486,6 @@ if (!String.prototype.startsWith) {
 
         return {
             init: function () {
-                var defer = $q.defer();
-
-                if (navigationService.isRefresh()) {
-                    defer.resolve();
-                    return defer.promise;
-                }
-
                 return uniqueCampaignService.getUniqueCampaign()
                     .then(uniqueCampaignService.redirectToUniqueCampaign)
                     .catch(_notHaveUniqueCampaign);

@@ -9,13 +9,6 @@
 
         return {
             init: function () {
-                var defer = $q.defer();
-
-                if (navigationService.isRefresh()) {
-                    defer.resolve();
-                    return defer.promise;
-                }
-
                 return uniqueCampaignService.getUniqueCampaign()
                     .then(uniqueCampaignService.redirectToUniqueCampaign)
                     .catch(_notHaveUniqueCampaign);
