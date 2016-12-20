@@ -55,7 +55,7 @@
 		CAMPAIGN_END_POINT_URL: _getCampaignEndPointUrl,
 		SPIDERMAN_END_POINT_URL: _getSpidermanUrl,
 		SQUID_APP_ID: '8818ac1766c14575acc04918a433c085',
-		START_VIEW: '/checkout',
+		START_VIEW: '/mission/actives', // /checkout
 		LOGIN_ROUTE: '/login',
 		USE_LOGIN_REDIRECT_MODE: true,
 		REQUIRE_AUTHENTICATION: true,
