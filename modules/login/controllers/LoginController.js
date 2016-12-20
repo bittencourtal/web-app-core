@@ -105,7 +105,7 @@
 
             function _initAsyncMode() {
                 auth.signin({
-                    connections: ['instagram'],
+                    connections: global.APP_CONFIG.AUTH0.CONNECTIONS,
                     container: 'login-box',
                     icon: '../images/logo.png',
                     dict: dict
@@ -120,7 +120,7 @@
 
             function _initRedirectMode() {
                 auth.signin({
-                    connections: ['instagram'],
+                    connections: global.APP_CONFIG.AUTH0.CONNECTIONS,
                     container: 'login-box',
                     icon: '../images/logo.png',
                     dict: dict

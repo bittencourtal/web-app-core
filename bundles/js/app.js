@@ -438,7 +438,7 @@ if (!String.prototype.startsWith) {
                     $scope.goToUniqueCampaign = function () {
                         if (!$scope.uniqueCampaign)
                             return uniqueCampaignService.notifyNotHaveCampaign();
-                            
+
                         uniqueCampaignService.redirectToUniqueCampaign($scope.uniqueCampaign);
                     };
 
@@ -467,6 +467,16 @@ if (!String.prototype.startsWith) {
                         }
                     };
 
+                    $scope.linkAccount = function() {
+                        $scope.isLoading = true;
+                        uniqueCampaignService.getUniqueCampaign()
+                            .then(function(campaign) {
+                                var idCampaign = campaign._id;
+                                $scope.isLoading = false;
+                                window.open(APP_CONFIG.CAMPAIGN_END_POINT_URL() + '/vincular/instagram?user_id=' + auth.profile.user_id + '&id=' + idCampaign, '_blank');
+                            });
+                    };
+
                     _loadUniqueCampaign();
                 }
             }
@@ -474,6 +484,7 @@ if (!String.prototype.startsWith) {
     ]);
 
 })(window);
+
 (function (global) {
 
     global.squid.app.factory('appIdInjector', [function () {
@@ -1581,7 +1592,7 @@ if (!String.prototype.startsWith) {
 
             function _initAsyncMode() {
                 auth.signin({
-                    connections: ['instagram'],
+                    connections: global.APP_CONFIG.AUTH0.CONNECTIONS,
                     container: 'login-box',
                     icon: '../images/logo.png',
                     dict: dict
@@ -1596,7 +1607,7 @@ if (!String.prototype.startsWith) {
 
             function _initRedirectMode() {
                 auth.signin({
-                    connections: ['instagram'],
+                    connections: global.APP_CONFIG.AUTH0.CONNECTIONS,
                     container: 'login-box',
                     icon: '../images/logo.png',
                     dict: dict
@@ -1661,6 +1672,7 @@ if (!String.prototype.startsWith) {
         _configureEventsHandlersToRedirectMode();
 
 })(window);
+
 (function (global) {
 
     global.squid.login.config(['$routeProvider', function ($routeProvider) {

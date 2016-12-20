@@ -121,7 +121,8 @@
 		AUTH0: {
 			CLIENT_ID: 'xmwmLJ1KnUrU3vJVW1uNfvIb4TCpguVX',
 			DOMAIN: 'squid.auth0.com',
-			CALLBACK_URL: 'https://squid.auth0.com/login/callback'
+			CALLBACK_URL: 'https://squid.auth0.com/login/callback',
+			CONNECTIONS: ['instagram']
 		},
 		THEME: {
 			CUSTOM: false,
