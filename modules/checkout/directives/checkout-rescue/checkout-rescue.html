@@ -22,9 +22,9 @@
                                 <h3 ng-bind="prize.points + ' pontos'"></h3>
                                 <p ng-bind="prize.value"></p>
                             </div>
-                            <md-button class="md-raised hide-sm md-secondary md-primary" ng-disabled="!hasPointsAvailable(checkout, prize)" ng-click="checkoutPrize(prize)">
+                            <md-button class="md-raised md-secondary md-primary" ng-disabled="!hasPointsAvailable(checkout, prize)" ng-click="checkoutPrize(prize)">
                                 <span class="mdi mdi-briefcase-check"></span>
-                                <span>Resgatar</span>
+                                <span class="hide-sm">Resgatar</span>
                             </md-button>
                         </md-list-item>
                     </md-list>

@@ -480,6 +480,10 @@
     color: rgba(0, 0, 0, 0.54);
 }
 
+.checkout-list .checkout-list-item md-button {
+  min-width: 40px;
+}
+
 @media (max-width: 480px) {
     .checkout-list md-list-item.md-2-line.checkout-list-item:last-child {
         margin-bottom: 0;
@@ -488,6 +492,7 @@
         padding-right: 64px;
     }
 }
+
 @font-face {
     font-family: 'open_sansbold';
     src: url('../../fonts/opensans/opensans-bold-webfont.eot');

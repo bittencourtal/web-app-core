@@ -584,14 +584,14 @@ if (!String.prototype.startsWith) {
 })(window);
 (function (global) {
 
-    global.squid.campaign = angular.module("squid-campaign", []);
-    global.squid.campaign.controllers = {};
+    global.squid.channel = angular.module("squid-channel", []);
+    global.squid.channel.controllers = {};
 
 })(window);
 (function (global) {
 
-    global.squid.channel = angular.module("squid-channel", []);
-    global.squid.channel.controllers = {};
+    global.squid.campaign = angular.module("squid-campaign", []);
+    global.squid.campaign.controllers = {};
 
 })(window);
 (function(global) {
@@ -629,6 +629,62 @@ if (!String.prototype.startsWith) {
     global.squid.workflow.models = {};
 
 })(window);
+(function(global, appConfig){
+    "use strict";
+
+    global.squid.channel.factory('channelService', ['$resource', function($resource){
+        var channelId = appConfig.APP_ID();
+        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
+                resource: '@resource',
+                resourceId: '@resourceId',
+                action: '@action',
+                actionId: '@actionId'
+            }, {
+                getActiveCampaigns: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'active'
+                    },
+                    isArray: true
+                },
+                getCampaign: {
+                   method: 'GET',
+                    params: {
+                        resource: 'campaigns'
+                    } 
+                },
+                getCampaignPrizes: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    },
+                    isArray: true
+                },
+                getSelfPoints: {
+                    method: 'GET',
+                    params: {
+                        resource: 'self',
+                        action: 'points',
+                    },
+                    isArray: true
+                },
+                createCheckout: {
+                    method: 'POST',
+                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
+                },
+                getPrize: {
+                    method: 'GET',
+                    params: {
+                        resource: 'campaigns',
+                        action: 'prizes'
+                    }
+                }
+            });
+    }]);
+
+})(window, window.APP_CONFIG);
 (function (global) {
     "use strict"
 
@@ -973,62 +1029,6 @@ if (!String.prototype.startsWith) {
     }]);
 
 })(window);
-(function(global, appConfig){
-    "use strict";
-
-    global.squid.channel.factory('channelService', ['$resource', function($resource){
-        var channelId = appConfig.APP_ID();
-        return $resource(appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/:resource/:resourceId/:action/:actionId', {
-                resource: '@resource',
-                resourceId: '@resourceId',
-                action: '@action',
-                actionId: '@actionId'
-            }, {
-                getActiveCampaigns: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'active'
-                    },
-                    isArray: true
-                },
-                getCampaign: {
-                   method: 'GET',
-                    params: {
-                        resource: 'campaigns'
-                    } 
-                },
-                getCampaignPrizes: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    },
-                    isArray: true
-                },
-                getSelfPoints: {
-                    method: 'GET',
-                    params: {
-                        resource: 'self',
-                        action: 'points',
-                    },
-                    isArray: true
-                },
-                createCheckout: {
-                    method: 'POST',
-                    url: appConfig.CAMPAIGN_END_POINT_URL() + '/channels/' + channelId + '/campaigns/:resourceId/prizes/:action/checkout'
-                },
-                getPrize: {
-                    method: 'GET',
-                    params: {
-                        resource: 'campaigns',
-                        action: 'prizes'
-                    }
-                }
-            });
-    }]);
-
-})(window, window.APP_CONFIG);
 (function (global) {
 	"use strict";
 
@@ -1485,6 +1485,19 @@ if (!String.prototype.startsWith) {
     ]);
 
 })(window);
+(function (global) {
+
+    global.squid.login.config(['$routeProvider', function ($routeProvider) {
+        $routeProvider
+            .when('/login', {
+                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
+                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
+                pageTitle: 'Login',
+                secondaryNav: true
+            });
+    }]);
+
+})(window);
 /* jshint undef: true, unused: false */
 /* global app, window */
 
@@ -1673,19 +1686,6 @@ if (!String.prototype.startsWith) {
 
 })(window);
 
-(function (global) {
-
-    global.squid.login.config(['$routeProvider', function ($routeProvider) {
-        $routeProvider
-            .when('/login', {
-                viewUrl: global.APP_CONFIG.APP_DIR + '/modules/login/views/index.html',
-                templateUrl: global.APP_CONFIG.VIEWS.TEMPLATES.LOGIN,
-                pageTitle: 'Login',
-                secondaryNav: true
-            });
-    }]);
-
-})(window);
 (function (global) {
     "use strict";
 
