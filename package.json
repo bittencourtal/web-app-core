@@ -1,6 +1,6 @@
 {
   "name": "web-app-core",
-  "version": "1.4.10",
+  "version": "1.4.13",
   "description": "Squid web app core",
   "main": "app.js",
   "dependencies": {},
