@@ -480,7 +480,7 @@
     color: rgba(0, 0, 0, 0.54);
 }
 
-.checkout-list .checkout-list-item md-button {
+.checkout-list .checkout-list-item .md-button {
   min-width: 40px;
 }
 
