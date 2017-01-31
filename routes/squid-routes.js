@@ -20,8 +20,8 @@
 
             if(tries > 20)
                 return _redirectToLogin();
-
-            if(!auth.isAthenticated)
+                    
+            if(!auth.isAuthenticated)
                 return $timeout(_tryRedirect, 500);
 
             _redirectToStartView();
