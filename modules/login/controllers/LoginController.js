@@ -65,7 +65,7 @@
 
                 if (!auth.isAuthenticated) {
                     defer.resolve();
-                    return defer.promise;;
+                    return defer.promise;
                 }
 
                 _loggedIn()
