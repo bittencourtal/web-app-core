@@ -26,10 +26,10 @@
                 <md-tooltip>Feed</md-tooltip>
                 <md-icon class="mdi md-headline mdi-rss"></md-icon>
             </md-button>
-            <md-button ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Rank" ng-class="getButtonClass('campaign')" ng-click="$location.path('rank')">
+            <!--<md-button ng-if="APP_CONFIG.RANK.SHOW && auth.isAuthenticated" class="md-icon-button hide-sm" aria-label="Rank" ng-class="getButtonClass('campaign')" ng-click="$location.path('rank')">
                 <md-tooltip>Rank</md-tooltip>
                 <md-icon class="mdi md-headline mdi-trophy"></md-icon>
-            </md-button>
+            </md-button>-->
             <span flex class="hide-sm"></span>
             <h2 class="hide-gt-sm" flex ng-bind="pageTitle"></h2>
             <md-button aria-label="Login" ng-class="getButtonClass('login')" ng-click="$location.path('login')" ng-if="!auth.isAuthenticated" class="hide-sm">
@@ -48,12 +48,12 @@
                             <span md-menu-align-target>Meu perfil</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item ng-if="auth.isAuthenticated">
+                    <!--<md-menu-item ng-if="auth.isAuthenticated">
                         <md-button class="md-primary" ng-click="linkAccount()">
                             <md-icon class="mdi md-headline mdi-instagram"></md-icon>
                             <span md-menu-align-target>Vincular Instagram</span>
                         </md-button>
-                    </md-menu-item>
+                    </md-menu-item>-->
                     <md-menu-item ng-if="APP_CONFIG.TERMS_OF_USE.SHOW">
                         <md-button class="md-primary" ng-href="{{APP_CONFIG.TERMS_OF_USE.LINK}}" target="_blank">
                             <md-icon class="mdi md-headline mdi-flag"></md-icon>
@@ -70,6 +70,12 @@
                         <md-button class="md-primary" ng-click="openAboutCampaign()">
                             <md-icon class="mdi md-headline mdi-flag"></md-icon>
                             <span md-menu-align-target>Sobre a campanha</span>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button href="http://regulamentos.squidit.com.br/valeconhecer.html" class="md-primary" target="_blank">
+                            <md-icon class="mdi md-headline mdi-flag"></md-icon>
+                            <span md-menu-align-target style="margin-left: 4px;">Regulamento</span>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item ng-if="auth.isAuthenticated">
