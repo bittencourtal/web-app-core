@@ -1,11 +1,12 @@
 (function (global) {
 
-    function RedirectController($location, $timeout, auth) {
+    function RedirectController($location, $timeout, auth, store) {
 
         var tries = 0;
 
         function _redirectToStartView(){
-            $location.path(global.APP_CONFIG.START_VIEW);
+            if(store.get('token'))
+                $location.path(global.APP_CONFIG.START_VIEW);
         }
 
         function _redirectToLogin(){
@@ -30,7 +31,7 @@
         _tryRedirect();
     }
 
-    global.squid.app.controller('RedirectController', ['$location', '$timeout', 'auth', RedirectController]);
+    global.squid.app.controller('RedirectController', ['$location', '$timeout', 'auth', 'store', RedirectController]);
 
     global.squid.app.config(['$routeProvider', function ($routeProvider) {
         $routeProvider
